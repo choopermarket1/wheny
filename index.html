@@ -262,6 +262,8 @@
 </style>
 </head>
 <body>
+<script>/* GitHub Pages엔 AI 백엔드가 없음 → 자동으로 Vercel(정식) 버전으로 이동 */
+if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choopermarket1-8270s-projects.vercel.app/");</script>
 <div class="saekdong"></div>
 <div class="wrap">
   <header>
@@ -793,7 +795,9 @@ function run(){
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 // 줄글 → 문장별 줄바꿈 (한글 종결어 뒤에서 끊고, 2032. 같은 숫자 마침표는 제외)
-function brk(html){return String(html||"").replace(/([가-힣”"’\)】])([.!?])\s+/g,'$1$2<br>');}
+function brk(html){return String(html||"")
+  .replace(/([가-힣”"’\)】])([.!?])\s+/g,'$1$2<br>')   // 문장 끝에서 줄바꿈
+  .replace(/([가-힣”"’\)】]),\s+/g,'$1,<br>');}         // 쉼표 뒤에서도 줄바꿈(숫자 3,900은 공백없어 안전)
 function breakResult(){document.querySelectorAll('#result .block p, #result .ai-p, #result .ansitem>p').forEach(el=>{if(el.dataset.brk)return;el.dataset.brk='1';el.innerHTML=brk(el.innerHTML);});}
 // 에러 표시: 서버가 준 메시지(429 등)를 그대로 보여주고, 진짜 네트워크 오류만 일반 문구로.
 function errMsg(e){const m=(e&&e.message)||"";return (m&&!/fetch|network|failed|load/i.test(m))?m:"AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.";}
