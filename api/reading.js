@@ -157,7 +157,7 @@ export default async function handler(req, res) {
     } else if (focused) {
       system = FOCUS(persona, lang, question);
       userContent = `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n` + JSON.stringify(chart, null, 2);
-      maxTok = 1200;
+      maxTok = 1500;
     } else {
       system = SYSTEM(persona, lang);
       userContent = "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n" + JSON.stringify(chart, null, 2);
