@@ -59,6 +59,7 @@
     border-radius:11px;color:var(--paper);font-size:16px;font-family:inherit}
   input:focus,select:focus{outline:2px solid var(--hwang);outline-offset:1px;border-color:var(--hwang)}
   .row{display:flex;gap:11px}.row>div{flex:1}
+  .drow{display:flex;gap:8px}.drow select{flex:1;min-width:0}
   .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
@@ -292,7 +293,8 @@
       <button role="tab" aria-pressed="false" id="seg-lun" onclick="setCal('lun')">음력</button>
     </div>
     <label id="dateLbl">생년월일 (양력)</label>
-    <input type="date" id="date" value="1995-05-15" min="1920-01-01" max="2020-12-31" />
+    <div class="drow"><select id="dY" aria-label="연도"></select><select id="dM" aria-label="월"></select><select id="dD" aria-label="일"></select></div>
+    <input type="hidden" id="date" value="1995-05-15" />
     <div class="leap" id="leapWrap" style="display:none">
       <input type="checkbox" id="leap" /><label for="leap" style="margin:0;color:var(--paperdim);font-weight:600">이 달은 윤달이에요</label>
     </div>
@@ -314,10 +316,13 @@
       </select></div>
       <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
     </div>
+    <label>이름 (한자, 선택)</label>
+    <input id="hanja" placeholder="예: 秀賢 — 이름 오행까지 풀이 (없으면 비워두세요)" maxlength="8" autocomplete="off" />
     <div id="partnerBox" style="display:none">
       <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
       <label>상대 생년월일</label>
-      <input type="date" id="pdate" value="1994-08-20" min="1920-01-01" max="2020-12-31" />
+      <div class="drow"><select id="pY"></select><select id="pM"></select><select id="pD"></select></div>
+      <input type="hidden" id="pdate" value="1994-08-20" />
       <div class="row">
         <div><label>상대 태어난 시</label><select id="ptime">
           <option value="none" selected>🕐 시간 모름</option>
@@ -684,6 +689,7 @@ async function runCompat(){
   const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
   const tz=Number(gv("tz")),t=TEACHERS[picked];
   const A=chartOf(aY,aM,aD,ah,0,tz,gv("gender"),aNo),B=chartOf(bY,bM,bD,bh,0,tz,gv("pgender"),bNo);
+  const anm=(document.getElementById('hanja')?.value||'').trim();if(anm)A.이름=anm;
   if(!await ensurePaid())return;
   const box=document.getElementById("result");
   box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
@@ -731,6 +737,7 @@ function run(){
     현재대운:r.cur.k,올해:NOW,
     세운:{[NOW]:yearGZ(NOW).h,[NOW+1]:yearGZ(NOW+1).h,[NOW+2]:yearGZ(NOW+2).h},
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
+  const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
   CTX={r,tname:t.nm,chart,persona:picked,chat:[]};
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
   const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?` · 지금(${NOW})`:''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${Math.round(x.age)}~${Math.round(x.age)+9}세 · ${x.startYear}~${x.startYear+9}</span></div>`).join("");
@@ -745,6 +752,7 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}오행 밸런스</h3>
       ${ohaengRadar(d.el)}
       <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
+    ${chart.이름?`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}이름 풀이</h3><p>입력하신 이름 <b>${chart.이름}</b> — 이 이름이 사주의 ${missing.length?`부족한 <b style="color:#e0655a">${missing.join('·')}</b> 기운을 보완하는지`:'오행 균형에 어떻게 작용하는지'}, <b>${t.nm}</b>이 <b>획수·오행·뜻</b>으로 풀어드려요.</p><p style="margin:8px 0 0;font-size:12px;color:var(--dim)">정밀 해석·대화에서 이름까지 깊게 봐드려요.</p></div>`:''}
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
@@ -819,7 +827,8 @@ function renderTopics(cv){
 function askTopic(i){if(!CTX)return;sendChat(`${noEmoji(TOPICS[i][0])} 자세히 봐줘`);}
 function sendText(){const el=document.getElementById('chatText');if(!el)return;const t=el.value.trim();if(!t)return;el.value='';sendChat(t);}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-let CHAT_BUSY=false;
+let CHAT_BUSY=false,CHAT_TIMER=null;
+const LOADING_MSGS=['돋보기를 꺼내는 중','명식을 펼치는 중','대운을 짚어보는 중','별자리랑 맞춰보는 중','오행을 세어보는 중','안경을 고쳐 쓰는 중','차 한 모금 하고 오는 중','한참 들여다보는 중','손가락으로 짚어보는 중'];
 async function sendChat(text){
   if(!CTX||CHAT_BUSY)return;
   if(!await ensurePaid())return;
@@ -840,12 +849,14 @@ async function sendChat(text){
 }
 function renderChat(loading){
   const more=document.getElementById('more');if(!more)return;
+  clearInterval(CHAT_TIMER);
   let html=CTX.chat.map(m=> m.role==='user'
     ? `<div class="cm user">${escapeHtml(m.content)}</div>`
     : `<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body">${String(m.content).startsWith('__ERR__')?`<p style="margin:0;color:var(--hong)">${escapeHtml(m.content.slice(7))}</p>`:whenTimeline(m.content)+mdToHtml(m.content)}</div></div>`
   ).join('');
-  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><div class="typing">${CTX.tname}이 곰곰이 보는 중<i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~15초 걸려요</div></div></div>`;
+  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~15초 걸려요</div></div></div>`;
   more.innerHTML=html;breakResult();
+  if(loading){let i=0;CHAT_TIMER=setInterval(()=>{const el=document.querySelector('#more .lmsg');if(!el){clearInterval(CHAT_TIMER);return;}i=(i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[i];},1700);}
   const last=more.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function shareCard(){if(!CTX)return;
@@ -889,6 +900,20 @@ async function askAI(){
   }
 }
 renderTeachers();
+// 생년월일 드롭다운(클릭 선택). 히든 #date/#pdate 값을 YYYY-MM-DD로 유지 → 기존 로직 그대로 작동.
+function fillDob(yId,mId,dId,hiddenId){
+  const yS=document.getElementById(yId),mS=document.getElementById(mId),dS=document.getElementById(dId),hid=document.getElementById(hiddenId);
+  if(!yS||!hid)return;
+  const [dy,dm,dd]=(hid.value||'1995-05-15').split('-').map(Number);
+  let o='';for(let y=2020;y>=1920;y--)o+=`<option value="${y}"${y===dy?' selected':''}>${y}년</option>`;yS.innerHTML=o;
+  o='';for(let m=1;m<=12;m++)o+=`<option value="${m}"${m===dm?' selected':''}>${m}월</option>`;mS.innerHTML=o;
+  function set(){hid.value=`${yS.value}-${String(mS.value).padStart(2,'0')}-${String(dS.value).padStart(2,'0')}`;}
+  function days(keep){const dim=new Date(+yS.value,+mS.value,0).getDate();let cur=keep?Math.min(+dS.value||dd,dim):dd;if(cur>dim)cur=dim;let x='';for(let d=1;d<=dim;d++)x+=`<option value="${d}"${d===cur?' selected':''}>${d}일</option>`;dS.innerHTML=x;}
+  days(false);set();
+  yS.onchange=()=>{days(true);set();};mS.onchange=()=>{days(true);set();};dS.onchange=set;
+}
+fillDob('dY','dM','dD','date');
+fillDob('pY','pM','pD','pdate');
 </script>
 </body>
 </html>
