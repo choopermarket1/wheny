@@ -494,7 +494,7 @@ async function runCompat(){
   box.scrollIntoView({behavior:"smooth",block:"start"});
   try{
     const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko",paymentId:PAID_ID})});
-    if(!res.ok)throw new Error();
+    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
     box.innerHTML=`
       <div class="block" style="--tc:var(${t.cv})"><h3>💞 궁합 · ${A.일간} × ${B.일간}</h3>
@@ -503,7 +503,7 @@ async function runCompat(){
       <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요 💞')">📸 궁합 캡처 공유</button>
         <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다시 보기</button></div>`;
   }catch(e){
-    box.innerHTML=`<div class="block"><p style="color:var(--hong)">궁합 AI는 정식 서버(Vercel) 버전에서 작동해요. 이 미리보기엔 백엔드가 없어요.</p></div>`;
+    box.innerHTML=`<div class="block"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
   }
 }
 function run(){
@@ -579,6 +579,8 @@ function run(){
 // 줄글 → 문장별 줄바꿈 (한글 종결어 뒤에서 끊고, 2032. 같은 숫자 마침표는 제외)
 function brk(html){return String(html||"").replace(/([가-힣”"’\)】])([.!?])\s+/g,'$1$2<br>');}
 function breakResult(){document.querySelectorAll('#result .block p, #result .ai-p, #result .ansitem>p').forEach(el=>{if(el.dataset.brk)return;el.dataset.brk='1';el.innerHTML=brk(el.innerHTML);});}
+// 에러 표시: 서버가 준 메시지(429 등)를 그대로 보여주고, 진짜 네트워크 오류만 일반 문구로.
+function errMsg(e){const m=(e&&e.message)||"";return (m&&!/fetch|network|failed|load/i.test(m))?m:"AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.";}
 const TOPICS=[
   ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
   ["💍 결혼 시기","결혼운이 강해지는 시기와 어떤 배우자상이 잘 맞는지 알려줘"],
@@ -606,13 +608,13 @@ async function askTopic(i,btn){
   more.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q,paymentId:PAID_ID})});
-    if(!res.ok)throw new Error();
+    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
     div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${mdToHtml(data.reading||'')}</div>`;
     breakResult();
   }catch(e){
     btn.disabled=false;btn.style.opacity=1;
-    div.innerHTML=`<div class="q">${label}</div><p style="color:var(--hong)">AI 답변은 정식 서버(Vercel) 버전에서 작동해요. 이 미리보기엔 백엔드가 없어요.</p>`;
+    div.innerHTML=`<div class="q">${label}</div><p style="color:var(--hong)">${errMsg(e)}</p>`;
   }
 }
 function shareCard(){if(!CTX)return;
@@ -646,12 +648,12 @@ async function askAI(){
   box.innerHTML=`<div class="ai-out"><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 명식을 읽고 있어요… (10~20초)</p></div>`;
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',paymentId:PAID_ID})});
-    if(!res.ok)throw new Error('backend '+res.status);
+    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
     box.innerHTML=`<div class="ai-out">${mdToHtml(data.reading||'')}</div>`;
     breakResult();
   }catch(e){
-    box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">AI 정밀 해석은 <b>정식 서버(Vercel) 버전</b>에서 작동해요. 이 미리보기 링크에는 백엔드가 없어서 안 돼요.</p></div>`;
+    box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
   }
 }
 renderTeachers();

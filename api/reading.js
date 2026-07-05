@@ -16,7 +16,7 @@ export const config = { maxDuration: 60 };
 // 진짜 보호는 Anthropic 콘솔의 월 지출 상한 + (선택)Upstash 레이트리밋.
 const HITS = new Map();
 function rateLimited(ip) {
-  const now = Date.now(), WIN = 10 * 60 * 1000, MAX = 12;
+  const now = Date.now(), WIN = 10 * 60 * 1000, MAX = 60;
   const arr = (HITS.get(ip) || []).filter((t) => now - t < WIN);
   arr.push(now);
   HITS.set(ip, arr);
