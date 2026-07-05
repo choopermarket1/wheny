@@ -97,6 +97,7 @@
   .block h3{margin:0 0 10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--tc);display:flex;align-items:center;gap:8px}
   .block h3::before{content:"";width:14px;height:2px;background:var(--tc)}
+  .block h3:has(.ic)::before{display:none}
   .block p{margin:0;font-size:15px;color:var(--paperdim)}.block b{color:var(--paper)}
   .block p br,.ai-out .ai-p br{display:block;content:"";margin-top:6px}
   table{width:100%;border-collapse:collapse;text-align:center}
@@ -195,7 +196,8 @@
   .lt-row{display:flex;justify-content:space-around;position:relative}
   .lt-row::before{content:"";position:absolute;left:9%;right:9%;top:11px;height:2px;background:rgba(222,110,134,.25)}
   .lt-dot{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
-  .lt-mk{font-size:19px;line-height:1}.lt-mk.plain{color:var(--dim)}
+  .lt-mk{display:inline-flex;align-items:center;justify-content:center;height:19px}
+  .lt-o{width:7px;height:7px;border-radius:50%;background:var(--dim);display:inline-block}
   .lt-dot b{font-size:13px;color:var(--paperdim);font-variant-numeric:tabular-nums}
   .lt-dot b.now{color:var(--gold)}
   .lt-dot i{font-size:9.5px;font-style:normal;color:#e58aa0}.lt-dot i.now{color:var(--gold)}
@@ -215,6 +217,14 @@
   .cd-fg{fill:none;stroke-width:9;stroke-linecap:round;transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset .9s ease}
   .cd-num{font-size:32px;font-weight:800;text-anchor:middle;font-family:sans-serif}
   .cd-unit{font-size:12px;fill:var(--dim);text-anchor:middle}
+  /* 모던 아이콘 */
+  .ic{display:inline-flex;width:15px;height:15px;vertical-align:-2px;margin-right:7px;color:inherit}
+  .ic svg{width:100%;height:100%}
+  .hm{display:inline-flex;width:19px;height:19px;color:#e0708a;vertical-align:middle}
+  .hm svg{width:100%;height:100%}
+  .lt-cap .hm{width:14px;height:14px;margin-right:3px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:5px}
+  .dot.g{background:#8fbf86}.dot.r{background:#e0655a}.dot.d{background:var(--gold)}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -440,6 +450,20 @@ const AV={
   shin:`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><defs><radialGradient id="av4" cx="50%" cy="28%" r="82%"><stop offset="0" stop-color="#8f72bd"/><stop offset="1" stop-color="#5d4488"/></radialGradient></defs><rect width="300" height="300" fill="url(#av4)"/><path d="M236 44a20 20 0 1 0 8 15 15 15 0 1 1-8-15z" fill="#f0e4b8"/><g fill="#f0e4b8"><circle cx="62" cy="66" r="3"/><circle cx="250" cy="120" r="2.5"/></g><path d="M150 58c-52 0-80 30-80 66 0 10 4 18 10 24h140c6-6 10-14 10-24 0-36-28-66-80-66z" fill="#6a4fa0"/><path d="M78 120q72 -34 144 0" fill="none" stroke="#a98fd0" stroke-width="7"/><path d="M150 78l7 10-7 10-7-10z" fill="#f0e4b8"/><ellipse cx="150" cy="176" rx="60" ry="66" fill="#e6bd98"/><path d="M116 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><path d="M160 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><circle cx="150" cy="150" r="4" fill="#e0483c"/><path d="M136 206q14 8 28 0" fill="none" stroke="#7a3a5c" stroke-width="6" stroke-linecap="round"/><g stroke="#f0e4b8" stroke-width="3" fill="#f0e4b8"><path d="M92 202v14"/><circle cx="92" cy="222" r="5"/><path d="M208 202v14"/><circle cx="208" cy="222" r="5"/></g><path d="M86 244c16 18 38 28 64 28s48-10 64-28v56H86z" fill="#4e3a76"/></svg>`,
 };
 function avatar(k){return AV[k]||"";}
+// 모던 모노라인 아이콘 세트 (이모지 대신) — currentColor 상속
+const IC={
+  penta:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 2l6 4.6-2.3 7.4H4.3L2 6.6z"/></svg></span>`,
+  chart:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5v11h11"/><path d="M4.5 10.5l2.5-2.5 2 2 3.5-4.5"/></svg></span>`,
+  heart:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 13.4S2.8 9.9 2.8 6.3A2.7 2.7 0 0 1 8 5a2.7 2.7 0 0 1 5.2 1.3c0 3.6-5.2 7.1-5.2 7.1z"/></svg></span>`,
+  cal:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2.3" y="3.3" width="11.4" height="10.4" rx="1.8"/><path d="M2.3 6.3h11.4M5.5 2v2.4M10.5 2v2.4"/></svg></span>`,
+  gauge:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 11.4a6 6 0 1 1 10.8 0"/><path d="M8 11.4l3-2.3"/></svg></span>`,
+  spark:`<span class="ic"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.4l1.5 4.1 4.1 1.5-4.1 1.5L8 12.6 6.5 8.5 2.4 7l4.1-1.5z"/></svg></span>`,
+  clock:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.7"/><path d="M8 4.9V8l2.2 1.6"/></svg></span>`,
+  cam:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="1.6" y="4.6" width="12.8" height="8.8" rx="2"/><circle cx="8" cy="9" r="2.6"/><path d="M5.4 4.6l1-1.6h3.2l1 1.6"/></svg></span>`,
+};
+const HEART=`<span class="hm"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 17.3S2.6 12.4 2.6 7.4A3.8 3.8 0 0 1 10 5.1a3.8 3.8 0 0 1 7.4 2.3c0 5-7.4 9.9-7.4 9.9z"/></svg></span>`;
+// 라벨 앞 이모지 제거 (모던 텍스트 칩)
+function noEmoji(s){return String(s).replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}️⭐⭕]+\s*/u,'');}
 let picked="dokseol",cal="sol",CTX=null,mode="solo";
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
 let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
@@ -566,10 +590,10 @@ function lifeGraph(d){
       <path d="${area}" fill="url(#lgfill)"/><path d="${path}" class="lg-line"/>
       ${dots}${labels}<text x="${curX}" y="${padTop-2}" class="lg-now">지금</text>
     </svg>
-    <div class="lg-leg"><span class="op">● 기회</span><span class="ca">● 주의</span><span class="cu">◆ 지금</span></div>
+    <div class="lg-leg"><span><span class="dot g"></span>기회</span><span><span class="dot r"></span>주의</span><span><span class="dot d"></span>지금</span></div>
     <div class="lg-cols">
-      <div class="lg-col op"><div class="lg-h">🟢 기회의 시기</div><ul>${opp.length?li(opp):'<li>큰 급등 없이 꾸준한 흐름</li>'}</ul></div>
-      <div class="lg-col ca"><div class="lg-h">🔴 조심할 시기</div><ul>${cau.length?li(cau):'<li>급락 구간은 뚜렷하지 않아요</li>'}</ul></div>
+      <div class="lg-col op"><div class="lg-h"><span class="dot g"></span>기회의 시기</div><ul>${opp.length?li(opp):'<li>큰 급등 없이 꾸준한 흐름</li>'}</ul></div>
+      <div class="lg-col ca"><div class="lg-h"><span class="dot r"></span>조심할 시기</div><ul>${cau.length?li(cau):'<li>급락 구간은 뚜렷하지 않아요</li>'}</ul></div>
     </div>
   </div>`;
 }
@@ -595,8 +619,8 @@ function loveTimeline(dStem,gender){
   if(!hits.length)return "";
   const pts=[...new Set([NOW,...hits])].sort((a,b)=>a-b).slice(0,6);
   const dots=pts.map(y=>{const love=hits.includes(y),now=y===NOW;
-    return `<div class="lt-dot"><span class="lt-mk ${love?'love':'plain'}">${love?'💗':'·'}</span><b class="${now?'now':''}">${y}</b>${now?'<i class="now">지금</i>':(love?'<i>인연운</i>':'')}</div>`;}).join("");
-  return `<div class="lt"><div class="lt-cap">💗 인연운이 강해지는 해</div><div class="lt-row">${dots}</div></div>`;
+    return `<div class="lt-dot"><span class="lt-mk">${love?HEART:'<span class="lt-o"></span>'}</span><b class="${now?'now':''}">${y}</b>${now?'<i class="now">지금</i>':(love?'<i>인연운</i>':'')}</div>`;}).join("");
+  return `<div class="lt"><div class="lt-cap">${HEART} 인연운이 강해지는 해</div><div class="lt-row">${dots}</div></div>`;
 }
 // 🗓 올해 월별 히트맵 — 12달 좋음/보통/주의 색으로
 function monthHeatmap(dStem){
@@ -644,11 +668,11 @@ async function runCompat(){
     const data=await res.json();
     const cm=(data.reading||"").match(/(\d{1,3})\s*점/),cscore=cm?+cm[1]:78;
     box.innerHTML=`
-      <div class="block" style="--tc:var(${t.cv})"><h3>💞 궁합 · ${A.일간} × ${B.일간}</h3>
+      <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}궁합 · ${A.일간} × ${B.일간}</h3>
         <div class="chips"><span class="chip">나 <b>${A.명식.일주} · ${A.태양별자리}</b></span><span class="chip">상대 <b>${B.명식.일주} · ${B.태양별자리}</b></span></div>
         ${compatDial(cscore)}
         <div class="ai-out" style="margin-top:14px">${mdToHtml(data.reading||"")}</div></div>
-      <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요 💞')">📸 궁합 캡처 공유</button>
+      <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요')">${IC.cam}궁합 캡처 공유</button>
         <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다시 보기</button></div>`;
   }catch(e){
     box.innerHTML=`<div class="block"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
@@ -692,15 +716,15 @@ function run(){
     </div>
     <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
       <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>🌿 오행 밸런스</h3>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}오행 밸런스</h3>
       ${ohaengRadar(d.el)}
       <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>🗓 ${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
-      <p style="margin:10px 0 0;font-size:11px;color:var(--dim)">🟢 좋음 · 🔴 주의 — 월별 기운 참고용(절기 기준 근사)</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
+      <p style="margin:10px 0 0;font-size:11px;color:var(--dim)"><span class="dot g"></span>좋음 · <span class="dot r"></span>주의 — 월별 기운 참고용(절기 기준 근사)</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p>${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
@@ -711,21 +735,21 @@ function run(){
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍</h3><p>${r.P.when}</p><div class="dwrap">${dwRows}</div></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>📈 인생 그래프 · 대운 흐름</h3>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}인생 그래프 · 대운 흐름</h3>
       <p style="margin:0 0 14px">10년 단위 <b>대운</b>의 기운을 곡선으로 봤어요. <b style="color:#8fbf86">기회</b>엔 밀고 <b style="color:#e0655a">주의</b>엔 지키세요.</p>
       ${lifeGraph(d)}
       <p style="margin:14px 0 0;font-size:11px;color:var(--dim)">※ 대운 십신 기준 흐름 참고용 — 정확한 월·연 타이밍은 AI 정밀 해석에서.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>✨ AI 선생님 정밀 해석</h3>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}AI 선생님 정밀 해석</h3>
       <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
-      <button class="aibtn" onclick="askAI()">${PAY.on?`🔒 ${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`✨ ${t.nm} 정밀 해석 받기`}</button>
+      <button class="aibtn" onclick="askAI()">${PAY.on?`${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
       ${PAY.on?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
       <p style="margin:0 0 12px;font-size:13px;color:var(--dim)">궁금한 주제를 누르면 <b>${t.nm}</b>이 그 주제만 콕 집어 답해줘요.</p>
       <div class="followups" id="topics"></div><div id="more"></div></div>
     <div class="actions">
-      <button class="share" onclick="shareCard()">📸 이 소름 이미지로 저장·공유</button>
+      <button class="share" onclick="shareCard()">${IC.cam}이 소름 이미지로 저장·공유</button>
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
     </div>`;
   renderTopics(t.cv);
@@ -745,7 +769,7 @@ function whenTimeline(text){
   const u=[...new Set(ys)].filter(y=>y>=NOW-1&&y<=NOW+45).sort((a,b)=>a-b).slice(0,5);
   if(u.length<2)return "";
   const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y}</b>${y===NOW?'<i>지금</i>':''}</div>`).join("");
-  return `<div class="tl-wrap"><div class="tl-cap">📅 당신의 타이밍</div><div class="tl">${dots}</div></div>`;
+  return `<div class="tl-wrap"><div class="tl-cap">${IC.clock}당신의 타이밍</div><div class="tl">${dots}</div></div>`;
 }
 const TOPICS=[
   ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
@@ -761,16 +785,16 @@ const TOPICS=[
 ];
 function renderTopics(cv){
   const box=document.getElementById('topics');if(!box)return;
-  box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)">${tp[0]}</button>`).join('');
+  box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)">${noEmoji(tp[0])}</button>`).join('');
 }
 async function askTopic(i,btn){
   if(!CTX)return;
   if(!await ensurePaid())return;
   btn.disabled=true;btn.style.opacity=.5;
-  const [label,q]=TOPICS[i];
+  const [rawLabel,q]=TOPICS[i],label=noEmoji(rawLabel);
   const more=document.getElementById('more');
   const div=document.createElement('div');div.className='ansitem';
-  div.innerHTML=`<div class="q">${label}</div><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 보는 중… (10초)</p>`;
+  div.innerHTML=`<div class="q">${label}</div><p style="color:var(--dim)">${CTX.tname} 선생님이 보는 중… (10초)</p>`;
   more.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q,paymentId:PAID_ID})});
