@@ -162,6 +162,27 @@
   .tl-dot.now>span{background:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent)}
   .tl-dot.now b{color:var(--gold)}
   .tl-dot i{font-size:10px;color:var(--gold);font-style:normal;margin-top:-2px}
+  /* 인생 그래프 */
+  .lg-svg{width:100%;height:auto;display:block;background:color-mix(in srgb,var(--gold) 5%,var(--ink));border:1px solid var(--goldLine);border-radius:12px}
+  .lg-line{fill:none;stroke:#c9a961;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  .lg-zero{stroke:#2b2933;stroke-width:1;stroke-dasharray:3 4}
+  .lg-curl{stroke:#c9a961;stroke-width:1;stroke-dasharray:2 3;opacity:.45}
+  .lg-dot{stroke:#0a0a0d;stroke-width:1.5}
+  .lg-dot.op{fill:#8fbf86}.lg-dot.ca{fill:#e0655a}.lg-dot.nu{fill:#b7ad97}
+  .lg-dot.cur{stroke:#fff;stroke-width:2}
+  .lg-x{fill:#807869;font-size:9px;text-anchor:middle;font-family:sans-serif}
+  .lg-x.cur{fill:#c9a961;font-weight:700}
+  .lg-now{fill:#c9a961;font-size:9px;text-anchor:middle;font-weight:700}
+  .lg-leg{display:flex;gap:16px;justify-content:center;font-size:11px;margin-top:8px}
+  .lg-leg .op{color:#8fbf86}.lg-leg .ca{color:#e0655a}.lg-leg .cu{color:var(--gold)}
+  .lg-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .lg-col{border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--ink)}
+  .lg-col.op{border-color:rgba(143,191,134,.32)}.lg-col.ca{border-color:rgba(224,101,90,.32)}
+  .lg-h{font-size:12px;font-weight:700;margin-bottom:7px}
+  .lg-col.op .lg-h{color:#8fbf86}.lg-col.ca .lg-h{color:#e0655a}
+  .lg-col ul{margin:0;padding:0;list-style:none}
+  .lg-col li{font-size:12.5px;color:var(--paperdim);padding:3px 0;line-height:1.45}
+  .lg-col li b{color:var(--paper);font-variant-numeric:tabular-nums}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -485,6 +506,42 @@ function report(persona,d,w,age,gender){
   return{P,pct,cur,missing,charDetail,love,loveTime,money,year,future3,strength,health,advice};
 }
 
+// 인생 그래프 — 대운(10년) 십신으로 운의 흐름 곡선 + 기회/주의 구간
+const SS_SCORE={정재:2,정관:2,정인:1.6,식신:1.5,편재:1,비견:.3,편인:-.2,상관:-1,편관:-1,겁재:-1.4};
+function lifeGraph(d){
+  const pts=d.dw.map(x=>({age:Math.round(x.age),year:x.startYear,ss:x.ss,score:SS_SCORE[x.ss]??0}));
+  let curIdx=0;pts.forEach((p,i)=>{if(NOW>=p.year)curIdx=i;});
+  const W=320,H=150,padX=18,padTop=18,padBot=32,n=pts.length;
+  const xs=i=>padX+(W-2*padX)*(n<2?.5:i/(n-1));
+  const sc=pts.map(p=>p.score),mn=Math.min(-1.4,...sc),mx=Math.max(2,...sc);
+  const ys=s=>padTop+(H-padTop-padBot)*(1-(s-mn)/(mx-mn));
+  const P=pts.map((p,i)=>[xs(i),ys(p.score)]);
+  let path=`M${P[0][0]},${P[0][1]}`;
+  for(let i=0;i<P.length-1;i++){const cx=(P[i][0]+P[i+1][0])/2;path+=` C${cx},${P[i][1]} ${cx},${P[i+1][1]} ${P[i+1][0]},${P[i+1][1]}`;}
+  const base=ys(mn),area=`${path} L${P[n-1][0]},${base} L${P[0][0]},${base} Z`,zeroY=ys(0),curX=xs(curIdx);
+  const dots=pts.map((p,i)=>{const cls=p.score>=1?'op':p.score<=-.8?'ca':'nu',cur=i===curIdx;
+    return `<circle cx="${xs(i)}" cy="${ys(p.score)}" r="${cur?5.5:4}" class="lg-dot ${cls}${cur?' cur':''}"/>`;}).join("");
+  const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">'${String(p.year).slice(2)}</text>`).join("");
+  const fut=pts.filter(p=>p.year+10>NOW); // 현재+미래 대운만 (지나간 시기는 하이라이트 제외)
+  const opp=[...fut].filter(p=>p.score>=1).sort((a,b)=>b.score-a.score).slice(0,2);
+  const cau=[...fut].filter(p=>p.score<=-.8).sort((a,b)=>a.score-b.score).slice(0,2);
+  const li=arr=>arr.map(p=>`<li><b>${p.year}~</b> ${p.age}세 · ${YEAR_THEME[p.ss]||p.ss}</li>`).join("");
+  return `<div class="lg">
+    <svg viewBox="0 0 ${W} ${H}" class="lg-svg">
+      <defs><linearGradient id="lgfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9a961" stop-opacity=".26"/><stop offset="1" stop-color="#c9a961" stop-opacity="0"/></linearGradient></defs>
+      <line x1="${padX}" y1="${zeroY}" x2="${W-padX}" y2="${zeroY}" class="lg-zero"/>
+      <line x1="${curX}" y1="${padTop-8}" x2="${curX}" y2="${H-padBot}" class="lg-curl"/>
+      <path d="${area}" fill="url(#lgfill)"/><path d="${path}" class="lg-line"/>
+      ${dots}${labels}<text x="${curX}" y="${padTop-2}" class="lg-now">지금</text>
+    </svg>
+    <div class="lg-leg"><span class="op">● 기회</span><span class="ca">● 주의</span><span class="cu">◆ 지금</span></div>
+    <div class="lg-cols">
+      <div class="lg-col op"><div class="lg-h">🟢 기회의 시기</div><ul>${opp.length?li(opp):'<li>큰 급등 없이 꾸준한 흐름</li>'}</ul></div>
+      <div class="lg-col ca"><div class="lg-h">🔴 조심할 시기</div><ul>${cau.length?li(cau):'<li>급락 구간은 뚜렷하지 않아요</li>'}</ul></div>
+    </div>
+  </div>`;
+}
+
 /* ===== 실행 ===== */
 function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
@@ -564,8 +621,8 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3><p>${r.loveTime}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>2026 올해 흐름</h3><p>${r.year}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · 2026~2028</h3><p>${r.future3}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${NOW} 올해 흐름</h3><p>${r.year}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p>${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
       <tr><td class="hanja">${noTime?'<span style="color:var(--dim);font-size:14px">미상</span>':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
@@ -575,6 +632,10 @@ function run(){
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍</h3><p>${r.P.when}</p><div class="dwrap">${dwRows}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>📈 인생 그래프 · 대운 흐름</h3>
+      <p style="margin:0 0 14px">10년 단위 <b>대운</b>의 기운을 곡선으로 봤어요. <b style="color:#8fbf86">기회</b>엔 밀고 <b style="color:#e0655a">주의</b>엔 지키세요.</p>
+      ${lifeGraph(d)}
+      <p style="margin:14px 0 0;font-size:11px;color:var(--dim)">※ 대운 십신 기준 흐름 참고용 — 정확한 월·연 타이밍은 AI 정밀 해석에서.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>✨ AI 선생님 정밀 해석</h3>
       <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
