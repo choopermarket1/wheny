@@ -66,7 +66,9 @@
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
     display:flex;gap:11px;align-items:center;transition:.15s;position:relative;overflow:hidden}
   .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.5}
-  .t .em{font-size:26px;line-height:1;filter:saturate(1.1)}
+  .t .em{width:46px;height:46px;flex:none;display:flex}
+  .t .em svg,.who .em svg{width:100%;height:100%;display:block}
+  .t .em .av{filter:drop-shadow(0 3px 8px rgba(0,0,0,.5))}
   .t .nm{font-weight:800;font-size:14.5px}
   .t .ds{font-size:11px;color:var(--dim);margin-top:1px}
   .t[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 15%,var(--ink))}
@@ -89,7 +91,7 @@
     border:1px solid var(--tc);border-radius:18px;padding:24px 22px}
   .who{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--paperdim);margin-bottom:14px;
     letter-spacing:.02em}
-  .who .em{font-size:24px}.who b{color:var(--tc);font-size:14px}
+  .who .em{width:30px;height:30px;flex:none;display:inline-flex}.who b{color:var(--tc);font-size:14px}
   .oneline{font-family:"Noto Serif KR",serif;font-size:23px;line-height:1.48;font-weight:700;text-wrap:balance}
   .oneline b{color:var(--hwang)}
   .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:19px}
@@ -97,6 +99,7 @@
     color:var(--tc);display:flex;align-items:center;gap:8px}
   .block h3::before{content:"";width:14px;height:2px;background:var(--tc)}
   .block p{margin:0;font-size:15px;color:var(--paperdim)}.block b{color:var(--paper)}
+  .block p br,.ai-out .ai-p br{display:block;content:"";margin-top:6px}
   table{width:100%;border-collapse:collapse;text-align:center}
   th,td{padding:10px 4px;border-bottom:1px solid var(--line)}
   tr:last-child td{border-bottom:0}
@@ -171,7 +174,7 @@
     </svg>
     <div class="brand">When<span class="y">y</span></div>
     <div class="tagline"><b>언제</b>인지까지 말해주는 사주</div>
-    <div class="tagsub">사주 만세력 × 서양 점성술 교차검증 · 프로토타입</div>
+    <div class="tagsub">사주 만세력 × 서양 점성술 교차검증</div>
   </header>
 
   <div class="card" id="form">
@@ -236,15 +239,15 @@
     <div class="teachers" id="teachers"></div>
 
     <button class="go" onclick="run()">내 소름 리포트 보기</button>
-    <div class="form-note">태어난 시각을 모르면 12:00으로 두세요 (시주만 부정확)</div>
+    <div class="form-note">태어난 시각을 모르면 '시간 모름'을 선택하세요 (시주 제외 분석)</div>
   </div>
 
   <div id="result"></div>
 
   <div class="note">
-    ※ 프로토타입 · 가칭 <b>Wheny</b>. 명식·대운·별자리는 실제 계산값.<br>
-    음력은 근사 변환(윤달 경계년은 정식 버전에서 KASI 공식데이터로 보정).<br>
-    해석 문장은 현재 <b>엔진 규칙형</b> — 정식은 AI 선생님(Claude)이 네이티브 생성.
+    명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.<br>
+    음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).<br>
+    <b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.
   </div>
 
   <!-- 상품·가격 안내 (전자상거래 표시) -->
@@ -360,6 +363,14 @@ const TEACHERS={
   coach:{nm:"김실장",em:"🧭",ds:"냉철·해결책",cv:"--nam"},
   shin:{nm:"청담 선녀",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
 };
+// 선생님 캐릭터 = 골드 라인아트 메달리온 (자체 SVG, 외부 이미지 0장)
+const AV={
+  dokseol:`<svg viewBox="0 0 48 48" class="av" aria-hidden="true"><circle cx="24" cy="24" r="22.5" fill="#15111a" stroke="#c9a961" stroke-width="1"/><g fill="none" stroke="#c9a961" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16Q11 9 16.5 11.5"/><path d="M34 16Q37 9 31.5 11.5"/><path d="M14 20Q14 12 24 12Q34 12 34 20Q35 31 24 35Q13 31 14 20Z"/><path d="M24 14V19M20.5 15.5H27.5M21 18H27"/><path d="M17.5 20.5L21 21.5M30.5 20.5L27 21.5"/><circle cx="24" cy="27.5" r="3.2" stroke="#e7d3a1"/><path d="M13.5 26L10 25M13.5 28.5L10 29.5M34.5 26L38 25M34.5 28.5L38 29.5" stroke-width=".8" opacity=".7"/></g><circle cx="19.8" cy="23" r="1.7" fill="#c06a5f"/><circle cx="28.2" cy="23" r="1.7" fill="#c06a5f"/><path d="M22.6 26.6H25.4L24 28.4Z" fill="#c9a961"/><path d="M24 28.4V30M24 29.6Q22 31 20.4 30.4M24 29.6Q26 31 27.6 30.4" fill="none" stroke="#c9a961" stroke-width="1" stroke-linecap="round"/></svg>`,
+  wiro:`<svg viewBox="0 0 48 48" class="av" aria-hidden="true"><circle cx="24" cy="24" r="22.5" fill="#15111a" stroke="#c9a961" stroke-width="1"/><path d="M12 27Q10.5 13 24 12Q37.5 13 36 27Q35.5 30.5 33 31.5L33 23Q33 16 24 16Q15 16 15 23L15 31.5Q12.5 30.5 12 27Z" fill="#6aa89a" fill-opacity=".14" stroke="#c9a961" stroke-width="1" stroke-linejoin="round"/><g fill="none" stroke="#e7d3a1" stroke-width="1.1" stroke-linecap="round"><path d="M16 23Q16 32 24 34Q32 32 32 23"/><path d="M19.5 25Q21 23.6 22.5 25"/><path d="M25.5 25Q27 23.6 28.5 25"/><path d="M21 29Q24 31.5 27 29"/></g><g stroke="#6aa89a" stroke-width="1.1" stroke-linejoin="round"><path d="M32.5 14Q31 16 32.5 17.5Q34 16 32.5 14Z" fill="#6aa89a" fill-opacity=".5"/><path d="M32.5 17.5V20" fill="none"/></g></svg>`,
+  coach:`<svg viewBox="0 0 48 48" class="av" aria-hidden="true"><circle cx="24" cy="24" r="22.5" fill="#15111a" stroke="#c9a961" stroke-width="1"/><path d="M14 19Q15 11 24 11Q33 11 34 19Q30 15 24 15Q18 15 14 19Z" fill="#7f95cf" fill-opacity=".14" stroke="#c9a961" stroke-width="1" stroke-linejoin="round"/><path d="M15 19Q15 31 24 33Q33 31 33 19" fill="none" stroke="#e7d3a1" stroke-width="1.1" stroke-linecap="round"/><g fill="none" stroke="#7f95cf" stroke-width="1.2" stroke-linecap="round"><rect x="16.5" y="21" width="6.2" height="5" rx="1.6"/><rect x="25.3" y="21" width="6.2" height="5" rx="1.6"/><path d="M22.7 23.2H25.3"/></g><path d="M21 29.5H27" stroke="#e7d3a1" stroke-width="1" stroke-linecap="round"/><path d="M17.5 35.5L24 39.5L30.5 35.5" fill="none" stroke="#c9a961" stroke-width="1.1" stroke-linejoin="round"/><path d="M24 39.5V33.5" stroke="#7f95cf" stroke-width="1.1"/></svg>`,
+  shin:`<svg viewBox="0 0 48 48" class="av" aria-hidden="true"><circle cx="24" cy="24" r="22.5" fill="#15111a" stroke="#c9a961" stroke-width="1"/><g fill="none" stroke="#c9a961" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21Q15 13 24 13Q33 13 33 21"/><circle cx="24" cy="11.5" r="3.4" fill="#c9a961" fill-opacity=".18"/><path d="M18.5 11.5H31.5"/></g><circle cx="31.8" cy="11.5" r="1.4" fill="#e7d3a1"/><path d="M16 22Q16 32 24 34Q32 32 32 22" fill="none" stroke="#e7d3a1" stroke-width="1.1" stroke-linecap="round"/><g fill="none" stroke="#e7d3a1" stroke-width="1" stroke-linecap="round"><path d="M19.5 25Q21 26 22.5 25"/><path d="M25.5 25Q27 26 28.5 25"/><path d="M22.2 29.5H25.8"/></g><circle cx="24" cy="21" r=".9" fill="#e7d3a1"/><path d="M37 16.5l.7 1.7 1.7 .7-1.7 .7-.7 1.7-.7-1.7-1.7-.7 1.7-.7Z" fill="#c9a961" opacity=".7"/><path d="M10.6 20l.5 1.3 1.3 .5-1.3 .5-.5 1.3-.5-1.3-1.3-.5 1.3-.5Z" fill="#c9a961" opacity=".55"/></svg>`,
+};
+function avatar(k){return AV[k]||"";}
 let picked="dokseol",cal="sol",CTX=null,mode="solo";
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
 let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
@@ -392,7 +403,7 @@ function setMode(m){mode=m;
   document.querySelector(".go").textContent=m==="compat"?"💞 두 사람 궁합 보기":"내 소름 리포트 보기";}
 function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
   `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
-    <span class="em">${t.em}</span><span><span class="nm">${t.nm}</span><span class="ds">${t.ds}</span></span></div>`).join("");}
+    <span class="em">${avatar(k)}</span><span><span class="nm">${t.nm}</span><span class="ds">${t.ds}</span></span></div>`).join("");}
 function pick(k){picked=k;renderTeachers();}
 function setCal(c){cal=c;
   document.getElementById("seg-sol").setAttribute("aria-pressed",c==="sol");
@@ -479,7 +490,7 @@ async function runCompat(){
   const A=chartOf(aY,aM,aD,ah,0,tz,gv("gender"),aNo),B=chartOf(bY,bM,bD,bh,0,tz,gv("pgender"),bNo);
   if(!await ensurePaid())return;
   const box=document.getElementById("result");
-  box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
+  box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
   box.scrollIntoView({behavior:"smooth",block:"start"});
   try{
     const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko",paymentId:PAID_ID})});
@@ -528,7 +539,7 @@ function run(){
   document.getElementById("result").innerHTML=`
     ${conv?`<div class="conv">🗓 ${conv}</div>`:""}
     <div class="hero-r" style="--tc:var(${t.cv})">
-      <div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 봐드립니다</div>
+      <div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 봐드립니다</div>
       <div class="oneline">${r.P.head}</div>
     </div>
     <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
@@ -562,8 +573,12 @@ function run(){
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
     </div>`;
   renderTopics(t.cv);
+  breakResult();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
+// 줄글 → 문장별 줄바꿈 (한글 종결어 뒤에서 끊고, 2032. 같은 숫자 마침표는 제외)
+function brk(html){return String(html||"").replace(/([가-힣”"’\)】])([.!?])\s+/g,'$1$2<br>');}
+function breakResult(){document.querySelectorAll('#result .block p, #result .ai-p, #result .ansitem>p').forEach(el=>{if(el.dataset.brk)return;el.dataset.brk='1';el.innerHTML=brk(el.innerHTML);});}
 const TOPICS=[
   ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
   ["💍 결혼 시기","결혼운이 강해지는 시기와 어떤 배우자상이 잘 맞는지 알려줘"],
@@ -594,6 +609,7 @@ async function askTopic(i,btn){
     if(!res.ok)throw new Error();
     const data=await res.json();
     div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${mdToHtml(data.reading||'')}</div>`;
+    breakResult();
   }catch(e){
     btn.disabled=false;btn.style.opacity=1;
     div.innerHTML=`<div class="q">${label}</div><p style="color:var(--hong)">AI 답변은 정식 서버(Vercel) 버전에서 작동해요. 이 미리보기엔 백엔드가 없어요.</p>`;
@@ -633,6 +649,7 @@ async function askAI(){
     if(!res.ok)throw new Error('backend '+res.status);
     const data=await res.json();
     box.innerHTML=`<div class="ai-out">${mdToHtml(data.reading||'')}</div>`;
+    breakResult();
   }catch(e){
     box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">AI 정밀 해석은 <b>정식 서버(Vercel) 버전</b>에서 작동해요. 이 미리보기 링크에는 백엔드가 없어서 안 돼요.</p></div>`;
   }
