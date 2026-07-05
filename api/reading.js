@@ -55,6 +55,10 @@ const PERSONA = {
   shin:    "당신은 '무월'. 달을 읽는 도사 할매(하게체). 영험하고 함축적이되, 미래는 협박이 아니라 선택지로 연다.",
 };
 
+// 출력 언어 (네이티브 생성, 번역 아님)
+const LANGNAME = { ko: "자연스러운 한국어", ja: "자연스러운 일본어(四柱推命 톤)", en: "natural, native English", zh: "自然流畅的简体中文" };
+const langName = (l) => LANGNAME[l] || LANGNAME.ko;
+
 const SYSTEM = (persona, lang) => `너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다. 아래 페르소나로 말한다.
 ${PERSONA[persona] || PERSONA.dokseol}
 
@@ -69,7 +73,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
   · ★항목엔 '언제(연도, 가능하면 월)' 불릿을 반드시 하나 넣어라(우리의 핵심 차별점).
 - 재미용 덕담이 아니라 진짜 '용한' 상담이다. 대담하고 구체적으로 짚되, 근거는 반드시 명식에서. 겁주는 예언·의학적 단정·차별 표현 금지. 건강은 생활 조언 수준만.
 - [명식]에 '이름'(한자)이 있으면, 맨 끝에 '## 이름 풀이' 항목을 추가하라: 그 이름 한자의 획수·오행·뜻을 성명학으로 읽고, 특히 사주에 <b>부족한 오행을 이름이 보완하는지</b>를 콕 짚어라(보완하면 "이름 잘 지었다", 아니면 보완법 제안). 이름이 없으면 이 항목을 넣지 마라.
-- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 번역체 금지, 네이티브처럼.
+- 출력 언어: ${langName(lang)}. 번역체 금지, 네이티브처럼.
 - 아래 순서·소제목 그대로(이모지 붙이지 마):
   ## 나라는 사람
   ## 연애·인연 ★
@@ -91,7 +95,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
 - 각 주장엔 명식 근거(어떤 십신·오행·대운·세운 때문인지)를 짧게 붙여라. 연도·나이·핵심 단어는 **굵게**.
 - [명식]에 '이름'(한자)이 있으면 필요 시 성명학(획수·오행·뜻, 부족한 오행 보완 여부)으로도 근거를 보태라.
 - 재미용 덕담 말고 진짜 '용한' 상담처럼 대담하게. 겁주는 예언·의학적 단정·차별 표현 금지. 소제목 없이 불릿만.
-- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
+- 출력 언어: ${langName(lang)}. 네이티브처럼.`;
 
 // 대화(챗봇) 모드 — 앞선 대화를 기억하고 이어서 상담
 const CHAT = (persona, lang, chart) => `너는 동양 사주명리·서양 점성술에 능한 운명 상담가다. 아래 페르소나로 사용자와 '이어지는 상담 대화'를 한다.
@@ -102,7 +106,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
 - 짧고 구체적으로: 3~5개의 짧은 불릿("- ") 또는 2~4문장. 쪽집게처럼 연도·가능하면 월·구체 상황을 콕 집고, 근거(십신·오행·대운·세운)를 짧게 붙여라. 핵심은 **굵게**.
 - [명식]에 '이름'(한자)이 있으면 성명학(획수·오행·뜻, 부족한 오행 보완 여부)으로도 엮어 상담하라.
 - 재미용 덕담 말고 진짜 '용한' 상담처럼. 겁주는 예언·의학적 단정·차별 표현 금지. 페르소나 말투 유지.
-- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}.
+- 출력 언어: ${langName(lang)}.
 
 [명식]
 ${JSON.stringify(chart, null, 2)}`;
@@ -123,7 +127,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
   ## ⚠️ 조심할 점
   ## 📅 언제 ★
   ## ✨ 한 줄
-- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
+- 출력 언어: ${langName(lang)}. 네이티브처럼.`;
 
 export default async function handler(req, res) {
   // --- CORS (GitHub Pages 등 다른 도메인 프론트 허용) ---
@@ -154,7 +158,7 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
-    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question, paymentId, messages } = body || {};
+    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question, paymentId, messages, stream } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
     if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
 
@@ -197,6 +201,20 @@ export default async function handler(req, res) {
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    // --- 스트리밍: 텍스트를 실시간으로 흘려보냄(체감속도 ↑) ---
+    if (stream && mode !== "compat") {
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("X-Accel-Buffering", "no");
+      const s = client.messages.stream({
+        model: "claude-sonnet-5", max_tokens: maxTok, thinking: { type: "disabled" }, system, messages: msgs,
+      });
+      s.on("text", (t) => { try { res.write(t); } catch (_) {} });
+      try { await s.finalMessage(); } catch (e) { /* 부분 전송 상태로 종료 */ }
+      return res.end();
+    }
+
     const msg = await client.messages.create({
       model: "claude-sonnet-5", // 품질/속도/비용 균형. 최고 품질은 claude-opus-4-8
       max_tokens: maxTok,

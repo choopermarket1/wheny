@@ -157,6 +157,8 @@
   .typing i:nth-child(1){margin-left:4px}
   .typing i:nth-child(2){animation-delay:.22s}.typing i:nth-child(3){animation-delay:.44s}
   @keyframes blink{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-2px)}}
+  .cur{color:var(--gold);font-weight:700;animation:curBlink .9s steps(1) infinite}
+  @keyframes curBlink{50%{opacity:0}}
   .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
   .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
@@ -358,6 +360,14 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       <option value="0">영국 (UTC+0)</option>
     </select>
 
+    <label>리포트 언어</label>
+    <select id="lang" onchange="LANG=this.value">
+      <option value="ko" selected>한국어</option>
+      <option value="ja">日本語 (일본어)</option>
+      <option value="en">English (영어)</option>
+      <option value="zh">中文 (중국어)</option>
+    </select>
+
     <div class="lbl-t">당신을 봐줄 선생님을 고르세요</div>
     <div class="teachers" id="teachers"></div>
 
@@ -508,7 +518,7 @@ const IC={
 const HEART=`<span class="hm"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 17.3S2.6 12.4 2.6 7.4A3.8 3.8 0 0 1 10 5.1a3.8 3.8 0 0 1 7.4 2.3c0 5-7.4 9.9-7.4 9.9z"/></svg></span>`;
 // 라벨 앞 이모지 제거 (모던 텍스트 칩)
 function noEmoji(s){return String(s).replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}️⭐⭕]+\s*/u,'');}
-let picked="dokseol",cal="sol",CTX=null,mode="solo";
+let picked="dokseol",cal="sol",CTX=null,mode="solo",LANG="ko";
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
 let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
 (async function initPay(){
@@ -723,7 +733,7 @@ async function runCompat(){
   box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
   box.scrollIntoView({behavior:"smooth",block:"start"});
   try{
-    const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko",paymentId:PAID_ID})});
+    const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:LANG,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
     const cm=(data.reading||"").match(/(\d{1,3})\s*점/),cscore=cm?+cm[1]:78;
@@ -865,17 +875,38 @@ async function sendChat(text){
   CHAT_BUSY=true;
   CTX.chat.push({role:'user',content:text});
   renderChat(true);
-  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),50000);
+  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),55000);
+  let acc='';
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({mode:'chat',chart:CTX.chart,persona:CTX.persona,lang:'ko',messages:CTX.chat,paymentId:PAID_ID})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({mode:'chat',stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,messages:CTX.chat,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
-    const data=await res.json();
-    CTX.chat.push({role:'assistant',content:data.reading||'(빈 응답이에요. 다시 한 번 물어봐 주세요.)'});
+    if(res.body&&res.body.getReader){
+      clearInterval(CHAT_TIMER);
+      renderStreamStart();
+      const reader=res.body.getReader(),dec=new TextDecoder();
+      while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});renderStreamUpdate(acc);}
+    }else{const data=await res.json().catch(()=>({}));acc=data.reading||'';}
+    CTX.chat.push({role:'assistant',content:acc||'(빈 응답이에요. 다시 한 번 물어봐 주세요.)'});
   }catch(e){
     const msg=(e&&e.name==='AbortError')?'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.':errMsg(e);
-    CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
+    if(acc.trim())CTX.chat.push({role:'assistant',content:acc});else CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
   }
   clearTimeout(to);CHAT_BUSY=false;renderChat();
+}
+function aiBubbleHTML(){return `<span class="cm-av">${avatar(CTX.persona)}</span>`;}
+function renderStreamStart(){
+  const more=document.getElementById('more');if(!more)return;
+  let html=CTX.chat.map(m=> m.role==='user'
+    ? `<div class="cm user">${escapeHtml(m.content)}</div>`
+    : `<div class="cm ai">${aiBubbleHTML()}<div class="cm-body">${String(m.content).startsWith('__ERR__')?`<p style="margin:0;color:var(--hong)">${escapeHtml(m.content.slice(7))}</p>`:whenTimeline(m.content)+mdToHtml(m.content)}</div></div>`
+  ).join('');
+  html+=`<div class="cm ai">${aiBubbleHTML()}<div class="cm-body" id="streamBody"><span class="cur">▍</span></div></div>`;
+  more.innerHTML=html;
+}
+function renderStreamUpdate(acc){
+  const b=document.getElementById('streamBody');if(!b)return;
+  b.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';
+  const more=document.getElementById('more'),last=more&&more.lastElementChild;if(last)last.scrollIntoView({block:'nearest'});
 }
 function renderChat(loading){
   const more=document.getElementById('more');if(!more)return;
@@ -920,7 +951,7 @@ async function askAI(){
   const box=document.getElementById('ai-box');
   box.innerHTML=`<div class="ai-out"><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 명식을 읽고 있어요… (10~20초)</p></div>`;
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',paymentId:PAID_ID})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
     box.innerHTML=`<div class="ai-out">${aiHeader()}${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}</div>`;
