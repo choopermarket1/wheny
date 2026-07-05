@@ -25,7 +25,7 @@ function rateLimited(ip) {
 }
 
 // --- 결제 검증 (포트원 V2). PORTONE_API_SECRET 없으면 = 페이월 OFF(무료).
-const PRICE = Number(process.env.WHENY_PRICE || 5900);
+const PRICE = Number(process.env.WHENY_PRICE || 3900); // 런칭가 3,900원(리뷰 쌓이면 5,900). WHENY_PRICE env로 즉시 변경 가능
 async function verifyPayment(paymentId) {
   const secret = process.env.PORTONE_API_SECRET;
   if (!secret) return { ok: true, free: true };            // 키 미설정 → 무료(현행 유지)
