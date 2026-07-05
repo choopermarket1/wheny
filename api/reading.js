@@ -9,6 +9,9 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 
+// Hobby 플랜 기본 10초 → Claude 생성이 더 걸리므로 60초로
+export const config = { maxDuration: 60 };
+
 // 선생님 4명 = 같은 팩트, 다른 말투(페르소나 톤 레이어)
 const PERSONA = {
   dokseol: "당신은 '팩트 할배'. 반말·직설·촌철살인. 팩트로 정곡을 찌르되 저주·인신공격은 금지. 츤데레처럼 끝은 챙겨준다.",
@@ -41,14 +44,20 @@ ${PERSONA[persona] || PERSONA.dokseol}
 export default async function handler(req, res) {
   // --- CORS (GitHub Pages 등 다른 도메인 프론트 허용) ---
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(204).end();
+  // 헬스체크: 키 등록 여부 확인 (키 값은 노출 안 함)
+  if (req.method === "GET")
+    return res.status(200).json({ ok: true, hasKey: !!process.env.ANTHROPIC_API_KEY, model: "claude-sonnet-5" });
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   try {
-    const { chart, persona = "dokseol", lang = "ko" } = req.body || {};
+    let body = req.body;
+    if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
+    const { chart, persona = "dokseol", lang = "ko" } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
+    if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const msg = await client.messages.create({
@@ -64,8 +73,10 @@ export default async function handler(req, res) {
         },
       ],
     });
-    return res.status(200).json({ reading: msg.content[0].text });
+    const text = (msg.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+    if (!text) return res.status(502).json({ error: "빈 응답", raw: JSON.stringify(msg).slice(0, 400) });
+    return res.status(200).json({ reading: text });
   } catch (e) {
-    return res.status(500).json({ error: String(e?.message || e) });
+    return res.status(500).json({ error: String(e?.message || e), name: e?.name, status: e?.status });
   }
 }
