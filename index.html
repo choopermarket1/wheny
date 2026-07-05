@@ -139,12 +139,29 @@
   .ai-h{font-family:"Noto Serif KR",serif;font-size:15.5px;font-weight:800;color:var(--hwang);
     margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   .ai-out>.ai-h:first-child{margin-top:0}
-  .ai-li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;color:var(--paper);line-height:1.55;padding:5px 0}
+  .ai-li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--paper);line-height:1.62;padding:8px 0}
   .ai-li .ai-b{color:var(--hwang);font-weight:800;flex:none;font-size:16px;line-height:1.4}
   .ai-li .ai-n{color:#20180a;background:var(--hwang);border-radius:50%;width:19px;height:19px;
     display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;margin-top:2px}
   .ai-li b{color:var(--hwang)}
-  .ai-p{font-size:14.5px;color:var(--paperdim);line-height:1.55;margin:6px 0}
+  .ai-p{font-size:14.5px;color:var(--paperdim);line-height:1.62;margin:8px 0}
+  /* 답변 가독성: 얼굴 헤더 + 연도 뱃지 + 타이밍 타임라인 */
+  .ai-hd{display:flex;align-items:center;gap:9px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--paperdim)}
+  .ai-hd .ava{width:34px;height:34px;flex:none;border-radius:50%;overflow:hidden;border:1px solid var(--goldLine)}
+  .ai-hd .ava svg{width:100%;height:100%;display:block}
+  .ai-hd b{color:var(--gold);font-size:14px}
+  .yr{color:#1a1408;background:linear-gradient(180deg,var(--gold2),var(--gold));border-radius:5px;padding:0 5px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ai-li b .yr,.ai-p b .yr,b .yr{padding:0 4px}
+  .tl-wrap{background:color-mix(in srgb,var(--gold) 6%,var(--ink));border:1px solid var(--goldLine);border-radius:12px;padding:14px 12px 12px;margin:0 0 18px}
+  .tl-cap{font-size:11px;letter-spacing:.14em;color:var(--gold);font-weight:700;margin-bottom:14px;text-align:center}
+  .tl{display:flex;align-items:flex-start;justify-content:space-between;position:relative}
+  .tl::before{content:"";position:absolute;left:9%;right:9%;top:5px;height:2px;background:linear-gradient(90deg,transparent,var(--goldLine) 15%,var(--goldLine) 85%,transparent)}
+  .tl-dot{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+  .tl-dot>span{width:11px;height:11px;border-radius:50%;background:var(--card2);border:2px solid var(--gold);z-index:1}
+  .tl-dot b{font-size:13px;color:var(--paper);font-variant-numeric:tabular-nums;font-weight:700}
+  .tl-dot.now>span{background:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent)}
+  .tl-dot.now b{color:var(--gold)}
+  .tl-dot i{font-size:10px;color:var(--gold);font-style:normal;margin-top:-2px}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -580,6 +597,16 @@ function brk(html){return String(html||"").replace(/([가-힣”"’\)】])([.!?
 function breakResult(){document.querySelectorAll('#result .block p, #result .ai-p, #result .ansitem>p').forEach(el=>{if(el.dataset.brk)return;el.dataset.brk='1';el.innerHTML=brk(el.innerHTML);});}
 // 에러 표시: 서버가 준 메시지(429 등)를 그대로 보여주고, 진짜 네트워크 오류만 일반 문구로.
 function errMsg(e){const m=(e&&e.message)||"";return (m&&!/fetch|network|failed|load/i.test(m))?m:"AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.";}
+// 답변에 말한 할머니 얼굴 헤더
+function aiHeader(){if(!CTX)return "";return `<div class="ai-hd"><span class="ava">${avatar(CTX.persona)}</span><span class="t2"><b>${CTX.tname}</b>의 사주 리딩</span></div>`;}
+// 언급된 연도를 뽑아 '당신의 타이밍' 시각 타임라인으로 (읽기 쉽게 + USP 강조)
+function whenTimeline(text){
+  const ys=[...String(text||"").matchAll(/\b(20\d\d)\b/g)].map(m=>+m[1]);
+  const u=[...new Set(ys)].filter(y=>y>=NOW-1&&y<=NOW+45).sort((a,b)=>a-b).slice(0,5);
+  if(u.length<2)return "";
+  const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y}</b>${y===NOW?'<i>지금</i>':''}</div>`).join("");
+  return `<div class="tl-wrap"><div class="tl-cap">📅 당신의 타이밍</div><div class="tl">${dots}</div></div>`;
+}
 const TOPICS=[
   ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
   ["💍 결혼 시기","결혼운이 강해지는 시기와 어떤 배우자상이 잘 맞는지 알려줘"],
@@ -609,7 +636,7 @@ async function askTopic(i,btn){
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
-    div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${mdToHtml(data.reading||'')}</div>`;
+    div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}</div>`;
     breakResult();
   }catch(e){
     btn.disabled=false;btn.style.opacity=1;
@@ -635,6 +662,7 @@ function shareCard(){if(!CTX)return;
 function mdToHtml(md){return (md||"").split("\n").map(raw=>{
   let l=raw.trim();if(!l)return "";
   l=l.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  l=l.replace(/(20\d\d년?|\b\d{1,3}세)/g,'<span class="yr">$1</span>');
   const h=l.match(/^#{1,4}\s*(.+)$/);if(h)return `<div class="ai-h">${h[1]}</div>`;
   const n=l.match(/^(\d+)[.)]\s*(.+)$/);if(n)return `<div class="ai-li"><span class="ai-n">${n[1]}</span><span>${n[2]}</span></div>`;
   const b=l.match(/^[-*•]\s*(.+)$/);if(b)return `<div class="ai-li"><span class="ai-b">•</span><span>${b[1]}</span></div>`;
@@ -649,7 +677,7 @@ async function askAI(){
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
-    box.innerHTML=`<div class="ai-out">${mdToHtml(data.reading||'')}</div>`;
+    box.innerHTML=`<div class="ai-out">${aiHeader()}${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}</div>`;
     breakResult();
   }catch(e){
     box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
