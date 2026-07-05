@@ -62,7 +62,8 @@ export default async function handler(req, res) {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const msg = await client.messages.create({
       model: "claude-sonnet-5", // 품질/속도/비용 균형. 최고 품질은 claude-opus-4-8
-      max_tokens: 1600,
+      max_tokens: 4000, // sonnet-5는 thinking 블록을 먼저 내므로 넉넉히
+      thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요 → 속도·비용↓
       system: SYSTEM(persona, lang),
       messages: [
         {
