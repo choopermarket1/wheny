@@ -151,6 +151,11 @@
   .chat-in input{flex:1;min-width:0;padding:13px 14px;background:var(--ink);border:1px solid var(--line);border-radius:11px;color:var(--paper);font-size:15px;font-family:inherit}
   .chat-in input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
   .chat-send{flex:none;padding:0 18px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:11px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer}
+  .typing{display:flex;align-items:center;gap:4px;color:var(--paperdim);font-size:14px;font-weight:600}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--gold);display:inline-block;animation:blink 1.3s infinite}
+  .typing i:nth-child(1){margin-left:4px}
+  .typing i:nth-child(2){animation-delay:.22s}.typing i:nth-child(3){animation-delay:.44s}
+  @keyframes blink{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-2px)}}
   .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
   .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
@@ -821,15 +826,17 @@ async function sendChat(text){
   CHAT_BUSY=true;
   CTX.chat.push({role:'user',content:text});
   renderChat(true);
+  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),50000);
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'chat',chart:CTX.chart,persona:CTX.persona,lang:'ko',messages:CTX.chat,paymentId:PAID_ID})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({mode:'chat',chart:CTX.chart,persona:CTX.persona,lang:'ko',messages:CTX.chat,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
-    CTX.chat.push({role:'assistant',content:data.reading||''});
+    CTX.chat.push({role:'assistant',content:data.reading||'(빈 응답이에요. 다시 한 번 물어봐 주세요.)'});
   }catch(e){
-    CTX.chat.push({role:'assistant',content:'__ERR__'+errMsg(e)});
+    const msg=(e&&e.name==='AbortError')?'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.':errMsg(e);
+    CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
   }
-  CHAT_BUSY=false;renderChat();
+  clearTimeout(to);CHAT_BUSY=false;renderChat();
 }
 function renderChat(loading){
   const more=document.getElementById('more');if(!more)return;
@@ -837,7 +844,7 @@ function renderChat(loading){
     ? `<div class="cm user">${escapeHtml(m.content)}</div>`
     : `<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body">${String(m.content).startsWith('__ERR__')?`<p style="margin:0;color:var(--hong)">${escapeHtml(m.content.slice(7))}</p>`:whenTimeline(m.content)+mdToHtml(m.content)}</div></div>`
   ).join('');
-  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><p style="margin:0;color:var(--dim)">${CTX.tname}이 명식을 보는 중…</p></div></div>`;
+  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><div class="typing">${CTX.tname}이 곰곰이 보는 중<i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~15초 걸려요</div></div></div>`;
   more.innerHTML=html;breakResult();
   const last=more.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
