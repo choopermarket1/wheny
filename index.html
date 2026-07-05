@@ -405,9 +405,11 @@ function run(){
     Y=s.y;M=s.m;D=s.d;
   }
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender};
-  const d=computeSaju(b),w=computeWest(b),age=NOW-Y,t=TEACHERS[picked],r=report(picked,d,w,age,gender),missing=r.missing;
+  const d=computeSaju(b),w=computeWest(b),age=NOW-Y,t=TEACHERS[picked];
+  if(noTime){const e={木:0,火:0,土:0,金:0,水:0};[d.P.year,d.P.month,d.P.day].forEach(p=>{e[STEMS[p.s][2]]++;e[BRANCHES[p.b][2]]++;});d.el=e;} // 시주 제외 3주 오행
+  const r=report(picked,d,w,age,gender),missing=r.missing;
   const chart={생년월일:cal==='lun'?conv:`${Y}-${String(M).padStart(2,'0')}-${String(D).padStart(2,'0')}`,성별:gender==='female'?'여':'남',나이:age,
-    명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
+    명식:{시주:noTime?"미상(시간 모름)":d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]}·${d.dm[3]})`,띠:d.zodiac,오행분포:d.el,없는오행:missing,
     태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),
@@ -433,8 +435,9 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · 2026~2028</h3><p>${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
-      <tr><td class="hanja">${d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
-      <tr><td class="kohan">${d.P.hour.k}</td><td class="kohan">${d.P.day.k}</td><td class="kohan">${d.P.month.k}</td><td class="kohan">${d.P.year.k}</td></tr></table></div>
+      <tr><td class="hanja">${noTime?'<span style="color:var(--dim);font-size:14px">미상</span>':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
+      <tr><td class="kohan">${noTime?'시간모름':d.P.hour.k}</td><td class="kohan">${d.P.day.k}</td><td class="kohan">${d.P.month.k}</td><td class="kohan">${d.P.year.k}</td></tr></table>
+      ${noTime?'<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">⚠ 시간 미상 — 년·월·일주 3기둥+대운 기준. 같은 날 태어난 분과 큰 틀은 비슷하고, <b style="color:var(--paperdim)">시간을 넣으면 훨씬 정확</b>해져요.</p>':''}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>동서양 교차검증</h3>
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
