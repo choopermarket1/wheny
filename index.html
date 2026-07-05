@@ -162,6 +162,7 @@
       <div><label>태어난 시각</label><input type="time" id="time" value="12:00" /></div>
       <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
     </div>
+    <label class="leap" style="margin-top:10px;font-weight:600"><input type="checkbox" id="notime" /> 태어난 시간을 몰라요 (외국인 등 — 시주 빼고 분석)</label>
     <div id="partnerBox" style="display:none">
       <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
       <label>상대 생년월일</label>
@@ -243,6 +244,8 @@ const BRANCHES=[["子","자","水","쥐"],["丑","축","土","소"],["寅","인"
 function gz(i){i=((i%60)+60)%60;return{s:i%10,b:i%12,h:STEMS[i%10][0]+BRANCHES[i%12][0],k:STEMS[i%10][1]+BRANCHES[i%12][1]};}
 function gzSB(s,b){for(let i=0;i<60;i++)if(i%10===s&&i%12===b)return i;return 0;}
 const ANCHOR=2451551;
+const NOW=new Date().getFullYear(); // 올해(자동) — 하드코딩 금지
+function yearGZ(Y){return gz(((Y-4)%60+60)%60);} // 그 해의 간지
 function computeSaju(b){
   const jdL=toJD(b.year,b.month,b.day,b.hour+b.minute/60),jdU=jdL-b.tz/24,lon=solarLongitude(jdU);
   const ipchun=findCross(315,toJD(b.year,2,4,12)-b.tz/24),sy=jdU<ipchun?b.year-1:b.year;
@@ -306,7 +309,7 @@ const CLOSER={
 function pastPivot(d,age){let best=null;for(const x of d.dw)if(x.age>=15&&x.age<=age-1)best=x;return best||d.dw.find(x=>x.age<=age)||d.dw[0];}
 function curDaewoon(d,age){let c=d.dw[0];for(const x of d.dw)if(age>=x.age)c=x;return c;}
 function nextDaewoon(d,age){for(const x of d.dw)if(x.age>age)return x;return null;}
-function loveTiming(dStem,gender){const want=gender==='female'?["정관","편관"]:["정재","편재"];const hits=[];for(let Y=2026;Y<=2040;Y++){const ys=((Y-4)%10+10)%10;if(want.includes(sipsin(dStem,ys)))hits.push(Y);}return hits.slice(0,3);}
+function loveTiming(dStem,gender){const want=gender==='female'?["정관","편관"]:["정재","편재"];const hits=[];for(let Y=NOW;Y<=NOW+14;Y++){const ys=((Y-4)%10+10)%10;if(want.includes(sipsin(dStem,ys)))hits.push(Y);}return hits.slice(0,3);}
 function report(persona,d,w,age,gender){
   const dmEl=d.dm[2],missing=Object.keys(d.el).filter(k=>d.el[k]===0);
   const past=pastPivot(d,age),cur=curDaewoon(d,age),nxt=nextDaewoon(d,age);
@@ -315,17 +318,17 @@ function report(persona,d,w,age,gender){
   const pct=sameEl?92:76,pastAge=Math.round(past.age),pastYear=past.startYear,missTxt=missing.length?MISSING_JAB[missing[0]]:"균형";
   const ss=[d.P.year.s,d.P.month.s,d.P.hour.s].map(s=>sipsin(d.dStem,s));
   const jae=ss.some(x=>["정재","편재"].includes(x)),gwan=ss.some(x=>["정관","편관"].includes(x));
-  const mt=MOON_T[w.moon[2]],yt=YEAR_THEME[sipsin(d.dStem,2)],hz=missing.length?HEALTH[missing[0]]:HEALTH[dmEl],cl=CLOSER[persona];
+  const mt=MOON_T[w.moon[2]],yt=YEAR_THEME[sipsin(d.dStem,yearGZ(NOW).s)],hz=missing.length?HEALTH[missing[0]]:HEALTH[dmEl],cl=CLOSER[persona];
   const ELEM_FULL={木:"성장·기획·명분",火:"열정·표현·인기",土:"신뢰·인내·중재",金:"결단·원칙·실행",水:"지혜·유연·수완"};
   const strongEls=Object.entries(d.el).filter(([k,v])=>v>=2).map(([k])=>k);
   const charDetail=`타고난 기운은 <b>${d.dm[1]}${dmEl}</b> — ${ELEM_TRAIT[dmEl]}이에요. 오행 분포를 보면 ${strongEls.length?`<b>${strongEls.join('·')}</b> 기운이 강해서 ${strongEls.map(e=>ELEM_FULL[e]).join(', ')} 쪽 재능이 도드라지고`:'오행이 비교적 고르게 퍼져 어느 한쪽에 치우치지 않고'}, ${missing.length?`반대로 <b>${missing.join('·')}</b> 기운이 비어 ${missing.map(m=>MISSING_JAB[m]).join('·')}에서 약해지기 쉬워요. 이건 결핍이 아니라 <b>사람·환경·습관으로 채우면 되는 부분</b>이라 미리 알아두면 훨씬 수월합니다.`:'큰 편중이 없어 어디에 놓여도 무난히 적응하는 편이에요.'} 겉으로 보이는 모습(태양 <b>${w.sun[1]}</b>)과 속마음(달 <b>${w.moon[1]}</b>)이 달라서, ${mt} 감정을 안에 품고 겉은 다르게 보일 때가 많아요. ${cl[0]}`;
   const love=`감정은 달(<b>${w.moon[1]}</b>)이 말해줘요 — ${mt} 편이에요. ${gwan?"사주에 인연 자리(관성)를 갖추고 있어 좋은 상대를 알아보는 눈이 있는 편":"인연 자리(관성)가 뚜렷하지 않아, 좋은 인연도 스쳐 지나가기 쉬운 편"}이고, 밀당으로 재기보다 <b>먼저 마음을 여는 쪽</b>이 훨씬 잘 풀려요. 지금 <b>${cur.k} 대운</b>에서는 ${gwan?'관계가 한 단계 진전되기 좋은 흐름이라, 미루던 관계라면 지금이 매듭지을 때':'혼자 애태우기보다 표현하고 움직여야 결과가 나는 시기'}예요. ${cl[1]}`;
   const money=`${jae?"재물 그릇(재성)을 갖춰서 버는 힘 자체는 있는 사주":"큰 재성이 뚜렷하진 않아 한 방보다 꾸준히 쌓는 방식이 맞는 사주"}예요. ${missing.length?`다만 <b>${missing[0]} 기운이 없어</b> ${missTxt}가 약한 탓에, 결정적 순간에 돈이 새거나 매듭을 못 지어 손해 보기 쉬우니 그 대목만 조심하세요.`:"오행이 고루 있어 큰 기복 없이 모으는 안정형이에요."} 투자·큰 지출은 <b>${cur.k} 대운</b>의 결을 보고 타이밍을 잡는 게 유리합니다. ${cl[2]}`;
-  const year=`2026년(丙午·불의 해)은 당신에게 <b>${yt}</b>예요. 지금 <b>${cur.k} 대운</b>과 겹쳐 변화의 진폭이 큰 해라, 새로 크게 벌이기보다 <b>있는 걸 정리하고 방향을 선택</b>하는 데 힘을 쓰는 게 이득이에요. 상반기엔 준비, 하반기엔 실행으로 나눠 가면 실수를 줄일 수 있어요. ${cl[3]}`;
+  const year=`<b>${NOW}년(${yearGZ(NOW).k})</b>은 당신에게 <b>${yt}</b>예요. 지금 <b>${cur.k} 대운</b>과 겹쳐 변화의 진폭이 큰 해라, 새로 크게 벌이기보다 <b>있는 걸 정리하고 방향을 선택</b>하는 데 힘을 쓰는 게 이득이에요. 상반기엔 준비, 하반기엔 실행으로 나눠 가면 실수를 줄일 수 있어요. ${cl[3]}`;
   const lt=loveTiming(d.dStem,gender||"female");
   const loveTime=lt.length?`사주로 <b>인연운이 강해지는 해</b>를 보면 <b>${lt.join('·')}년</b> 즈음이에요. ${gender==='male'?'재성(인연운)이 들어오는 시기라 새 인연이 활발해집니다.':'관성(배우자운)이 들어오는 시기라 좋은 인연·결혼 얘기가 나오기 쉬워요.'} 이때 소개·모임 자리를 늘려두면 확률이 올라가요. ${cl[1]}`:`가까운 10년 안에 인연운이 특별히 몰리는 해는 뚜렷하진 않아요. 대신 <b>${cur.k} 대운</b> 흐름에서 스스로 움직일 때 인연이 생겨요. ${cl[1]}`;
-  const y27=YEAR_THEME[sipsin(d.dStem,3)],y28=YEAR_THEME[sipsin(d.dStem,4)];
-  const future3=`앞으로 3년 흐름이에요. <b>2026</b> ${yt} → <b>2027</b> ${y27} → <b>2028</b> ${y28}. 세 해 모두 지금의 <b>${cur.k} 대운</b> 안에서 지나가니, ${nxt?`다음 대운(${Math.round(nxt.age)}살·${nxt.startYear}년)으로 넘어가기 전 <b>정리와 준비의 구간</b>`:'이 대운의 결실을 거두는 구간'}으로 보면 됩니다. ${cl[4]}`;
+  const y27=YEAR_THEME[sipsin(d.dStem,yearGZ(NOW+1).s)],y28=YEAR_THEME[sipsin(d.dStem,yearGZ(NOW+2).s)];
+  const future3=`앞으로 3년 흐름이에요. <b>${NOW}</b> ${yt} → <b>${NOW+1}</b> ${y27} → <b>${NOW+2}</b> ${y28}. 세 해 모두 지금의 <b>${cur.k} 대운</b> 안에서 지나가니, ${nxt?`다음 대운(${Math.round(nxt.age)}살·${nxt.startYear}년)으로 넘어가기 전 <b>정리와 준비의 구간</b>`:'이 대운의 결실을 거두는 구간'}으로 보면 됩니다. ${cl[4]}`;
   const strength=`한 줄로 정리하면 — 강점은 <b>${strongEls.length?ELEM_FULL[strongEls[0]]:'균형감과 적응력'}</b>, 약점은 <b>${missing.length?MISSING_JAB[missing[0]]:'지나친 신중함'}</b>이에요. 이 둘만 알고 있어도 언제 밀고 언제 물러설지 판단이 훨씬 쉬워집니다. ${cl[0]}`;
   const health=`기운상 <b>${hz}</b> 쪽이 약점이에요. 무리하면 여기부터 신호가 오니, 이 부분을 평소에 미리 챙기는 게 좋아요. ${cl[3]}`;
   const advice=`지금은 <b>${cur.k} 대운</b> — 판을 새로 짜기보다 ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>`:"다음 분기점"} 전까지 힘을 모을 때예요. 큰 결정(이직·계약·결혼)은 흩뿌리지 말고 그 타이밍에 몰아서 하세요. ${cl[4]}`;
@@ -348,7 +351,7 @@ function report(persona,d,w,age,gender){
 
 /* ===== 실행 ===== */
 function chartOf(Y,M,D,h,mi,tz,gender){
-  const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=2026-Y;
+  const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
   return{성별:gender==='female'?'여':'남',나이:age,
     명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:d.el,
@@ -381,8 +384,9 @@ async function runCompat(){
 }
 function run(){
   if(mode==="compat"){runCompat();return;}
-  const dv=document.getElementById("date").value,tv=document.getElementById("time").value;
-  if(!dv||!tv){alert("생년월일과 시각을 입력해주세요");return;}
+  const noTime=document.getElementById("notime").checked;
+  const dv=document.getElementById("date").value,tv=noTime?"12:00":document.getElementById("time").value;
+  if(!dv||!tv){alert("생년월일을 입력해주세요");return;}
   let [Y,M,D]=dv.split("-").map(Number);const [h,mi]=tv.split(":").map(Number);
   const tz=Number(document.getElementById("tz").value),gender=document.getElementById("gender").value;
   let conv="";
@@ -394,16 +398,18 @@ function run(){
     Y=s.y;M=s.m;D=s.d;
   }
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender};
-  const d=computeSaju(b),w=computeWest(b),age=2026-Y,t=TEACHERS[picked],r=report(picked,d,w,age,gender),missing=r.missing;
+  const d=computeSaju(b),w=computeWest(b),age=NOW-Y,t=TEACHERS[picked],r=report(picked,d,w,age,gender),missing=r.missing;
   const chart={생년월일:cal==='lun'?conv:`${Y}-${String(M).padStart(2,'0')}-${String(D).padStart(2,'0')}`,성별:gender==='female'?'여':'남',나이:age,
     명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]}·${d.dm[3]})`,띠:d.zodiac,오행분포:d.el,없는오행:missing,
     태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),
-    현재대운:r.cur.k,세운:{"2026":"丙午","2027":"丁未","2028":"戊申"}};
+    현재대운:r.cur.k,올해:NOW,
+    세운:{[NOW]:yearGZ(NOW).h,[NOW+1]:yearGZ(NOW+1).h,[NOW+2]:yearGZ(NOW+2).h},
+    시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
   CTX={r,tname:t.nm,chart,persona:picked};
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
-  const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?' · 지금':''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${x.age}세~ · ${x.startYear}년~</span></div>`).join("");
+  const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?` · 지금(${NOW})`:''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${Math.round(x.age)}~${Math.round(x.age)+9}세 · ${x.startYear}~${x.startYear+9}</span></div>`).join("");
   document.getElementById("result").innerHTML=`
     ${conv?`<div class="conv">🗓 ${conv}</div>`:""}
     <div class="hero-r" style="--tc:var(${t.cv})">
@@ -411,7 +417,7 @@ function run(){
       <div class="oneline">${r.P.head}</div>
     </div>
     <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
-      <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}</div></div>
+      <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3><p>${r.loveTime}</p></div>
