@@ -115,6 +115,11 @@
   .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
   .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
+  .aibtn{width:100%;padding:16px;background:linear-gradient(90deg,var(--hong),var(--hwang));color:#20180a;
+    border:0;border-radius:14px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.02em}
+  .ai-h{font-family:"Nanum Myeongjo",serif;font-size:16px;font-weight:800;color:var(--hwang);margin:16px 0 6px}
+  .ai-out p{font-size:15px;color:var(--paper);margin:0 0 10px}
+  .ai-out{background:var(--card);border:1px solid var(--hwang);border-radius:14px;padding:18px}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -339,7 +344,13 @@ function run(){
   }
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender};
   const d=computeSaju(b),w=computeWest(b),age=2026-Y,t=TEACHERS[picked],r=report(picked,d,w,age,gender),missing=r.missing;
-  CTX={r,tname:t.nm};
+  const chart={생년월일:cal==='lun'?conv:`${Y}-${String(M).padStart(2,'0')}-${String(D).padStart(2,'0')}`,성별:gender==='female'?'여':'남',나이:age,
+    명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
+    일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]}·${d.dm[3]})`,띠:d.zodiac,오행분포:d.el,없는오행:missing,
+    태양별자리:w.sun[1],달별자리:w.moon[1],
+    대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),
+    현재대운:r.cur.k,세운:{"2026":"丙午","2027":"丁未","2028":"戊申"}};
+  CTX={r,tname:t.nm,chart,persona:picked};
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
   const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?' · 지금':''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${x.age}세~ · ${x.startYear}년~</span></div>`).join("");
   document.getElementById("result").innerHTML=`
@@ -365,6 +376,10 @@ function run(){
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍</h3><p>${r.P.when}</p><div class="dwrap">${dwRows}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>✨ AI 선생님 정밀 해석</h3>
+      <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
+      <button class="aibtn" onclick="askAI()">✨ ${t.nm} 정밀 해석 받기</button>
+      <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
       <div class="followups">
         <button class="ask" style="--tc:var(${t.cv})" onclick="askMore('health',this)">🩺 건강은 어때?</button>
@@ -397,6 +412,20 @@ function shareCard(){if(!CTX)return;
   c.toBlob(async(blob)=>{const file=new File([blob],'wheny.png',{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Wheny 소름 리포트'});return;}}catch(e){}
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wheny_소름리포트.png';a.click();},'image/png');}
+function mdToHtml(md){return md.replace(/^#{1,3}\s*(.+)$/gm,'<div class="ai-h">$1</div>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');}
+async function askAI(){
+  if(!CTX)return;
+  const box=document.getElementById('ai-box');
+  box.innerHTML=`<div class="ai-out"><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 명식을 읽고 있어요… (10~20초)</p></div>`;
+  try{
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko'})});
+    if(!res.ok)throw new Error('backend '+res.status);
+    const data=await res.json();
+    box.innerHTML=`<div class="ai-out"><p>${mdToHtml(data.reading||'')}</p></div>`;
+  }catch(e){
+    box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">AI 정밀 해석은 <b>정식 서버(Vercel) 버전</b>에서 작동해요. 이 미리보기 링크에는 백엔드가 없어서 안 돼요.</p></div>`;
+  }
+}
 renderTeachers();
 </script>
 </body>
