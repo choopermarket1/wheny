@@ -237,6 +237,17 @@
   .mh-cell.good b,.mh-cell.good span{color:#8fbf86}
   .mh-cell.bad{border-color:rgba(224,101,90,.4);background:rgba(224,101,90,.10)}
   .mh-cell.bad b,.mh-cell.bad span{color:#e0655a}
+  .mh-cell{cursor:pointer;transition:.13s}
+  .mh-cell:hover{transform:translateY(-2px);border-color:var(--gold)}
+  .mh-detail{margin-top:12px;border:1px solid var(--goldLine);border-radius:12px;padding:14px 16px;background:color-mix(in srgb,var(--gold) 5%,var(--ink))}
+  .mh-detail.good{border-color:rgba(143,191,134,.4)}.mh-detail.bad{border-color:rgba(224,101,90,.4)}
+  .mh-dh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+  .mh-dh>b{font-size:18px;color:var(--paper)}
+  .mh-gz{font-family:"Noto Serif KR",serif;color:var(--paperdim);font-size:14px}
+  .mh-tag{margin-left:auto;font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px}
+  .mh-tag.good{color:#8fbf86;background:rgba(143,191,134,.14)}.mh-tag.bad{color:#e0655a;background:rgba(224,101,90,.14)}.mh-tag.mid{color:var(--paperdim);background:var(--card2)}
+  .mh-detail p{margin:0;font-size:14px;color:var(--paperdim);line-height:1.6}
+  .mh-cap{margin-top:8px!important;font-size:11.5px;color:var(--dim)}
   /* 💯 궁합 다이얼 */
   .cd{display:flex;justify-content:center;margin:0 0 14px}
   .cd-svg{width:120px;height:120px}
@@ -656,14 +667,29 @@ function loveTimeline(dStem,gender){
   return `<div class="lt"><div class="lt-cap">${HEART} 인연운이 강해지는 해</div><div class="lt-row">${dots}</div></div>`;
 }
 // 🗓 올해 월별 히트맵 — 12달 좋음/보통/주의 색으로
+// 월별 히트맵 — 절기(節氣) 기준 정확 계산. 각 달 15일의 월주를 computeSaju로 구함(절기·연간 자동 처리).
+let MONTHS=[];
 function monthHeatmap(dStem){
-  const yStem=yearGZ(NOW).s,base=(2+(yStem%5)*2)%10,cells=[];
+  MONTHS=[];
   for(let M=1;M<=12;M++){
-    const b=M%12,mNo=((b-2)+12)%12,mStem=(base+mNo)%10,ss=sipsin(dStem,mStem),sc=SS_SCORE[ss]??0;
-    const cls=sc>=1?'good':sc<=-.8?'bad':'mid',st=sc>=1?'좋음':sc<=-.8?'주의':'보통';
-    cells.push(`<div class="mh-cell ${cls}"><b>${M}월</b><span>${st}</span></div>`);
+    let mp=null;try{mp=computeSaju({year:NOW,month:M,day:15,hour:12,minute:0,tz:9}).P.month;}catch(e){}
+    const ss=mp?sipsin(dStem,mp.s):'',sc=SS_SCORE[ss]??0;
+    const st=sc>=1?'좋음':sc<=-.8?'주의':'보통';
+    MONTHS.push({M,k:mp?mp.k:'',h:mp?mp.h:'',ss,sc,st});
   }
-  return `<div class="mh">${cells.join("")}</div>`;
+  const cells=MONTHS.map(m=>`<div class="mh-cell ${m.sc>=1?'good':m.sc<=-.8?'bad':'mid'}" role="button" tabindex="0" onclick="showMonthDetail(${m.M})" onkeydown="if(event.key==='Enter')showMonthDetail(${m.M})"><b>${m.M}월</b><span>${m.st}</span></div>`).join("");
+  return `<div class="mh">${cells}</div><div id="mhDetail"></div>`;
+}
+function showMonthDetail(M){
+  const m=MONTHS.find(x=>x.M===M),box=document.getElementById('mhDetail');if(!m||!box)return;
+  const theme=YEAR_THEME[m.ss]||m.ss||'무난한 흐름';
+  const advice=m.sc>=1?'적극적으로 움직이기 좋은 달이에요. 미뤄둔 일에 힘을 실어보세요.':m.sc<=-.8?'큰 결정·계약·큰 지출은 한 박자 미루고, 지키는 데 힘쓰는 게 이득이에요.':'무난한 흐름이에요. 평소 페이스대로 가면 됩니다.';
+  const cls=m.sc>=1?'good':m.sc<=-.8?'bad':'mid';
+  box.innerHTML=`<div class="mh-detail ${cls}"><div class="mh-dh"><b>${M}월</b><span class="mh-gz">${m.h} ${m.k}월</span><span class="mh-tag ${cls}">${m.st}</span></div>`+
+    `<p>이 달은 <b>${theme}</b>의 기운이에요. ${advice}</p>`+
+    `<p class="mh-cap">사주 월운은 <b>절기(節氣)</b>로 나뉘어요 — 이 칸은 절기상 <b>양력 ${M}월 초 ~ ${M===12?'다음해 1월':(M+1)+'월'} 초</b>를 봅니다.</p></div>`;
+  box.querySelectorAll('p').forEach(p=>p.innerHTML=brk(p.innerHTML));
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 // 💯 궁합 점수 다이얼 (원형 게이지)
 function compatDial(score){
@@ -760,7 +786,7 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
-      <p style="margin:10px 0 0;font-size:11px;color:var(--dim)"><span class="dot g"></span>좋음 · <span class="dot r"></span>주의 — 월별 기운 참고용(절기 기준 근사)</p></div>
+      <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)"><b style="color:var(--gold)">월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p>${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
