@@ -183,6 +183,12 @@
   .lg-col ul{margin:0;padding:0;list-style:none}
   .lg-col li{font-size:12.5px;color:var(--paperdim);padding:3px 0;line-height:1.45}
   .lg-col li b{color:var(--paper);font-variant-numeric:tabular-nums}
+  /* 오행 레이더 */
+  .oh-svg{width:220px;max-width:80%;height:auto;display:block;margin:2px auto}
+  .oh-grid,.oh-axis{fill:none;stroke:#2b2933;stroke-width:1}
+  .oh-data{fill:rgba(201,169,97,.20);stroke:#c9a961;stroke-width:2;stroke-linejoin:round}
+  .oh-lbl{font-size:15px;font-weight:800;text-anchor:middle;font-family:"Noto Serif KR",serif}
+  .oh-cnt{font-size:9.5px;text-anchor:middle;font-family:sans-serif;font-weight:700}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -542,6 +548,20 @@ function lifeGraph(d){
   </div>`;
 }
 
+// 오행 밸런스 레이더(오각형) — 木火土金水 균형, 비어있는 기운은 빨강 축
+function ohaengRadar(el){
+  const els=['木','火','土','金','水'],cnt=els.map(e=>el[e]||0),maxS=Math.max(4,...cnt);
+  const C=100,R=64,ang=i=>(-90+i*72)*Math.PI/180,pt=(i,r)=>[C+r*Math.cos(ang(i)),C+r*Math.sin(ang(i))];
+  const poly=r=>els.map((e,i)=>pt(i,r).map(v=>v.toFixed(1)).join(',')).join(' ');
+  const grid=[0.34,0.67,1].map(f=>`<polygon points="${poly(R*f)}" class="oh-grid"/>`).join("");
+  const axes=els.map((e,i)=>{const[x,y]=pt(i,R);return `<line x1="${C}" y1="${C}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="oh-axis"/>`;}).join("");
+  const dp=els.map((e,i)=>pt(i,R*(cnt[i]/maxS||.001)).map(v=>v.toFixed(1)).join(',')).join(' ');
+  const OHC={木:'#8fbf86',火:'#e0655a',土:'#e8b84b',金:'#dcd0b5',水:'#7f95cf'};
+  const verts=els.map((e,i)=>{const[x,y]=pt(i,R*(cnt[i]/maxS||.001)),m=cnt[i]===0;return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${m?'#e0655a':'#c9a961'}" stroke="#0a0a0d" stroke-width="1"/>`;}).join("");
+  const labels=els.map((e,i)=>{const[x,y]=pt(i,R+19),m=cnt[i]===0;return `<text x="${x.toFixed(1)}" y="${(y).toFixed(1)}" class="oh-lbl" style="fill:${m?'#e0655a':OHC[e]}">${e}</text><text x="${x.toFixed(1)}" y="${(y+13).toFixed(1)}" class="oh-cnt" style="fill:${m?'#e0655a':'#b7ad97'}">${m?'없음':cnt[i]}</text>`;}).join("");
+  return `<svg viewBox="0 0 200 200" class="oh-svg">${grid}${axes}<polygon points="${dp}" class="oh-data"/>${verts}${labels}</svg>`;
+}
+
 /* ===== 실행 ===== */
 function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
@@ -617,6 +637,9 @@ function run(){
     </div>
     <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
       <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>🌿 오행 밸런스</h3>
+      ${ohaengRadar(d.el)}
+      <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3><p>${r.loveTime}</p></div>
