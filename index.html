@@ -4,44 +4,56 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <title>Wheny · 언제인지까지 말해주는 사주</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0c0d12; --ink2:#12141b; --card:#181b23; --card2:#1e222b; --line:#2b2f3a;
-    --paper:#f3ecdb; --paperdim:#c7bfa9; --dim:#867f6e;
-    --hong:#e0483c; --hwang:#e8b84b; --cheong:#2fa89a; --nam:#5b7fd6;
+    --ink:#0a0a0d; --ink2:#101015; --card:#15151c; --card2:#1c1c24; --line:#2b2933;
+    --paper:#ece4d3; --paperdim:#b7ad97; --dim:#807869;
+    /* 절제된 주얼 톤 (선생님 액센트) */
+    --hong:#c06a5f; --hwang:#c9a961; --cheong:#6aa89a; --nam:#7f95cf;
+    /* 샴페인 골드 시스템 */
+    --gold:#c9a961; --gold2:#e7d3a1; --goldDeep:#9c7f42; --goldLine:rgba(201,169,97,.18);
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;background:var(--ink);color:var(--paper);
     font-family:"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
-    line-height:1.62;-webkit-font-smoothing:antialiased;
-    background-image:radial-gradient(120% 60% at 50% -8%, rgba(224,72,60,.12), transparent 60%),
-      radial-gradient(90% 50% at 100% 8%, rgba(232,184,75,.07), transparent 55%);
+    line-height:1.64;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(120% 62% at 50% -10%, rgba(201,169,97,.10), transparent 62%),
+      radial-gradient(90% 55% at 100% 4%, rgba(201,169,97,.05), transparent 58%),
+      radial-gradient(80% 50% at 0% 20%, rgba(127,149,207,.04), transparent 60%);
     background-attachment:fixed}
-  .saekdong{height:5px;width:100%;position:sticky;top:0;z-index:9;
-    background:linear-gradient(90deg,var(--hong) 0 20%,var(--hwang) 20% 40%,var(--cheong) 40% 60%,var(--nam) 60% 80%,var(--paper) 80% 100%)}
-  .wrap{max-width:600px;margin:0 auto;padding:0 18px 90px}
+  .saekdong{height:2px;width:100%;position:sticky;top:0;z-index:9;
+    background:linear-gradient(90deg,transparent,var(--goldDeep) 18%,var(--gold2) 50%,var(--goldDeep) 82%,transparent)}
+  .wrap{max-width:600px;margin:0 auto;padding:0 20px 96px}
 
   /* ── 히어로 ── */
-  header{text-align:center;padding:40px 0 22px;position:relative}
-  .mun{width:52px;height:52px;margin:0 auto 14px;display:block;opacity:.95}
-  .brand{font-family:"Nanum Myeongjo","Noto Serif KR",serif;font-weight:800;
-    font-size:46px;letter-spacing:.01em;line-height:1;display:inline-block;position:relative}
-  .brand .y{color:var(--hong)}
-  .brand::after{content:"";position:absolute;left:8%;right:8%;bottom:-9px;height:4px;border-radius:3px;
-    background:linear-gradient(90deg,var(--hong),var(--hwang),var(--cheong),var(--nam))}
-  .tagline{font-family:"Nanum Myeongjo",serif;color:var(--paper);font-size:19px;margin:22px 0 3px;font-weight:700}
-  .tagline b{color:var(--hwang)}
-  .tagsub{color:var(--dim);font-size:12.5px;letter-spacing:.03em}
+  header{text-align:center;padding:54px 0 26px;position:relative}
+  .mun{width:58px;height:58px;margin:0 auto 18px;display:block;opacity:.98}
+  .brand{font-family:"Cormorant Garamond","Noto Serif KR",serif;font-weight:600;
+    font-size:60px;letter-spacing:.05em;line-height:1;display:inline-block;position:relative;
+    background:linear-gradient(176deg,var(--gold2) 8%,var(--gold) 52%,var(--goldDeep));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 2px 26px rgba(201,169,97,.16)}
+  .brand .y{font-style:italic}
+  .brand::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-12px;
+    width:58%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .tagline{font-family:"Noto Serif KR","Noto Serif KR",serif;color:var(--paper);font-size:20px;
+    margin:26px 0 5px;font-weight:600;letter-spacing:.01em}
+  .tagline b{color:var(--gold);font-weight:700}
+  .tagsub{color:var(--dim);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase}
 
   /* ── 카드 ── */
   .card{background:linear-gradient(180deg,var(--card),var(--ink2));
-    border:1px solid var(--line);border-radius:18px;padding:22px;
-    box-shadow:0 20px 50px -30px rgba(0,0,0,.9)}
+    border:1px solid var(--goldLine);border-radius:20px;padding:26px 24px;
+    box-shadow:0 30px 70px -40px rgba(0,0,0,.95), inset 0 1px 0 rgba(231,211,161,.06)}
   .seg{display:flex;background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:6px}
   .seg button{flex:1;padding:11px;border:0;border-radius:9px;background:transparent;color:var(--dim);
     font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
-  .seg button[aria-pressed="true"]{background:var(--hong);color:#fff}
+  .seg button[aria-pressed="true"]{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;
+    box-shadow:0 6px 16px -8px rgba(201,169,97,.7)}
   label{display:block;font-size:12px;color:var(--dim);margin:16px 0 6px;font-weight:700;letter-spacing:.02em}
   input,select{width:100%;padding:13px 14px;background:var(--ink);border:1px solid var(--line);
     border-radius:11px;color:var(--paper);font-size:16px;font-family:inherit}
@@ -49,7 +61,7 @@
   .row{display:flex;gap:11px}.row>div{flex:1}
   .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
   .leap input{width:auto}
-  .lbl-t{font-family:"Nanum Myeongjo",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
+  .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
   .teachers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
     display:flex;gap:11px;align-items:center;transition:.15s;position:relative;overflow:hidden}
@@ -59,9 +71,12 @@
   .t .ds{font-size:11px;color:var(--dim);margin-top:1px}
   .t[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 15%,var(--ink))}
   .t[aria-pressed="true"]::before{opacity:1;width:5px}
-  button.go{width:100%;margin-top:24px;padding:17px;background:var(--hong);color:#fff;border:0;
-    border-radius:14px;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.03em;
-    box-shadow:0 12px 30px -12px var(--hong)}
+  .t:hover{border-color:color-mix(in srgb,var(--tc) 42%,var(--line));transform:translateY(-1px)}
+  button.go{width:100%;margin-top:26px;padding:18px;
+    background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,var(--goldDeep));color:#1a1408;border:0;
+    border-radius:14px;font-size:16.5px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.06em;
+    box-shadow:0 16px 38px -16px rgba(201,169,97,.65);transition:transform .12s,box-shadow .2s}
+  button.go:hover{box-shadow:0 20px 46px -16px rgba(201,169,97,.8)}
   button.go:active{transform:translateY(1px)}
   .form-note{text-align:center;color:var(--dim);font-size:11.5px;margin-top:12px}
 
@@ -75,7 +90,7 @@
   .who{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--paperdim);margin-bottom:14px;
     letter-spacing:.02em}
   .who .em{font-size:24px}.who b{color:var(--tc);font-size:14px}
-  .oneline{font-family:"Nanum Myeongjo","Noto Serif KR",serif;font-size:23px;line-height:1.48;font-weight:700;text-wrap:balance}
+  .oneline{font-family:"Noto Serif KR",serif;font-size:23px;line-height:1.48;font-weight:700;text-wrap:balance}
   .oneline b{color:var(--hwang)}
   .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:19px}
   .block h3{margin:0 0 10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
@@ -86,19 +101,19 @@
   th,td{padding:10px 4px;border-bottom:1px solid var(--line)}
   tr:last-child td{border-bottom:0}
   th{color:var(--dim);font-weight:500;font-size:11px}
-  .hanja{font-family:"Nanum Myeongjo",serif;font-size:27px;font-weight:800;color:var(--paper)}
+  .hanja{font-family:"Noto Serif KR",serif;font-size:27px;font-weight:800;color:var(--paper)}
   .kohan{font-size:13px;color:var(--paperdim)}
   .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
   .chip{font-size:12px;background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:4px 11px;color:var(--paperdim)}
   .chip b{color:var(--paper)}.chip.warn{color:#f0897f;border-color:color-mix(in srgb,var(--hong) 40%,var(--line))}
   .cross{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .pct{font-family:"Nanum Myeongjo",serif;font-size:30px;font-weight:800;color:var(--hwang);font-variant-numeric:tabular-nums}
+  .pct{font-family:"Noto Serif KR",serif;font-size:30px;font-weight:800;color:var(--hwang);font-variant-numeric:tabular-nums}
   .gauge{flex:1;min-width:160px;height:11px;background:var(--ink);border-radius:20px;overflow:hidden;border:1px solid var(--line)}
   .gfill{height:100%;background:linear-gradient(90deg,var(--cheong),var(--hwang));border-radius:20px}
   .dwrap{margin-top:12px;position:relative}
   .dw{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);font-size:14px}
   .dw:last-child{border-bottom:0}
-  .dw .hz{font-family:"Nanum Myeongjo",serif;font-weight:700;font-size:15px}
+  .dw .hz{font-family:"Noto Serif KR",serif;font-weight:700;font-size:15px}
   .dw .age{color:var(--dim);font-variant-numeric:tabular-nums;font-size:13px}
   .dw.now .hz{color:var(--cheong)}.dw.now{background:color-mix(in srgb,var(--cheong) 8%,transparent);
     margin:0 -8px;padding-left:10px;padding-right:10px;border-radius:8px}
@@ -115,10 +130,11 @@
   .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
   .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
-  .aibtn{width:100%;padding:16px;background:linear-gradient(90deg,var(--hong),var(--hwang));color:#20180a;
-    border:0;border-radius:14px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.02em}
+  .aibtn{width:100%;padding:16px;background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,var(--goldDeep));color:#1a1408;
+    border:0;border-radius:14px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.04em;
+    box-shadow:0 14px 34px -16px rgba(201,169,97,.6)}
   .ai-out{background:var(--card);border:1px solid var(--hwang);border-radius:14px;padding:18px}
-  .ai-h{font-family:"Nanum Myeongjo",serif;font-size:15.5px;font-weight:800;color:var(--hwang);
+  .ai-h{font-family:"Noto Serif KR",serif;font-size:15.5px;font-weight:800;color:var(--hwang);
     margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
   .ai-out>.ai-h:first-child{margin-top:0}
   .ai-li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;color:var(--paper);line-height:1.55;padding:5px 0}
@@ -141,10 +157,17 @@
 <div class="wrap">
   <header>
     <svg class="mun" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="46" fill="none" stroke="#e8b84b" stroke-width="2"/>
-      <path d="M50 4a46 46 0 0 1 0 92 23 23 0 0 1 0-46 23 23 0 0 0 0-46z" fill="#e0483c"/>
-      <path d="M50 96a46 46 0 0 1 0-92 23 23 0 0 0 0 46 23 23 0 0 1 0 46z" fill="#5b7fd6"/>
-      <circle cx="50" cy="27" r="7" fill="#5b7fd6"/><circle cx="50" cy="73" r="7" fill="#e0483c"/>
+      <defs>
+        <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#e7d3a1"/><stop offset="1" stop-color="#9c7f42"/>
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="47" fill="none" stroke="url(#gold)" stroke-width="1.1"/>
+      <circle cx="50" cy="50" r="39" fill="none" stroke="url(#gold)" stroke-width=".5" opacity=".45"/>
+      <path d="M60 24a30 30 0 1 0 0 52 24 24 0 1 1 0-52z" fill="url(#gold)"/>
+      <circle cx="40" cy="33" r="1.5" fill="#e7d3a1"/>
+      <circle cx="35" cy="45" r="1" fill="#e7d3a1" opacity=".8"/>
+      <circle cx="43" cy="22" r=".8" fill="#e7d3a1" opacity=".7"/>
     </svg>
     <div class="brand">When<span class="y">y</span></div>
     <div class="tagline"><b>언제</b>인지까지 말해주는 사주</div>
@@ -225,19 +248,19 @@
   </div>
 
   <!-- 상품·가격 안내 (전자상거래 표시) -->
-  <div id="pricing" style="margin:34px 0 0;background:#181b23;border:1px solid #2b2f3a;border-radius:16px;padding:26px 24px">
-    <div style="color:#e8b84b;font-weight:700;letter-spacing:1px;font-size:13px;margin-bottom:14px">유료 상품 안내</div>
+  <div id="pricing" style="margin:36px 0 0;background:linear-gradient(180deg,#16161d,#101015);border:1px solid rgba(201,169,97,.20);border-radius:20px;padding:28px 26px;box-shadow:0 30px 70px -44px rgba(0,0,0,.9)">
+    <div style="color:#c9a961;font-weight:700;letter-spacing:1px;font-size:13px;margin-bottom:14px">유료 상품 안내</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #2b2f3a;padding-bottom:16px;margin-bottom:16px">
       <div>
         <div style="font-size:18px;font-weight:800">Wheny 정밀 사주 리포트</div>
         <div style="color:#9a9280;font-size:13.5px;margin-top:6px;line-height:1.6">AI 선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.</div>
       </div>
-      <div style="text-align:right;white-space:nowrap"><span style="font-size:24px;font-weight:800;color:#e8b84b">3,900</span><span style="color:#9a9280">원</span></div>
+      <div style="text-align:right;white-space:nowrap"><span style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;color:#e7d3a1;letter-spacing:.01em">3,900</span><span style="color:#9a9280;font-size:14px">원</span></div>
     </div>
     <div style="color:#9a9280;font-size:12.5px;line-height:1.7">
       · 결제수단: 신용·체크카드 등 (전자결제대행 PortOne)<br>
       · 제공방식: 결제 완료 즉시 화면에서 온라인 제공<br>
-      · 환불: <a href="./policy.html#refund" style="color:#e8b84b">환불·청약철회 정책</a>에 따름 (콘텐츠 생성 전 취소 시 전액 환불)
+      · 환불: <a href="./policy.html#refund" style="color:#c9a961">환불·청약철회 정책</a>에 따름 (콘텐츠 생성 전 취소 시 전액 환불)
     </div>
   </div>
 
@@ -251,7 +274,7 @@
     상호: 주식회사 로렌츄컴퍼니 &nbsp;|&nbsp; 대표자: 추세은<br>
     사업자등록번호: 310-86-01763<br>
     통신판매업신고번호: 2024-부산해운대-0897<br>
-    주소: 부산광역시 해운대구 센텀중앙로 78, 센텀그린타워 303호 (우동)<br>
+    주소: 부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)<br>
     고객센터: 070-8845-2848 &nbsp;|&nbsp; 이메일: choopermarket1@gmail.com<br>
     호스팅 제공: Vercel Inc.<br>
     <span style="display:block;margin-top:10px;color:#5c5749">© 2026 주식회사 로렌츄컴퍼니 · Wheny. 본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.</span>
@@ -579,14 +602,14 @@ function shareCard(){if(!CTX)return;
   const head=CTX.r.P.head.replace(/<[^>]+>/g,'');
   const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');
   x.fillStyle='#0c0d12';x.fillRect(0,0,1080,1350);
-  ['#e0483c','#e8b84b','#2fa89a','#5b7fd6','#f3ecdb'].forEach((co,i)=>{x.fillStyle=co;x.fillRect(i*216,0,216,16);});
+  ['#e0483c','#c9a961','#2fa89a','#5b7fd6','#f3ecdb'].forEach((co,i)=>{x.fillStyle=co;x.fillRect(i*216,0,216,16);});
   x.textAlign='center';
-  x.fillStyle='#f3ecdb';x.font='800 96px "Nanum Myeongjo","Noto Serif KR",serif';x.fillText('Wheny',540,225);
-  x.fillStyle='#e8b84b';x.font='600 34px sans-serif';x.fillText('언제인지까지 말해주는 사주',540,282);
-  x.fillStyle='#f3ecdb';x.font='700 54px "Nanum Myeongjo","Noto Serif KR",serif';
+  x.fillStyle='#f3ecdb';x.font='800 96px "Noto Serif KR",serif';x.fillText('Wheny',540,225);
+  x.fillStyle='#c9a961';x.font='600 34px sans-serif';x.fillText('언제인지까지 말해주는 사주',540,282);
+  x.fillStyle='#f3ecdb';x.font='700 54px "Noto Serif KR",serif';
   let line='',lines=[];for(const ch of head){if(x.measureText(line+ch).width>880){lines.push(line);line=ch;}else line+=ch;}lines.push(line);
   let y=560;for(const ln of lines){x.fillText(ln,540,y);y+=78;}
-  x.fillStyle='#e8b84b';x.font='700 42px sans-serif';x.fillText('— '+CTX.tname+' —',540,y+50);
+  x.fillStyle='#c9a961';x.font='700 42px sans-serif';x.fillText('— '+CTX.tname+' —',540,y+50);
   x.fillStyle='#867f6e';x.font='400 30px sans-serif';x.fillText('Wheny · 사주 × 서양점성술 교차검증',540,1295);
   c.toBlob(async(blob)=>{const file=new File([blob],'wheny.png',{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Wheny 소름 리포트'});return;}}catch(e){}
