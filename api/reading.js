@@ -91,6 +91,19 @@ ${PERSONA[persona] || PERSONA.dokseol}
 - 재미용 덕담 말고 진짜 '용한' 상담처럼 대담하게. 겁주는 예언·의학적 단정·차별 표현 금지. 소제목 없이 불릿만.
 - 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
 
+// 대화(챗봇) 모드 — 앞선 대화를 기억하고 이어서 상담
+const CHAT = (persona, lang, chart) => `너는 동양 사주명리·서양 점성술에 능한 운명 상담가다. 아래 페르소나로 사용자와 '이어지는 상담 대화'를 한다.
+${PERSONA[persona] || PERSONA.dokseol}
+[규칙]
+- 아래 [명식]만 근거로 답한다. 새로 계산 금지.
+- 앞선 대화를 반드시 기억하고 자연스럽게 이어라(예: "아까 결혼운 물어봤지, 그거랑 이어서…"). 같은 말 반복 금지.
+- 짧고 구체적으로: 3~5개의 짧은 불릿("- ") 또는 2~4문장. 쪽집게처럼 연도·가능하면 월·구체 상황을 콕 집고, 근거(십신·오행·대운·세운)를 짧게 붙여라. 핵심은 **굵게**.
+- 재미용 덕담 말고 진짜 '용한' 상담처럼. 겁주는 예언·의학적 단정·차별 표현 금지. 페르소나 말투 유지.
+- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}.
+
+[명식]
+${JSON.stringify(chart, null, 2)}`;
+
 // 궁합 모드 — 두 사람(A=본인, B=상대)의 명식으로 궁합 해석
 const COMPAT = (persona, lang) => `너는 동양 사주명리와 서양 점성술에 능한 궁합 전문가다.
 ${PERSONA[persona] || PERSONA.dokseol}
@@ -138,7 +151,7 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
-    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question, paymentId } = body || {};
+    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question, paymentId, messages } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
     if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
 
@@ -147,23 +160,37 @@ export default async function handler(req, res) {
     if (!pay.ok) return res.status(pay.code || 402).json({ error: pay.msg, needPay: true });
 
     const compat = mode === "compat" && chartB;             // 궁합 모드
-    const focused = !compat && !!(question && String(question).trim()); // 후속 질문 모드
+    const chat = mode === "chat" && Array.isArray(messages) && messages.length; // 대화 기억 모드
+    const focused = !compat && !chat && !!(question && String(question).trim()); // 후속 질문 모드
 
-    let system, userContent, maxTok;
-    if (compat) {
+    let system, userContent, maxTok, msgs;
+    if (chat) {
+      // 대화 히스토리 정제: 최근 20턴, role/content만, 마지막은 user
+      const hist = messages.slice(-20)
+        .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+        .map((m) => ({ role: m.role, content: String(m.content).slice(0, 2000) }));
+      if (!hist.length || hist[hist.length - 1].role !== "user")
+        return res.status(400).json({ error: "대화 형식 오류(마지막은 user)" });
+      system = CHAT(persona, lang, chart);
+      msgs = hist;
+      maxTok = 1600;
+    } else if (compat) {
       system = COMPAT(persona, lang);
       userContent =
         "두 사람의 궁합을 봐줘.\n\n[A · 본인]\n" + JSON.stringify(chart, null, 2) +
         "\n\n[B · 상대]\n" + JSON.stringify(chartB, null, 2);
       maxTok = 3000;
+      msgs = [{ role: "user", content: userContent }];
     } else if (focused) {
       system = FOCUS(persona, lang, question);
       userContent = `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n` + JSON.stringify(chart, null, 2);
       maxTok = 2600;
+      msgs = [{ role: "user", content: userContent }];
     } else {
       system = SYSTEM(persona, lang);
       userContent = "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n" + JSON.stringify(chart, null, 2);
       maxTok = 5500;
+      msgs = [{ role: "user", content: userContent }];
     }
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -172,7 +199,7 @@ export default async function handler(req, res) {
       max_tokens: maxTok,
       thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요
       system,
-      messages: [{ role: "user", content: userContent }],
+      messages: msgs,
     });
     const text = (msg.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
     if (!text) return res.status(502).json({ error: "빈 응답", raw: JSON.stringify(msg).slice(0, 400) });

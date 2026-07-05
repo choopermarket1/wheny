@@ -137,6 +137,20 @@
   .ask:disabled{cursor:default;opacity:.4}
   @media(prefers-reduced-motion:no-preference){.followups{animation:tapPulse 1.5s ease .4s 2}}
   @keyframes tapPulse{0%,100%{transform:none}50%{transform:scale(1.012)}}
+  /* 대화(챗봇) */
+  .chat-thread{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+  .chat-thread:empty{margin:0}
+  .cm.user{align-self:flex-end;max-width:86%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;
+    border-radius:15px 15px 5px 15px;padding:10px 14px;font-size:14px;font-weight:600;line-height:1.5;white-space:pre-wrap}
+  .cm.ai{align-self:flex-start;display:flex;gap:9px;max-width:100%}
+  .cm-av{width:30px;height:30px;flex:none;border-radius:50%;overflow:hidden;border:1px solid var(--goldLine);margin-top:2px}
+  .cm-av svg{width:100%;height:100%;display:block}
+  .cm-body{flex:1;min-width:0;background:var(--card);border:1px solid var(--goldLine);border-radius:5px 15px 15px 15px;padding:14px 16px}
+  .cm-body .ai-h:first-child,.cm-body .tl-wrap:first-child{margin-top:0}
+  .chat-in{display:flex;gap:8px;margin-top:18px}
+  .chat-in input{flex:1;min-width:0;padding:13px 14px;background:var(--ink);border:1px solid var(--line);border-radius:11px;color:var(--paper);font-size:15px;font-family:inherit}
+  .chat-in input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
+  .chat-send{flex:none;padding:0 18px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:11px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer}
   .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
   .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
@@ -712,7 +726,7 @@ function run(){
     현재대운:r.cur.k,올해:NOW,
     세운:{[NOW]:yearGZ(NOW).h,[NOW+1]:yearGZ(NOW+1).h,[NOW+2]:yearGZ(NOW+2).h},
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
-  CTX={r,tname:t.nm,chart,persona:picked};
+  CTX={r,tname:t.nm,chart,persona:picked,chat:[]};
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
   const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?` · 지금(${NOW})`:''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${Math.round(x.age)}~${Math.round(x.age)+9}세 · ${x.startYear}~${x.startYear+9}</span></div>`).join("");
   document.getElementById("result").innerHTML=`
@@ -754,7 +768,9 @@ function run(){
       <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">아래 주제를 <b style="color:var(--gold)">눌러보세요</b> — <b>${t.nm}</b>이 그 주제만 콕 짚어 바로 답해드려요.</p>
-      <div class="followups" id="topics"></div><div id="more"></div></div>
+      <div class="followups" id="topics"></div>
+      <div id="more" class="chat-thread"></div>
+      <div class="chat-in"><input id="chatText" placeholder="${t.nm}에게 직접 물어보기…" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
     <div class="actions">
       <button class="share" onclick="shareCard()">${IC.cam}이 소름 이미지로 저장·공유</button>
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
@@ -794,25 +810,36 @@ function renderTopics(cv){
   const box=document.getElementById('topics');if(!box)return;
   box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)"><span>${noEmoji(tp[0])}</span><i class="ask-ch">›</i></button>`).join('');
 }
-async function askTopic(i,btn){
-  if(!CTX)return;
+// 주제 버튼 = 대화 시작. 자유 입력도 같은 대화로 이어짐(무월이 앞 대화 기억)
+function askTopic(i){if(!CTX)return;sendChat(`${noEmoji(TOPICS[i][0])} 자세히 봐줘`);}
+function sendText(){const el=document.getElementById('chatText');if(!el)return;const t=el.value.trim();if(!t)return;el.value='';sendChat(t);}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let CHAT_BUSY=false;
+async function sendChat(text){
+  if(!CTX||CHAT_BUSY)return;
   if(!await ensurePaid())return;
-  btn.disabled=true;btn.style.opacity=.5;
-  const [rawLabel,q]=TOPICS[i],label=noEmoji(rawLabel);
-  const more=document.getElementById('more');
-  const div=document.createElement('div');div.className='ansitem';
-  div.innerHTML=`<div class="q">${label}</div><p style="color:var(--dim)">${CTX.tname} 선생님이 보는 중… (10초)</p>`;
-  more.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'nearest'});
+  CHAT_BUSY=true;
+  CTX.chat.push({role:'user',content:text});
+  renderChat(true);
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q,paymentId:PAID_ID})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'chat',chart:CTX.chart,persona:CTX.persona,lang:'ko',messages:CTX.chat,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
-    div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}</div>`;
-    breakResult();
+    CTX.chat.push({role:'assistant',content:data.reading||''});
   }catch(e){
-    btn.disabled=false;btn.style.opacity=1;
-    div.innerHTML=`<div class="q">${label}</div><p style="color:var(--hong)">${errMsg(e)}</p>`;
+    CTX.chat.push({role:'assistant',content:'__ERR__'+errMsg(e)});
   }
+  CHAT_BUSY=false;renderChat();
+}
+function renderChat(loading){
+  const more=document.getElementById('more');if(!more)return;
+  let html=CTX.chat.map(m=> m.role==='user'
+    ? `<div class="cm user">${escapeHtml(m.content)}</div>`
+    : `<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body">${String(m.content).startsWith('__ERR__')?`<p style="margin:0;color:var(--hong)">${escapeHtml(m.content.slice(7))}</p>`:whenTimeline(m.content)+mdToHtml(m.content)}</div></div>`
+  ).join('');
+  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><p style="margin:0;color:var(--dim)">${CTX.tname}이 명식을 보는 중…</p></div></div>`;
+  more.innerHTML=html;breakResult();
+  const last=more.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function shareCard(){if(!CTX)return;
   const head=CTX.r.P.head.replace(/<[^>]+>/g,'');
