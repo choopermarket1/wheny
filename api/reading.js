@@ -24,6 +24,29 @@ function rateLimited(ip) {
   return arr.length > MAX;
 }
 
+// --- 결제 검증 (포트원 V2). PORTONE_API_SECRET 없으면 = 페이월 OFF(무료).
+const PRICE = Number(process.env.WHENY_PRICE || 5900);
+async function verifyPayment(paymentId) {
+  const secret = process.env.PORTONE_API_SECRET;
+  if (!secret) return { ok: true, free: true };            // 키 미설정 → 무료(현행 유지)
+  if (!paymentId) return { ok: false, code: 402, msg: "결제가 필요해요." };
+  try {
+    const r = await fetch("https://api.portone.io/payments/" + encodeURIComponent(paymentId), {
+      headers: { Authorization: "PortOne " + secret },
+    });
+    if (!r.ok) return { ok: false, code: 402, msg: "결제 확인 실패(" + r.status + ")" };
+    const p = await r.json();
+    const paid = Number(p?.amount?.total ?? p?.amount?.paid ?? 0);
+    const cur = p?.currency || p?.amount?.currency || "";
+    if (p?.status !== "PAID") return { ok: false, code: 402, msg: "결제가 완료되지 않았어요." };
+    if (paid < PRICE) return { ok: false, code: 402, msg: "결제 금액이 부족해요." };
+    if (cur && !/KRW/.test(cur)) return { ok: false, code: 402, msg: "결제 통화 오류." };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, code: 502, msg: "결제 서버 오류. 잠시 후 다시 시도해주세요." };
+  }
+}
+
 // 선생님 4명 = 같은 팩트, 다른 말투(페르소나 톤 레이어)
 const PERSONA = {
   dokseol: "당신은 '팩트 할배'. 반말·직설·촌철살인. 팩트로 정곡을 찌르되 저주·인신공격은 금지. 츤데레처럼 끝은 챙겨준다.",
@@ -92,7 +115,15 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end();
   // 헬스체크: 키 등록 여부 확인 (키 값은 노출 안 함)
   if (req.method === "GET")
-    return res.status(200).json({ ok: true, hasKey: !!process.env.ANTHROPIC_API_KEY, model: "claude-sonnet-5" });
+    return res.status(200).json({
+      ok: true,
+      hasKey: !!process.env.ANTHROPIC_API_KEY,
+      model: "claude-sonnet-5",
+      paywall: !!process.env.PORTONE_API_SECRET,   // 결제 켜짐 여부
+      price: PRICE,
+      storeId: process.env.PORTONE_STORE_ID || "",     // 프론트 결제창용(공개키)
+      channelKey: process.env.PORTONE_CHANNEL_KEY || "",
+    });
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   // --- 호출 제한: 다른 사이트/봇 차단 + IP당 빈도 제한 ---
@@ -105,9 +136,13 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
-    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question } = body || {};
+    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question, paymentId } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
     if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
+
+    // 결제 검증: 페이월 켜져 있으면 유효한 포트원 결제건이 있어야 AI 생성. (프론트 우회 방지)
+    const pay = await verifyPayment(paymentId);
+    if (!pay.ok) return res.status(pay.code || 402).json({ error: pay.msg, needPay: true });
 
     const compat = mode === "compat" && chartB;             // 궁합 모드
     const focused = !compat && !!(question && String(question).trim()); // 후속 질문 모드

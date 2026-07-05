@@ -225,6 +225,7 @@
   </div>
 </div>
 
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <script>
 /* ===== 공통 천문 ===== */
 const RAD=Math.PI/180,sind=d=>Math.sin(d*RAD),cosd=d=>Math.cos(d*RAD),n360=d=>((d%360)+360)%360;
@@ -304,6 +305,30 @@ const TEACHERS={
   shin:{nm:"청담 선녀",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
 };
 let picked="dokseol",cal="sol",CTX=null,mode="solo";
+// --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
+let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
+(async function initPay(){
+  try{const r=await fetch('/api/reading');if(!r.ok)return;const h=await r.json();
+    PAY={on:!!h.paywall,price:h.price||5900,storeId:h.storeId||"",channelKey:h.channelKey||""};
+  }catch(e){}
+})();
+function won(n){return n.toLocaleString('ko-KR')+'원';}
+// 결제창 띄우고 성공하면 PAID_ID 세팅. 이미 냈으면 통과. 페이월 꺼져있으면 그냥 통과.
+async function ensurePaid(){
+  if(!PAY.on||PAID_ID)return true;
+  if(!window.PortOne||!PAY.storeId||!PAY.channelKey){alert('결제 준비 중이에요. 잠시 후 다시 시도해주세요.');return false;}
+  try{
+    const pid='wheny-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
+    const r=await PortOne.requestPayment({
+      storeId:PAY.storeId, channelKey:PAY.channelKey, paymentId:pid,
+      orderName:'Wheny 정밀 사주 리포트', totalAmount:PAY.price, currency:'CURRENCY_KRW', payMethod:'CARD',
+      redirectUrl: location.origin+location.pathname,
+    });
+    if(r&&r.code){alert('결제가 취소됐거나 실패했어요.\n'+(r.message||''));return false;}
+    PAID_ID=(r&&r.paymentId)||pid;
+    return true;
+  }catch(e){alert('결제 처리 중 문제가 생겼어요. 다시 시도해주세요.');return false;}
+}
 function setMode(m){mode=m;
   document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
   document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
@@ -396,11 +421,12 @@ async function runCompat(){
   const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
   const tz=Number(gv("tz")),t=TEACHERS[picked];
   const A=chartOf(aY,aM,aD,ah,0,tz,gv("gender"),aNo),B=chartOf(bY,bM,bD,bh,0,tz,gv("pgender"),bNo);
+  if(!await ensurePaid())return;
   const box=document.getElementById("result");
   box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
   box.scrollIntoView({behavior:"smooth",block:"start"});
   try{
-    const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko"})});
+    const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko",paymentId:PAID_ID})});
     if(!res.ok)throw new Error();
     const data=await res.json();
     box.innerHTML=`
@@ -469,7 +495,8 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>✨ AI 선생님 정밀 해석</h3>
       <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
-      <button class="aibtn" onclick="askAI()">✨ ${t.nm} 정밀 해석 받기</button>
+      <button class="aibtn" onclick="askAI()">${PAY.on?`🔒 ${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`✨ ${t.nm} 정밀 해석 받기`}</button>
+      ${PAY.on?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
       <p style="margin:0 0 12px;font-size:13px;color:var(--dim)">궁금한 주제를 누르면 <b>${t.nm}</b>이 그 주제만 콕 집어 답해줘요.</p>
@@ -497,14 +524,16 @@ function renderTopics(cv){
   box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)">${tp[0]}</button>`).join('');
 }
 async function askTopic(i,btn){
-  if(!CTX)return;btn.disabled=true;btn.style.opacity=.5;
+  if(!CTX)return;
+  if(!await ensurePaid())return;
+  btn.disabled=true;btn.style.opacity=.5;
   const [label,q]=TOPICS[i];
   const more=document.getElementById('more');
   const div=document.createElement('div');div.className='ansitem';
   div.innerHTML=`<div class="q">${label}</div><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 보는 중… (10초)</p>`;
   more.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'nearest'});
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q,paymentId:PAID_ID})});
     if(!res.ok)throw new Error();
     const data=await res.json();
     div.innerHTML=`<div class="q">${label}</div><div class="ai-out" style="margin-top:8px">${mdToHtml(data.reading||'')}</div>`;
@@ -539,10 +568,11 @@ function mdToHtml(md){return (md||"").split("\n").map(raw=>{
 }).join("");}
 async function askAI(){
   if(!CTX)return;
+  if(!await ensurePaid())return;
   const box=document.getElementById('ai-box');
   box.innerHTML=`<div class="ai-out"><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 명식을 읽고 있어요… (10~20초)</p></div>`;
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko'})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',paymentId:PAID_ID})});
     if(!res.ok)throw new Error('backend '+res.status);
     const data=await res.json();
     box.innerHTML=`<div class="ai-out">${mdToHtml(data.reading||'')}</div>`;
