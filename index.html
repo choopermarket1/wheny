@@ -166,16 +166,37 @@
       <input type="checkbox" id="leap" /><label for="leap" style="margin:0;color:var(--paperdim);font-weight:600">이 달은 윤달이에요</label>
     </div>
     <div class="row">
-      <div><label>태어난 시각</label><input type="time" id="time" value="12:00" /></div>
+      <div><label>태어난 시</label><select id="time">
+        <option value="none" selected>🕐 시간 모름</option>
+        <option value="23">자시 (밤 11~1시)</option>
+        <option value="1">축시 (새벽 1~3시)</option>
+        <option value="3">인시 (새벽 3~5시)</option>
+        <option value="5">묘시 (아침 5~7시)</option>
+        <option value="7">진시 (아침 7~9시)</option>
+        <option value="9">사시 (오전 9~11시)</option>
+        <option value="11">오시 (낮 11~1시)</option>
+        <option value="13">미시 (낮 1~3시)</option>
+        <option value="15">신시 (오후 3~5시)</option>
+        <option value="17">유시 (저녁 5~7시)</option>
+        <option value="19">술시 (저녁 7~9시)</option>
+        <option value="21">해시 (밤 9~11시)</option>
+      </select></div>
       <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
     </div>
-    <label class="leap" style="margin-top:10px;font-weight:600"><input type="checkbox" id="notime" /> 태어난 시간을 몰라요 (외국인 등 — 시주 빼고 분석)</label>
     <div id="partnerBox" style="display:none">
       <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
       <label>상대 생년월일</label>
       <input type="date" id="pdate" value="1994-08-20" min="1920-01-01" max="2020-12-31" />
       <div class="row">
-        <div><label>시각</label><input type="time" id="ptime" value="12:00" /></div>
+        <div><label>상대 태어난 시</label><select id="ptime">
+          <option value="none" selected>🕐 시간 모름</option>
+          <option value="23">자시 (밤 11~1시)</option><option value="1">축시 (새벽 1~3시)</option>
+          <option value="3">인시 (새벽 3~5시)</option><option value="5">묘시 (아침 5~7시)</option>
+          <option value="7">진시 (아침 7~9시)</option><option value="9">사시 (오전 9~11시)</option>
+          <option value="11">오시 (낮 11~1시)</option><option value="13">미시 (낮 1~3시)</option>
+          <option value="15">신시 (오후 3~5시)</option><option value="17">유시 (저녁 5~7시)</option>
+          <option value="19">술시 (저녁 7~9시)</option><option value="21">해시 (밤 9~11시)</option>
+        </select></div>
         <div><label>성별</label><select id="pgender"><option value="male">남자</option><option value="female">여자</option></select></div>
       </div>
     </div>
@@ -357,21 +378,24 @@ function report(persona,d,w,age,gender){
 }
 
 /* ===== 실행 ===== */
-function chartOf(Y,M,D,h,mi,tz,gender){
+function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
+  let el=d.el;
+  if(noTime){el={木:0,火:0,土:0,金:0,水:0};[d.P.year,d.P.month,d.P.day].forEach(p=>{el[STEMS[p.s][2]]++;el[BRANCHES[p.b][2]]++;});}
   return{성별:gender==='female'?'여':'남',나이:age,
-    명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
-    일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:d.el,
-    없는오행:Object.keys(d.el).filter(k=>d.el[k]===0),태양별자리:w.sun[1],달별자리:w.moon[1],
+    명식:{시주:noTime?"미상(시간 모름)":d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
+    일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:el,
+    없는오행:Object.keys(el).filter(k=>el[k]===0),태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),현재대운:curDaewoon(d,age).k};
 }
 async function runCompat(){
   const gv=id=>document.getElementById(id).value;
-  if(!gv("date")||!gv("time")||!gv("pdate")||!gv("ptime")){alert("두 사람의 생년월일·시각을 모두 입력해주세요");return;}
-  const [aY,aM,aD]=gv("date").split("-").map(Number),[ah,am]=gv("time").split(":").map(Number);
-  const [bY,bM,bD]=gv("pdate").split("-").map(Number),[bh,bm]=gv("ptime").split(":").map(Number);
+  if(!gv("date")||!gv("pdate")){alert("두 사람의 생년월일을 입력해주세요");return;}
+  const at=gv("time"),bt=gv("ptime"),aNo=at==="none",bNo=bt==="none";
+  const [aY,aM,aD]=gv("date").split("-").map(Number),ah=aNo?12:Number(at);
+  const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
   const tz=Number(gv("tz")),t=TEACHERS[picked];
-  const A=chartOf(aY,aM,aD,ah,am,tz,gv("gender")),B=chartOf(bY,bM,bD,bh,bm,tz,gv("pgender"));
+  const A=chartOf(aY,aM,aD,ah,0,tz,gv("gender"),aNo),B=chartOf(bY,bM,bD,bh,0,tz,gv("pgender"),bNo);
   const box=document.getElementById("result");
   box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
   box.scrollIntoView({behavior:"smooth",block:"start"});
@@ -391,10 +415,10 @@ async function runCompat(){
 }
 function run(){
   if(mode==="compat"){runCompat();return;}
-  const noTime=document.getElementById("notime").checked;
-  const dv=document.getElementById("date").value,tv=noTime?"12:00":document.getElementById("time").value;
-  if(!dv||!tv){alert("생년월일을 입력해주세요");return;}
-  let [Y,M,D]=dv.split("-").map(Number);const [h,mi]=tv.split(":").map(Number);
+  const tsel=document.getElementById("time").value,noTime=(tsel==="none");
+  const dv=document.getElementById("date").value;
+  if(!dv){alert("생년월일을 입력해주세요");return;}
+  let [Y,M,D]=dv.split("-").map(Number);const h=noTime?12:Number(tsel),mi=0;
   const tz=Number(document.getElementById("tz").value),gender=document.getElementById("gender").value;
   let conv="";
   if(cal==="lun"){
