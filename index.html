@@ -381,21 +381,47 @@ function run(){
       <button class="aibtn" onclick="askAI()">✨ ${t.nm} 정밀 해석 받기</button>
       <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
-      <div class="followups">
-        <button class="ask" style="--tc:var(${t.cv})" onclick="askMore('health',this)">🩺 건강은 어때?</button>
-        <button class="ask" style="--tc:var(${t.cv})" onclick="askMore('advice',this)">🧭 지금 뭐부터 해야 해?</button>
-      </div><div id="more"></div></div>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--dim)">궁금한 주제를 누르면 <b>${t.nm}</b>이 그 주제만 콕 집어 답해줘요.</p>
+      <div class="followups" id="topics"></div><div id="more"></div></div>
     <div class="actions">
       <button class="share" onclick="shareCard()">📸 이 소름 이미지로 저장·공유</button>
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
     </div>`;
+  renderTopics(t.cv);
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
-function askMore(kind,btn){if(!CTX)return;btn.disabled=true;
-  const lbl=kind==='health'?'🩺 건강':'🧭 지금 뭐부터';
+const TOPICS=[
+  ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
+  ["💍 결혼 시기","결혼운이 강해지는 시기와 어떤 배우자상이 잘 맞는지 알려줘"],
+  ["💰 재물운","재물운과 돈이 들어오는 시기, 새는 구멍이 있는지 알려줘"],
+  ["💼 이직·직업","적성과 이직·전직·사업에 유리한 타이밍을 알려줘"],
+  ["🤝 대인관계","내 편이 되는 사람과 조심해야 할 관계를 알려줘"],
+  ["🏠 이사·택일","이사나 중요한 계약·시험에 좋은 시기(택일)를 알려줘"],
+  ["📅 올해 월별","2026년 월별 흐름에서 조심할 달과 좋은 달을 알려줘"],
+  ["🩺 건강","기운상 약한 부분과 평소 건강 관리 포인트를 알려줘"],
+  ["🧭 지금 뭐부터","지금 당장 뭐부터 해야 하는지 우선순위를 알려줘"],
+];
+function renderTopics(cv){
+  const box=document.getElementById('topics');if(!box)return;
+  box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)">${tp[0]}</button>`).join('');
+}
+async function askTopic(i,btn){
+  if(!CTX)return;btn.disabled=true;btn.style.opacity=.5;
+  const [label,q]=TOPICS[i];
+  const more=document.getElementById('more');
   const div=document.createElement('div');div.className='ansitem';
-  div.innerHTML=`<div class="q">${lbl}</div><p>${CTX.r[kind]}</p>`;
-  document.getElementById('more').appendChild(div);}
+  div.innerHTML=`<div class="q">${label}</div><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 보는 중… (10초)</p>`;
+  more.appendChild(div);div.scrollIntoView({behavior:'smooth',block:'nearest'});
+  try{
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:'ko',question:q})});
+    if(!res.ok)throw new Error();
+    const data=await res.json();
+    div.innerHTML=`<div class="q">${label}</div><p>${mdToHtml(data.reading||'')}</p>`;
+  }catch(e){
+    btn.disabled=false;btn.style.opacity=1;
+    div.innerHTML=`<div class="q">${label}</div><p style="color:var(--hong)">AI 답변은 정식 서버(Vercel) 버전에서 작동해요. 이 미리보기엔 백엔드가 없어요.</p>`;
+  }
+}
 function shareCard(){if(!CTX)return;
   const head=CTX.r.P.head.replace(/<[^>]+>/g,'');
   const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');

@@ -41,6 +41,15 @@ ${PERSONA[persona] || PERSONA.dokseol}
   ## 건강 (약한 기운과 생활 관리)
   ## 한 줄 (선생님의 마무리 한마디)`;
 
+// 후속 질문(특정 주제 하나만) 모드 — 짧고 집중된 답변
+const FOCUS = (persona, lang, question) => `너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다.
+${PERSONA[persona] || PERSONA.dokseol}
+사용자가 주제 하나만 물었다: "${question}"
+[규칙]
+- 그 질문에만 <b>4~6문장</b>으로 집중해 답하라. 명식(일간·오행·십신·대운·세운) 근거를 대고, 가능하면 <b>'언제(연도·나이)'</b>를 넣어라.
+- 겁주는 예언·의학적 단정·차별 표현 금지. 마크다운 소제목 없이 자연스러운 문단으로.
+- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
+
 export default async function handler(req, res) {
   // --- CORS (GitHub Pages 등 다른 도메인 프론트 허용) ---
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -55,21 +64,24 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
-    const { chart, persona = "dokseol", lang = "ko" } = body || {};
+    const { chart, persona = "dokseol", lang = "ko", question } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
     if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
 
+    const focused = !!(question && String(question).trim()); // 후속 질문 모드
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const msg = await client.messages.create({
       model: "claude-sonnet-5", // 품질/속도/비용 균형. 최고 품질은 claude-opus-4-8
-      max_tokens: 4000, // 9개 카테고리 완결에 필요(3000은 '한 줄'에서 잘림). 상한이지 실제사용 아님(~2500토큰)
+      max_tokens: focused ? 1200 : 4000, // 후속질문은 짧게(비용↓), 전체 리포트는 4000
       thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요 → 속도·비용↓
-      system: SYSTEM(persona, lang),
+      system: focused ? FOCUS(persona, lang, question) : SYSTEM(persona, lang),
       messages: [
         {
           role: "user",
           content:
-            "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n" +
+            (focused
+              ? `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n`
+              : "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n") +
             JSON.stringify(chart, null, 2),
         },
       ],
