@@ -189,6 +189,32 @@
   .oh-data{fill:rgba(201,169,97,.20);stroke:#c9a961;stroke-width:2;stroke-linejoin:round}
   .oh-lbl{font-size:15px;font-weight:800;text-anchor:middle;font-family:"Noto Serif KR",serif}
   .oh-cnt{font-size:9.5px;text-anchor:middle;font-family:sans-serif;font-weight:700}
+  /* 💗 연애 타임라인 */
+  .lt{background:color-mix(in srgb,#de6e86 8%,var(--ink));border:1px solid rgba(222,110,134,.28);border-radius:12px;padding:14px 10px 12px;margin:0 0 14px}
+  .lt-cap{font-size:11px;letter-spacing:.08em;color:#e58aa0;font-weight:700;margin-bottom:14px;text-align:center}
+  .lt-row{display:flex;justify-content:space-around;position:relative}
+  .lt-row::before{content:"";position:absolute;left:9%;right:9%;top:11px;height:2px;background:rgba(222,110,134,.25)}
+  .lt-dot{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
+  .lt-mk{font-size:19px;line-height:1}.lt-mk.plain{color:var(--dim)}
+  .lt-dot b{font-size:13px;color:var(--paperdim);font-variant-numeric:tabular-nums}
+  .lt-dot b.now{color:var(--gold)}
+  .lt-dot i{font-size:9.5px;font-style:normal;color:#e58aa0}.lt-dot i.now{color:var(--gold)}
+  /* 🗓 월별 히트맵 */
+  .mh{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
+  .mh-cell{border-radius:9px;padding:9px 4px;text-align:center;border:1px solid var(--line);background:var(--ink)}
+  .mh-cell b{display:block;font-size:13px;color:var(--paper);font-weight:700}
+  .mh-cell span{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+  .mh-cell.good{border-color:rgba(143,191,134,.4);background:rgba(143,191,134,.10)}
+  .mh-cell.good b,.mh-cell.good span{color:#8fbf86}
+  .mh-cell.bad{border-color:rgba(224,101,90,.4);background:rgba(224,101,90,.10)}
+  .mh-cell.bad b,.mh-cell.bad span{color:#e0655a}
+  /* 💯 궁합 다이얼 */
+  .cd{display:flex;justify-content:center;margin:0 0 14px}
+  .cd-svg{width:120px;height:120px}
+  .cd-bg{fill:none;stroke:#2b2933;stroke-width:9}
+  .cd-fg{fill:none;stroke-width:9;stroke-linecap:round;transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset .9s ease}
+  .cd-num{font-size:32px;font-weight:800;text-anchor:middle;font-family:sans-serif}
+  .cd-unit{font-size:12px;fill:var(--dim);text-anchor:middle}
   .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
   .note b{color:var(--paperdim)}
   @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
@@ -562,6 +588,33 @@ function ohaengRadar(el){
   return `<svg viewBox="0 0 200 200" class="oh-svg">${grid}${axes}<polygon points="${dp}" class="oh-data"/>${verts}${labels}</svg>`;
 }
 
+// 💗 연애·결혼 타이밍 — 인연운 강한 해를 하트 타임라인으로
+function loveTimeline(dStem,gender){
+  const want=gender==='male'?["정재","편재"]:["정관","편관"];
+  const hits=[];for(let Y=NOW;Y<=NOW+15;Y++){const ys=((Y-4)%10+10)%10;if(want.includes(sipsin(dStem,ys)))hits.push(Y);}
+  if(!hits.length)return "";
+  const pts=[...new Set([NOW,...hits])].sort((a,b)=>a-b).slice(0,6);
+  const dots=pts.map(y=>{const love=hits.includes(y),now=y===NOW;
+    return `<div class="lt-dot"><span class="lt-mk ${love?'love':'plain'}">${love?'💗':'·'}</span><b class="${now?'now':''}">${y}</b>${now?'<i class="now">지금</i>':(love?'<i>인연운</i>':'')}</div>`;}).join("");
+  return `<div class="lt"><div class="lt-cap">💗 인연운이 강해지는 해</div><div class="lt-row">${dots}</div></div>`;
+}
+// 🗓 올해 월별 히트맵 — 12달 좋음/보통/주의 색으로
+function monthHeatmap(dStem){
+  const yStem=yearGZ(NOW).s,base=(2+(yStem%5)*2)%10,cells=[];
+  for(let M=1;M<=12;M++){
+    const b=M%12,mNo=((b-2)+12)%12,mStem=(base+mNo)%10,ss=sipsin(dStem,mStem),sc=SS_SCORE[ss]??0;
+    const cls=sc>=1?'good':sc<=-.8?'bad':'mid',st=sc>=1?'좋음':sc<=-.8?'주의':'보통';
+    cells.push(`<div class="mh-cell ${cls}"><b>${M}월</b><span>${st}</span></div>`);
+  }
+  return `<div class="mh">${cells.join("")}</div>`;
+}
+// 💯 궁합 점수 다이얼 (원형 게이지)
+function compatDial(score){
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  const r=42,c=2*Math.PI*r,off=c*(1-score/100),col=score>=75?'#8fbf86':score>=50?'#c9a961':'#e0655a';
+  return `<div class="cd"><svg viewBox="0 0 110 110" class="cd-svg"><circle cx="55" cy="55" r="${r}" class="cd-bg"/><circle cx="55" cy="55" r="${r}" class="cd-fg" style="stroke:${col};stroke-dasharray:${c.toFixed(1)};stroke-dashoffset:${off.toFixed(1)}"/><text x="55" y="53" class="cd-num" style="fill:${col}">${score}</text><text x="55" y="72" class="cd-unit">점</text></svg></div>`;
+}
+
 /* ===== 실행 ===== */
 function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
@@ -589,9 +642,11 @@ async function runCompat(){
     const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko",paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
+    const cm=(data.reading||"").match(/(\d{1,3})\s*점/),cscore=cm?+cm[1]:78;
     box.innerHTML=`
       <div class="block" style="--tc:var(${t.cv})"><h3>💞 궁합 · ${A.일간} × ${B.일간}</h3>
         <div class="chips"><span class="chip">나 <b>${A.명식.일주} · ${A.태양별자리}</b></span><span class="chip">상대 <b>${B.명식.일주} · ${B.태양별자리}</b></span></div>
+        ${compatDial(cscore)}
         <div class="ai-out" style="margin-top:14px">${mdToHtml(data.reading||"")}</div></div>
       <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요 💞')">📸 궁합 캡처 공유</button>
         <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다시 보기</button></div>`;
@@ -642,9 +697,10 @@ function run(){
       <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3><p>${r.loveTime}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>💗 연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${NOW} 올해 흐름</h3><p>${r.year}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>🗓 ${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
+      <p style="margin:10px 0 0;font-size:11px;color:var(--dim)">🟢 좋음 · 🔴 주의 — 월별 기운 참고용(절기 기준 근사)</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p>${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
