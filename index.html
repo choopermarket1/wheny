@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Wheny · 언제인지까지 말해주는 사주</title>
+<style>
+  :root{
+    --ink:#0c0d12; --ink2:#12141b; --card:#181b23; --card2:#1e222b; --line:#2b2f3a;
+    --paper:#f3ecdb; --paperdim:#c7bfa9; --dim:#867f6e;
+    --hong:#e0483c; --hwang:#e8b84b; --cheong:#2fa89a; --nam:#5b7fd6;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--ink);color:var(--paper);
+    font-family:"Apple SD Gothic Neo","Pretendard","Malgun Gothic",system-ui,sans-serif;
+    line-height:1.62;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(120% 60% at 50% -8%, rgba(224,72,60,.12), transparent 60%),
+      radial-gradient(90% 50% at 100% 8%, rgba(232,184,75,.07), transparent 55%);
+    background-attachment:fixed}
+  .saekdong{height:5px;width:100%;position:sticky;top:0;z-index:9;
+    background:linear-gradient(90deg,var(--hong) 0 20%,var(--hwang) 20% 40%,var(--cheong) 40% 60%,var(--nam) 60% 80%,var(--paper) 80% 100%)}
+  .wrap{max-width:600px;margin:0 auto;padding:0 18px 90px}
+
+  /* ── 히어로 ── */
+  header{text-align:center;padding:40px 0 22px;position:relative}
+  .mun{width:52px;height:52px;margin:0 auto 14px;display:block;opacity:.95}
+  .brand{font-family:"Nanum Myeongjo","Noto Serif KR",serif;font-weight:800;
+    font-size:46px;letter-spacing:.01em;line-height:1;display:inline-block;position:relative}
+  .brand .y{color:var(--hong)}
+  .brand::after{content:"";position:absolute;left:8%;right:8%;bottom:-9px;height:4px;border-radius:3px;
+    background:linear-gradient(90deg,var(--hong),var(--hwang),var(--cheong),var(--nam))}
+  .tagline{font-family:"Nanum Myeongjo",serif;color:var(--paper);font-size:19px;margin:22px 0 3px;font-weight:700}
+  .tagline b{color:var(--hwang)}
+  .tagsub{color:var(--dim);font-size:12.5px;letter-spacing:.03em}
+
+  /* ── 카드 ── */
+  .card{background:linear-gradient(180deg,var(--card),var(--ink2));
+    border:1px solid var(--line);border-radius:18px;padding:22px;
+    box-shadow:0 20px 50px -30px rgba(0,0,0,.9)}
+  .seg{display:flex;background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:6px}
+  .seg button{flex:1;padding:11px;border:0;border-radius:9px;background:transparent;color:var(--dim);
+    font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
+  .seg button[aria-pressed="true"]{background:var(--hong);color:#fff}
+  label{display:block;font-size:12px;color:var(--dim);margin:16px 0 6px;font-weight:700;letter-spacing:.02em}
+  input,select{width:100%;padding:13px 14px;background:var(--ink);border:1px solid var(--line);
+    border-radius:11px;color:var(--paper);font-size:16px;font-family:inherit}
+  input:focus,select:focus{outline:2px solid var(--hwang);outline-offset:1px;border-color:var(--hwang)}
+  .row{display:flex;gap:11px}.row>div{flex:1}
+  .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
+  .leap input{width:auto}
+  .lbl-t{font-family:"Nanum Myeongjo",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
+  .teachers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
+    display:flex;gap:11px;align-items:center;transition:.15s;position:relative;overflow:hidden}
+  .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.5}
+  .t .em{font-size:26px;line-height:1;filter:saturate(1.1)}
+  .t .nm{font-weight:800;font-size:14.5px}
+  .t .ds{font-size:11px;color:var(--dim);margin-top:1px}
+  .t[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 15%,var(--ink))}
+  .t[aria-pressed="true"]::before{opacity:1;width:5px}
+  button.go{width:100%;margin-top:24px;padding:17px;background:var(--hong);color:#fff;border:0;
+    border-radius:14px;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.03em;
+    box-shadow:0 12px 30px -12px var(--hong)}
+  button.go:active{transform:translateY(1px)}
+  .form-note{text-align:center;color:var(--dim);font-size:11.5px;margin-top:12px}
+
+  /* ── 결과 ── */
+  #result{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+  .conv{text-align:center;font-size:12.5px;color:var(--hwang);background:color-mix(in srgb,var(--hwang) 10%,var(--ink));
+    border:1px solid color-mix(in srgb,var(--hwang) 35%,var(--line));border-radius:10px;padding:8px}
+  .hero-r{background:
+      radial-gradient(120% 90% at 0% 0%, color-mix(in srgb,var(--tc) 26%,var(--card)), var(--card));
+    border:1px solid var(--tc);border-radius:18px;padding:24px 22px}
+  .who{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--paperdim);margin-bottom:14px;
+    letter-spacing:.02em}
+  .who .em{font-size:24px}.who b{color:var(--tc);font-size:14px}
+  .oneline{font-family:"Nanum Myeongjo","Noto Serif KR",serif;font-size:23px;line-height:1.48;font-weight:700;text-wrap:balance}
+  .oneline b{color:var(--hwang)}
+  .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:19px}
+  .block h3{margin:0 0 10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--tc);display:flex;align-items:center;gap:8px}
+  .block h3::before{content:"";width:14px;height:2px;background:var(--tc)}
+  .block p{margin:0;font-size:15px;color:var(--paperdim)}.block b{color:var(--paper)}
+  table{width:100%;border-collapse:collapse;text-align:center}
+  th,td{padding:10px 4px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+  th{color:var(--dim);font-weight:500;font-size:11px}
+  .hanja{font-family:"Nanum Myeongjo",serif;font-size:27px;font-weight:800;color:var(--paper)}
+  .kohan{font-size:13px;color:var(--paperdim)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .chip{font-size:12px;background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:4px 11px;color:var(--paperdim)}
+  .chip b{color:var(--paper)}.chip.warn{color:#f0897f;border-color:color-mix(in srgb,var(--hong) 40%,var(--line))}
+  .cross{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pct{font-family:"Nanum Myeongjo",serif;font-size:30px;font-weight:800;color:var(--hwang);font-variant-numeric:tabular-nums}
+  .gauge{flex:1;min-width:160px;height:11px;background:var(--ink);border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+  .gfill{height:100%;background:linear-gradient(90deg,var(--cheong),var(--hwang));border-radius:20px}
+  .dwrap{margin-top:12px;position:relative}
+  .dw{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);font-size:14px}
+  .dw:last-child{border-bottom:0}
+  .dw .hz{font-family:"Nanum Myeongjo",serif;font-weight:700;font-size:15px}
+  .dw .age{color:var(--dim);font-variant-numeric:tabular-nums;font-size:13px}
+  .dw.now .hz{color:var(--cheong)}.dw.now{background:color-mix(in srgb,var(--cheong) 8%,transparent);
+    margin:0 -8px;padding-left:10px;padding-right:10px;border-radius:8px}
+  .dw.now .age{color:var(--cheong);font-weight:700}
+  .actions{display:flex;flex-direction:column;gap:9px}
+  .share{padding:15px;background:var(--hwang);border:0;border-radius:13px;color:#20180a;font-weight:800;
+    font-size:15px;font-family:inherit;cursor:pointer}
+  .redo{padding:13px;background:transparent;border:1px solid var(--line);border-radius:13px;color:var(--dim);
+    font-size:14px;font-family:inherit;cursor:pointer}
+  .followups{display:flex;flex-wrap:wrap;gap:8px}
+  .ask{flex:1;min-width:140px;padding:12px;background:var(--card2);border:1px solid var(--tc);border-radius:11px;
+    color:var(--paper);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
+  .ask:disabled{cursor:default;opacity:.4}
+  .ansitem{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
+  .ansitem .q{font-size:12px;color:var(--tc);font-weight:800;margin-bottom:5px}
+  .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
+  .note{color:var(--dim);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.75}
+  .note b{color:var(--paperdim)}
+  @media(prefers-reduced-motion:no-preference){#result>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+    #result>*:nth-child(2){animation-delay:.05s}#result>*:nth-child(3){animation-delay:.1s}
+    #result>*:nth-child(4){animation-delay:.15s}#result>*:nth-child(5){animation-delay:.2s}}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media(max-width:400px){.brand{font-size:40px}.teachers{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="saekdong"></div>
+<div class="wrap">
+  <header>
+    <svg class="mun" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#e8b84b" stroke-width="2"/>
+      <path d="M50 4a46 46 0 0 1 0 92 23 23 0 0 1 0-46 23 23 0 0 0 0-46z" fill="#e0483c"/>
+      <path d="M50 96a46 46 0 0 1 0-92 23 23 0 0 0 0 46 23 23 0 0 1 0 46z" fill="#5b7fd6"/>
+      <circle cx="50" cy="27" r="7" fill="#5b7fd6"/><circle cx="50" cy="73" r="7" fill="#e0483c"/>
+    </svg>
+    <div class="brand">When<span class="y">y</span></div>
+    <div class="tagline"><b>언제</b>인지까지 말해주는 사주</div>
+    <div class="tagsub">사주 만세력 × 서양 점성술 교차검증 · 프로토타입</div>
+  </header>
+
+  <div class="card" id="form">
+    <div class="seg" role="tablist">
+      <button role="tab" aria-pressed="true" id="seg-sol" onclick="setCal('sol')">양력</button>
+      <button role="tab" aria-pressed="false" id="seg-lun" onclick="setCal('lun')">음력</button>
+    </div>
+    <label id="dateLbl">생년월일 (양력)</label>
+    <input type="date" id="date" value="1995-05-15" min="1920-01-01" max="2020-12-31" />
+    <div class="leap" id="leapWrap" style="display:none">
+      <input type="checkbox" id="leap" /><label for="leap" style="margin:0;color:var(--paperdim);font-weight:600">이 달은 윤달이에요</label>
+    </div>
+    <div class="row">
+      <div><label>태어난 시각</label><input type="time" id="time" value="12:00" /></div>
+      <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
+    </div>
+    <label>기준 시간대</label>
+    <select id="tz">
+      <option value="9" selected>한국·일본 (UTC+9)</option>
+      <option value="8">중국·대만 (UTC+8)</option>
+      <option value="-5">미국 동부 (UTC-5)</option>
+      <option value="-8">미국 서부 (UTC-8)</option>
+      <option value="0">영국 (UTC+0)</option>
+    </select>
+
+    <div class="lbl-t">당신을 봐줄 선생님을 고르세요</div>
+    <div class="teachers" id="teachers"></div>
+
+    <button class="go" onclick="run()">내 소름 리포트 보기</button>
+    <div class="form-note">태어난 시각을 모르면 12:00으로 두세요 (시주만 부정확)</div>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="note">
+    ※ 프로토타입 · 가칭 <b>Wheny</b>. 명식·대운·별자리는 실제 계산값.<br>
+    음력은 근사 변환(윤달 경계년은 정식 버전에서 KASI 공식데이터로 보정).<br>
+    해석 문장은 현재 <b>엔진 규칙형</b> — 정식은 AI 선생님(Claude)이 네이티브 생성.
+  </div>
+</div>
+
+<script>
+/* ===== 공통 천문 ===== */
+const RAD=Math.PI/180,sind=d=>Math.sin(d*RAD),cosd=d=>Math.cos(d*RAD),n360=d=>((d%360)+360)%360;
+function toJD(y,m,d,h){if(m<=2){y--;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+h/24;}
+function greg(jd){jd+=0.5;let Z=Math.floor(jd),F=jd-Z,A;
+  if(Z<2299161)A=Z;else{let al=Math.floor((Z-1867216.25)/36524.25);A=Z+1+al-Math.floor(al/4);}
+  let B=A+1524,C=Math.floor((B-122.1)/365.25),D=Math.floor(365.25*C),E=Math.floor((B-D)/30.6001);
+  let day=B-D-Math.floor(30.6001*E)+F,month=E<14?E-1:E-13,year=month>2?C-4716:C-4715;
+  return{y:year,m:month,d:Math.floor(day+1e-6)};}
+function solarLongitude(jd){const T=(jd-2451545)/36525;
+  const L0=280.46646+36000.76983*T+0.0003032*T*T,M=357.52911+35999.05029*T-0.0001537*T*T,Mr=M*RAD;
+  const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)+(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+  const om=125.04-1934.136*T;return n360(L0+C-0.00569-0.00478*Math.sin(om*RAD));}
+function findCross(t,a){let jd=a;for(let i=0;i<12;i++){let df=t-solarLongitude(jd);df=(((df+180)%360)+360)%360-180;if(Math.abs(df)<1e-7)break;jd+=df/0.9856473;}return jd;}
+function moonLon(jd){const d=jd-2451543.5;const Ms=n360(356.047+0.9856002585*d),ws=282.9404+4.70935e-5*d,Ls=n360(ws+Ms);
+  const N=125.1228-0.0529538083*d,i=5.1454,w=318.0634+0.1643573223*d,a=60.2666,e=0.0549,M=n360(115.3654+13.0649929509*d);
+  let E=M+(e*180/Math.PI)*sind(M)*(1+e*cosd(M));for(let k=0;k<3;k++)E=E-(E-(e*180/Math.PI)*sind(E)-M)/(1-e*cosd(E));
+  const xv=a*(cosd(E)-e),yv=a*Math.sqrt(1-e*e)*sind(E),v=n360(Math.atan2(yv,xv)/RAD),r=Math.sqrt(xv*xv+yv*yv);
+  const xh=r*(cosd(N)*cosd(v+w)-sind(N)*sind(v+w)*cosd(i)),yh=r*(sind(N)*cosd(v+w)+cosd(N)*sind(v+w)*cosd(i));
+  let lon=n360(Math.atan2(yh,xh)/RAD),Lm=n360(N+w+M),D=n360(Lm-Ls),F=n360(Lm-N);
+  lon+=-1.274*sind(M-2*D)+0.658*sind(2*D)-0.186*sind(Ms)-0.059*sind(2*M-2*D)-0.057*sind(M-2*D+Ms)+0.053*sind(M+2*D)+0.046*sind(2*D-Ms)+0.041*sind(M-Ms)-0.035*sind(D)-0.031*sind(M+Ms)-0.015*sind(2*F-2*D)+0.011*sind(M-4*D);
+  return n360(lon);}
+/* ===== 음력 → 양력 ===== */
+function newMoon(a){let jd=a;for(let i=0;i<10;i++){let df=moonLon(jd)-solarLongitude(jd);df=(((df+180)%360)+360)%360-180;jd-=df/12.1907;}return jd;}
+function zhongqiMonth(L){return(((L-270+360)%360)/30+10)%12+1;}
+function lunarToSolar(lY,lM,lD,leap,tz){
+  const ws=findCross(270,toJD(lY-1,12,22,12)-tz/24);
+  let nm0=newMoon(ws);if(nm0>ws)nm0=newMoon(ws-29.53);
+  const starts=[];let cur=nm0;for(let i=0;i<16;i++){starts.push(cur);cur=newMoon(cur+29.53);}
+  const res=[];let lastNum=null;
+  for(let i=0;i<starts.length-1;i++){
+    const s=starts[i],e=starts[i+1],Ls=solarLongitude(s),span=n360(solarLongitude(e)-Ls);
+    let zL=null;for(let k=0;k<12;k++){const L=k*30;if(n360(L-Ls)>1e-9&&n360(L-Ls)<span-1e-9){zL=L;break;}}
+    if(zL!==null){lastNum=zhongqiMonth(zL);res.push({start:s,num:lastNum,leap:false});}
+    else if(lastNum!==null)res.push({start:s,num:lastNum,leap:true});
+  }
+  const hit=res.find(r=>r.num===lM&&r.leap===leap)||res.find(r=>r.num===lM&&!r.leap);
+  if(!hit)return null;
+  const g=greg(hit.start+tz/24);return greg(toJD(g.y,g.m,g.d,12)+(lD-1));
+}
+/* ===== 사주 ===== */
+const STEMS=[["甲","갑","木","陽"],["乙","을","木","陰"],["丙","병","火","陽"],["丁","정","火","陰"],["戊","무","土","陽"],["己","기","土","陰"],["庚","경","金","陽"],["辛","신","金","陰"],["壬","임","水","陽"],["癸","계","水","陰"]];
+const BRANCHES=[["子","자","水","쥐"],["丑","축","土","소"],["寅","인","木","호랑이"],["卯","묘","木","토끼"],["辰","진","土","용"],["巳","사","火","뱀"],["午","오","火","말"],["未","미","土","양"],["申","신","金","원숭이"],["酉","유","金","닭"],["戌","술","土","개"],["亥","해","水","돼지"]];
+function gz(i){i=((i%60)+60)%60;return{s:i%10,b:i%12,h:STEMS[i%10][0]+BRANCHES[i%12][0],k:STEMS[i%10][1]+BRANCHES[i%12][1]};}
+function gzSB(s,b){for(let i=0;i<60;i++)if(i%10===s&&i%12===b)return i;return 0;}
+const ANCHOR=2451551;
+function computeSaju(b){
+  const jdL=toJD(b.year,b.month,b.day,b.hour+b.minute/60),jdU=jdL-b.tz/24,lon=solarLongitude(jdU);
+  const ipchun=findCross(315,toJD(b.year,2,4,12)-b.tz/24),sy=jdU<ipchun?b.year-1:b.year;
+  const yIdx=((sy-4)%60+60)%60,yStem=yIdx%10;
+  const mNo=Math.floor(((((lon-315)%360)+360)%360)/30),mBranch=(2+mNo)%12,mStem=((2+(yStem%5)*2)%10+mNo)%10,mIdx=gzSB(mStem,mBranch);
+  const jdn=Math.round(toJD(b.year,b.month,b.day,12)),dIdx=((jdn-ANCHOR)%60+60)%60,dStem=dIdx%10;
+  const hB=Math.floor(((b.hour+1)%24)/2),hS=(((dStem%5)*2)%10+hB)%10,hIdx=gzSB(hS,hB);
+  const P={year:gz(yIdx),month:gz(mIdx),day:gz(dIdx),hour:gz(hIdx)};
+  const el={木:0,火:0,土:0,金:0,水:0};[P.year,P.month,P.day,P.hour].forEach(p=>{el[STEMS[p.s][2]]++;el[BRANCHES[p.b][2]]++;});
+  const yang=STEMS[yStem][3]==="陽",male=b.gender==="male",fwd=(yang&&male)||(!yang&&!male);
+  const k=Math.floor(((((lon-315)%360)+360)%360)/30);
+  const prev=findCross((315+k*30)%360,jdU-15),next=findCross((315+(k+1)*30)%360,jdU+15);
+  const startAge=Math.max(0,(fwd?next-jdU:jdU-prev)/3),dw=[];
+  for(let i=1;i<=8;i++){const g=gz(fwd?mIdx+i:mIdx-i),age=Math.round((startAge+(i-1)*10)*10)/10;dw.push({age,startYear:b.year+Math.floor(age),h:g.h,k:g.k});}
+  return{P,dStem,el,fwd,dw,zodiac:BRANCHES[P.year.b][3],dm:STEMS[dStem]};
+}
+/* ===== 서양 점성술 ===== */
+const SIGNS=[["Aries","양자리","불"],["Taurus","황소자리","흙"],["Gemini","쌍둥이자리","공기"],["Cancer","게자리","물"],["Leo","사자자리","불"],["Virgo","처녀자리","흙"],["Libra","천칭자리","공기"],["Scorpio","전갈자리","물"],["Sagittarius","궁수자리","불"],["Capricorn","염소자리","흙"],["Aquarius","물병자리","공기"],["Pisces","물고기자리","물"]];
+function computeWest(b){const jdU=toJD(b.year,b.month,b.day,b.hour+b.minute/60)-b.tz/24;
+  return{sun:SIGNS[Math.floor(solarLongitude(jdU)/30)],moon:SIGNS[Math.floor(moonLon(jdU)/30)]};}
+const O2W={火:["불"],土:["흙"],水:["물"],木:["공기","불"],金:["공기","흙"]};
+
+/* ===== 선생님 ===== */
+const TEACHERS={
+  dokseol:{nm:"팩트 할배",em:"🐯",ds:"독설·팩폭",cv:"--hong"},
+  wiro:{nm:"괜찮아 언니",em:"🌷",ds:"위로·공감",cv:"--cheong"},
+  coach:{nm:"김실장",em:"🧭",ds:"냉철·해결책",cv:"--nam"},
+  shin:{nm:"청담 선녀",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
+};
+let picked="dokseol",cal="sol",CTX=null;
+function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
+  `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
+    <span class="em">${t.em}</span><span><span class="nm">${t.nm}</span><span class="ds">${t.ds}</span></span></div>`).join("");}
+function pick(k){picked=k;renderTeachers();}
+function setCal(c){cal=c;
+  document.getElementById("seg-sol").setAttribute("aria-pressed",c==="sol");
+  document.getElementById("seg-lun").setAttribute("aria-pressed",c==="lun");
+  document.getElementById("dateLbl").textContent="생년월일 ("+(c==="sol"?"양력":"음력")+")";
+  document.getElementById("leapWrap").style.display=c==="lun"?"flex":"none";}
+
+/* ===== 소름 리포트(규칙형) ===== */
+const ELEM_TRAIT={木:"뻗어나가려는 기질",火:"드러내고 타오르는 기질",土:"버티고 품는 기질",金:"끊고 매듭짓는 기질",水:"흐르고 스며드는 기질"};
+const MISSING_JAB={金:"매듭·결단",水:"융통·눈치",木:"추진·시작",火:"표현·열정",土:"중심·인내"};
+function sipsin(di,oi){const GEN={木:"火",火:"土",土:"金",金:"水",水:"木"},CON={木:"土",土:"水",水:"火",火:"金",金:"木"};
+  const me=STEMS[di],o=STEMS[oi],same=me[3]===o[3];
+  if(me[2]===o[2])return same?"비견":"겁재";if(GEN[me[2]]===o[2])return same?"식신":"상관";
+  if(CON[me[2]]===o[2])return same?"편재":"정재";if(CON[o[2]]===me[2])return same?"편관":"정관";return same?"편인":"정인";}
+const MOON_T={불:"뜨겁고 직진하는",흙:"느리지만 진득한",공기:"가볍고 자유로운",물:"깊고 예민한"};
+const YEAR_THEME={정재:"돈·안정운",편재:"큰돈·이성운",정관:"직장·책임운",편관:"도전·명예운",식신:"표현·시작운",상관:"이직·재능운",정인:"공부·문서·귀인운",편인:"자격·전환운",비견:"경쟁·독립운",겁재:"지출 주의"};
+const HEALTH={木:"간·눈·근육(유연성)",火:"심장·혈압·표현력",土:"위장·소화·중심",金:"폐·대장·결단력",水:"신장·호르몬·융통성"};
+const CLOSER={
+  dokseol:["핑계 대지 말고 움직여.","알면서 왜 안 해.","엄살은 그만.","이번엔 진짜 챙겨.","시간 없다, 정신 차려."],
+  wiro:["먼저 다가가도 괜찮아요.","너무 애쓰지 말아요.","스스로도 좀 챙겨요.","몸이 먼저예요.","천천히 가도 돼요."],
+  coach:["선제적으로 접근하세요.","숫자로 관리하세요.","리스크부터 줄이세요.","루틴으로 관리하세요.","타이밍을 지키세요."],
+  shin:["먼저 마음을 열게.","욕심을 덜게.","마음을 비우게.","기운을 아끼게.","때를 기다리게."]};
+function pastPivot(d,age){let best=null;for(const x of d.dw)if(x.age>=15&&x.age<=age-1)best=x;return best||d.dw.find(x=>x.age<=age)||d.dw[0];}
+function curDaewoon(d,age){let c=d.dw[0];for(const x of d.dw)if(age>=x.age)c=x;return c;}
+function nextDaewoon(d,age){for(const x of d.dw)if(x.age>age)return x;return null;}
+function report(persona,d,w,age){
+  const dmEl=d.dm[2],missing=Object.keys(d.el).filter(k=>d.el[k]===0);
+  const past=pastPivot(d,age),cur=curDaewoon(d,age),nxt=nextDaewoon(d,age);
+  const topEl=Object.entries(d.el).sort((a,c)=>c[1]-a[1])[0][0];
+  const sameEl=(O2W[topEl]||[]).includes(w.sun[2])||(O2W[topEl]||[]).includes(w.moon[2]);
+  const pct=sameEl?92:76,pastAge=Math.round(past.age),pastYear=past.startYear,missTxt=missing.length?MISSING_JAB[missing[0]]:"균형";
+  const ss=[d.P.year.s,d.P.month.s,d.P.hour.s].map(s=>sipsin(d.dStem,s));
+  const jae=ss.some(x=>["정재","편재"].includes(x)),gwan=ss.some(x=>["정관","편관"].includes(x));
+  const mt=MOON_T[w.moon[2]],yt=YEAR_THEME[sipsin(d.dStem,2)],hz=missing.length?HEALTH[missing[0]]:HEALTH[dmEl],cl=CLOSER[persona];
+  const love=`감정은 달(<b>${w.moon[1]}</b>)이 말해줘요 — ${mt} 편. ${gwan?"인연 자리(관성)는 갖췄고":"인연 자리가 비어 있어"}, 밀당보다 <b>먼저 마음 여는 쪽</b>이 풀립니다. ${cl[0]}`;
+  const money=`${jae?"재물 그릇(재성)은 있어요":"재물은 한 방보다 꾸준함이 답"}. ${missing.length?`다만 <b>${missing[0]} 기운이 없어</b> ${missTxt}에서 새기 쉬우니 거기만 조심.`:"큰 기복 없이 모으는 흐름이에요."} ${cl[1]}`;
+  const year=`2026년(丙午·불의 해)은 당신에게 <b>${yt}</b>. 지금 <b>${cur.k} 대운</b>과 겹쳐 변화가 큰 해라, 벌이기보다 <b>정리·선택</b>이 유리해요. ${cl[2]}`;
+  const health=`기운상 <b>${hz}</b> 쪽이 약점이에요. 무리하면 여기부터 신호가 오니 미리 챙기세요. ${cl[3]}`;
+  const advice=`지금은 ${cur.k} 대운 — 판을 새로 짜기보다 ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>`:"다음 분기점"} 전까지 힘을 모을 때예요. 큰 결정은 그 타이밍에 몰아서. ${cl[4]}`;
+  const P={
+    dokseol:{head:`<b>${pastAge}살(${pastYear}년)</b> 즈음 대운이 갈렸어. 관계든 일이든 판이 한 번 크게 바뀌는 시기였고, 너도 느꼈을 거야. 그 흐름이 지금까지 이어져.`,
+      me:`${d.dm[1]}${dmEl} 일간이야. ${ELEM_TRAIT[dmEl]}인데, ${missing.length?`사주에 <b>${missing[0]}(${missTxt})가 없어</b>. 그래서 늘 ${missTxt}에서 발목 잡히지. 본인이 제일 잘 알잖아.`:`오행은 그럭저럭 갖췄어.`}`,
+      when:`지금 <b>${cur.k}</b> 대운이야. ${nxt?`판이 바뀌는 건 <b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>부터니까 그전에 정리할 거 정리해. 미루면 또 후회한다.`:`이 흐름 안에서 결판나. 딴 데 기웃대지 마.`}`},
+    wiro:{head:`<b>${pastAge}살(${pastYear}년)</b> 무렵 삶의 결이 한 번 바뀌었어요. 크고 작은 변화가 많았을 텐데, 그게 지금의 당신을 만든 거예요. 잘 지나왔어요.`,
+      me:`당신은 ${d.dm[1]}${dmEl}, ${ELEM_TRAIT[dmEl]}을 가진 사람이에요. ${missing.length?`다만 <b>${missTxt}</b>이 좀 부족해서, 그게 스스로를 힘들게 했을 거예요. 그거 당신 잘못 아니에요.`:`오행이 고루 있어 속이 단단한 편이에요.`}`,
+      when:`지금은 <b>${cur.k}</b> 대운 안에 있어요. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>부터 결이 달라져요. 그때까지 너무 조급해하지 말아요.`:`이 시기 안에서 당신 자리를 찾게 돼요.`}`},
+    coach:{head:`<b>${pastAge}살(${pastYear}년)</b>에 대운이 바뀌며 방향이 한 번 꺾였습니다. 지금 흐름의 출발점이 그 시기예요.`,
+      me:`일간은 ${d.dm[1]}${dmEl}(${ELEM_TRAIT[dmEl]}). ${missing.length?`약점은 <b>${missTxt}</b> — 여기가 비어 결정이 늦어집니다. 사람·시스템으로 보완하세요.`:`오행 밸런스가 좋아 실행력은 갖췄습니다.`}`,
+      when:`현재 <b>${cur.k}</b> 대운. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>이 다음 분기점입니다. 큰 결정(이직·계약·이사)은 <b>그 전후로 타이밍</b>을 잡으세요.`:`이 대운 안에서 승부를 봐야 합니다.`}`},
+    shin:{head:`<b>${pastAge}살(${pastYear}년)</b> 즈음, 큰 물이 한 번 바뀌었네. 인연도 일도 그때 결이 갈렸어.`,
+      me:`자네는 ${d.dm[1]}${dmEl}의 기운을 타고났네. ${ELEM_TRAIT[dmEl]}이야. ${missing.length?`허나 <b>${missTxt}</b>의 기운이 비었어. 그 자리에 자꾸 바람이 들지.`:`오행이 두루 도니 뿌리는 깊네.`}`,
+      when:`지금은 <b>${cur.k}</b> 대운 자리. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>에 문이 하나 열려. 그 전엔 무리 말고 몸을 낮추게.`:`이 자리에서 매듭이 지어질 게야.`}`},
+  }[persona];
+  return{P,pct,cur,missing,love,money,year,health,advice};
+}
+
+/* ===== 실행 ===== */
+function run(){
+  const dv=document.getElementById("date").value,tv=document.getElementById("time").value;
+  if(!dv||!tv){alert("생년월일과 시각을 입력해주세요");return;}
+  let [Y,M,D]=dv.split("-").map(Number);const [h,mi]=tv.split(":").map(Number);
+  const tz=Number(document.getElementById("tz").value),gender=document.getElementById("gender").value;
+  let conv="";
+  if(cal==="lun"){
+    const leap=document.getElementById("leap").checked;
+    const s=lunarToSolar(Y,M,D,leap,tz);
+    if(!s){alert("음력 날짜를 변환할 수 없어요. 날짜를 확인해주세요.");return;}
+    conv=`음력 ${Y}.${M}.${D}${leap?"(윤달)":""} → 양력 ${s.y}.${String(s.m).padStart(2,'0')}.${String(s.d).padStart(2,'0')}`;
+    Y=s.y;M=s.m;D=s.d;
+  }
+  const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender};
+  const d=computeSaju(b),w=computeWest(b),age=2026-Y,t=TEACHERS[picked],r=report(picked,d,w,age),missing=r.missing;
+  CTX={r,tname:t.nm};
+  let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
+  const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?' · 지금':''}</span><span class="age">${x.age}세~ · ${x.startYear}년~</span></div>`).join("");
+  document.getElementById("result").innerHTML=`
+    ${conv?`<div class="conv">🗓 ${conv}</div>`:""}
+    <div class="hero-r" style="--tc:var(${t.cv})">
+      <div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 봐드립니다</div>
+      <div class="oneline">${r.P.head}</div>
+    </div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
+      <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>2026 올해 흐름</h3><p>${r.year}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
+      <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
+      <tr><td class="hanja">${d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
+      <tr><td class="kohan">${d.P.hour.k}</td><td class="kohan">${d.P.day.k}</td><td class="kohan">${d.P.month.k}</td><td class="kohan">${d.P.year.k}</td></tr></table></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>동서양 교차검증</h3>
+      <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
+      <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍</h3><p>${r.P.when}</p><div class="dwrap">${dwRows}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
+      <div class="followups">
+        <button class="ask" style="--tc:var(${t.cv})" onclick="askMore('health',this)">🩺 건강은 어때?</button>
+        <button class="ask" style="--tc:var(${t.cv})" onclick="askMore('advice',this)">🧭 지금 뭐부터 해야 해?</button>
+      </div><div id="more"></div></div>
+    <div class="actions">
+      <button class="share" onclick="shareCard()">📸 이 소름 이미지로 저장·공유</button>
+      <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
+    </div>`;
+  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function askMore(kind,btn){if(!CTX)return;btn.disabled=true;
+  const lbl=kind==='health'?'🩺 건강':'🧭 지금 뭐부터';
+  const div=document.createElement('div');div.className='ansitem';
+  div.innerHTML=`<div class="q">${lbl}</div><p>${CTX.r[kind]}</p>`;
+  document.getElementById('more').appendChild(div);}
+function shareCard(){if(!CTX)return;
+  const head=CTX.r.P.head.replace(/<[^>]+>/g,'');
+  const c=document.createElement('canvas');c.width=1080;c.height=1350;const x=c.getContext('2d');
+  x.fillStyle='#0c0d12';x.fillRect(0,0,1080,1350);
+  ['#e0483c','#e8b84b','#2fa89a','#5b7fd6','#f3ecdb'].forEach((co,i)=>{x.fillStyle=co;x.fillRect(i*216,0,216,16);});
+  x.textAlign='center';
+  x.fillStyle='#f3ecdb';x.font='800 96px "Nanum Myeongjo","Noto Serif KR",serif';x.fillText('Wheny',540,225);
+  x.fillStyle='#e8b84b';x.font='600 34px sans-serif';x.fillText('언제인지까지 말해주는 사주',540,282);
+  x.fillStyle='#f3ecdb';x.font='700 54px "Nanum Myeongjo","Noto Serif KR",serif';
+  let line='',lines=[];for(const ch of head){if(x.measureText(line+ch).width>880){lines.push(line);line=ch;}else line+=ch;}lines.push(line);
+  let y=560;for(const ln of lines){x.fillText(ln,540,y);y+=78;}
+  x.fillStyle='#e8b84b';x.font='700 42px sans-serif';x.fillText('— '+CTX.tname+' —',540,y+50);
+  x.fillStyle='#867f6e';x.font='400 30px sans-serif';x.fillText('Wheny · 사주 × 서양점성술 교차검증',540,1295);
+  c.toBlob(async(blob)=>{const file=new File([blob],'wheny.png',{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Wheny 소름 리포트'});return;}}catch(e){}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wheny_소름리포트.png';a.click();},'image/png');}
+renderTeachers();
+</script>
+</body>
+</html>
