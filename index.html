@@ -145,6 +145,10 @@
   </header>
 
   <div class="card" id="form">
+    <div class="seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" aria-pressed="true" id="m-solo" onclick="setMode('solo')">🔮 내 사주</button>
+      <button role="tab" aria-pressed="false" id="m-compat" onclick="setMode('compat')">💞 궁합</button>
+    </div>
     <div class="seg" role="tablist">
       <button role="tab" aria-pressed="true" id="seg-sol" onclick="setCal('sol')">양력</button>
       <button role="tab" aria-pressed="false" id="seg-lun" onclick="setCal('lun')">음력</button>
@@ -157,6 +161,15 @@
     <div class="row">
       <div><label>태어난 시각</label><input type="time" id="time" value="12:00" /></div>
       <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
+    </div>
+    <div id="partnerBox" style="display:none">
+      <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
+      <label>상대 생년월일</label>
+      <input type="date" id="pdate" value="1994-08-20" min="1920-01-01" max="2020-12-31" />
+      <div class="row">
+        <div><label>시각</label><input type="time" id="ptime" value="12:00" /></div>
+        <div><label>성별</label><select id="pgender"><option value="male">남자</option><option value="female">여자</option></select></div>
+      </div>
     </div>
     <label>기준 시간대</label>
     <select id="tz">
@@ -259,7 +272,12 @@ const TEACHERS={
   coach:{nm:"김실장",em:"🧭",ds:"냉철·해결책",cv:"--nam"},
   shin:{nm:"청담 선녀",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
 };
-let picked="dokseol",cal="sol",CTX=null;
+let picked="dokseol",cal="sol",CTX=null,mode="solo";
+function setMode(m){mode=m;
+  document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
+  document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
+  document.getElementById("partnerBox").style.display=m==="compat"?"block":"none";
+  document.querySelector(".go").textContent=m==="compat"?"💞 두 사람 궁합 보기":"내 소름 리포트 보기";}
 function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
   `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
     <span class="em">${t.em}</span><span><span class="nm">${t.nm}</span><span class="ds">${t.ds}</span></span></div>`).join("");}
@@ -329,7 +347,40 @@ function report(persona,d,w,age,gender){
 }
 
 /* ===== 실행 ===== */
+function chartOf(Y,M,D,h,mi,tz,gender){
+  const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=2026-Y;
+  return{성별:gender==='female'?'여':'남',나이:age,
+    명식:{시주:d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
+    일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:d.el,
+    없는오행:Object.keys(d.el).filter(k=>d.el[k]===0),태양별자리:w.sun[1],달별자리:w.moon[1],
+    대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),현재대운:curDaewoon(d,age).k};
+}
+async function runCompat(){
+  const gv=id=>document.getElementById(id).value;
+  if(!gv("date")||!gv("time")||!gv("pdate")||!gv("ptime")){alert("두 사람의 생년월일·시각을 모두 입력해주세요");return;}
+  const [aY,aM,aD]=gv("date").split("-").map(Number),[ah,am]=gv("time").split(":").map(Number);
+  const [bY,bM,bD]=gv("pdate").split("-").map(Number),[bh,bm]=gv("ptime").split(":").map(Number);
+  const tz=Number(gv("tz")),t=TEACHERS[picked];
+  const A=chartOf(aY,aM,aD,ah,am,tz,gv("gender")),B=chartOf(bY,bM,bD,bh,bm,tz,gv("pgender"));
+  const box=document.getElementById("result");
+  box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${t.em}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중… (15초)</div></div>`;
+  box.scrollIntoView({behavior:"smooth",block:"start"});
+  try{
+    const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"compat",chart:A,chartB:B,persona:picked,lang:"ko"})});
+    if(!res.ok)throw new Error();
+    const data=await res.json();
+    box.innerHTML=`
+      <div class="block" style="--tc:var(${t.cv})"><h3>💞 궁합 · ${A.일간} × ${B.일간}</h3>
+        <div class="chips"><span class="chip">나 <b>${A.명식.일주} · ${A.태양별자리}</b></span><span class="chip">상대 <b>${B.명식.일주} · ${B.태양별자리}</b></span></div>
+        <div class="ai-out" style="margin-top:14px"><p>${mdToHtml(data.reading||"")}</p></div></div>
+      <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요 💞')">📸 궁합 캡처 공유</button>
+        <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다시 보기</button></div>`;
+  }catch(e){
+    box.innerHTML=`<div class="block"><p style="color:var(--hong)">궁합 AI는 정식 서버(Vercel) 버전에서 작동해요. 이 미리보기엔 백엔드가 없어요.</p></div>`;
+  }
+}
 function run(){
+  if(mode==="compat"){runCompat();return;}
   const dv=document.getElementById("date").value,tv=document.getElementById("time").value;
   if(!dv||!tv){alert("생년월일과 시각을 입력해주세요");return;}
   let [Y,M,D]=dv.split("-").map(Number);const [h,mi]=tv.split(":").map(Number);

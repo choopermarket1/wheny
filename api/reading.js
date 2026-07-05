@@ -12,6 +12,18 @@ import Anthropic from "@anthropic-ai/sdk";
 // Hobby 플랜 기본 10초 → Claude 생성이 더 걸리므로 60초로
 export const config = { maxDuration: 60 };
 
+// --- 간이 호출 제한 (IP당 10분 12회). 서버리스라 인스턴스별 best-effort.
+// 진짜 보호는 Anthropic 콘솔의 월 지출 상한 + (선택)Upstash 레이트리밋.
+const HITS = new Map();
+function rateLimited(ip) {
+  const now = Date.now(), WIN = 10 * 60 * 1000, MAX = 12;
+  const arr = (HITS.get(ip) || []).filter((t) => now - t < WIN);
+  arr.push(now);
+  HITS.set(ip, arr);
+  if (HITS.size > 10000) HITS.clear(); // 메모리 폭주 방지
+  return arr.length > MAX;
+}
+
 // 선생님 4명 = 같은 팩트, 다른 말투(페르소나 톤 레이어)
 const PERSONA = {
   dokseol: "당신은 '팩트 할배'. 반말·직설·촌철살인. 팩트로 정곡을 찌르되 저주·인신공격은 금지. 츤데레처럼 끝은 챙겨준다.",
@@ -50,6 +62,23 @@ ${PERSONA[persona] || PERSONA.dokseol}
 - 겁주는 예언·의학적 단정·차별 표현 금지. 마크다운 소제목 없이 자연스러운 문단으로.
 - 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
 
+// 궁합 모드 — 두 사람(A=본인, B=상대)의 명식으로 궁합 해석
+const COMPAT = (persona, lang) => `너는 동양 사주명리와 서양 점성술에 능한 궁합 전문가다.
+${PERSONA[persona] || PERSONA.dokseol}
+[입력] A(본인)와 B(상대)의 계산된 명식이 JSON으로 주어진다. 절대 새로 계산하지 말고 주어진 값만 근거로.
+[규칙]
+- 두 사람의 오행 상생·상극, 일간 관계(십신), 태양/달 별자리 궁합, 대운 흐름을 엮어 해석.
+- 겁주는 단정("헤어진다" 등) 금지 — 강점과 조심할 점을 균형 있게. ★항목은 '언제(연도·나이)'를 넣어라.
+- 아래 마크다운 소제목 순서:
+  ## 궁합 점수 (0~100 한 줄 + 왜 그 점수인지)
+  ## 성격 케미 (서로 어떤 부분이 맞고 부딪히는지)
+  ## 연애·감정 (감정 흐름, 표현 방식 차이)
+  ## 현실·생활 (돈·생활 습관·가치관 궁합)
+  ## 조심할 점 (오해·갈등이 생기기 쉬운 지점과 해법)
+  ## 언제 ★ (관계의 고비·좋은 시기, 결혼이 유리한 시기)
+  ## 한 줄 (선생님의 마무리)
+- 출력 언어: ${lang === "ja" ? "자연스러운 일본어" : "자연스러운 한국어"}. 네이티브처럼.`;
+
 export default async function handler(req, res) {
   // --- CORS (GitHub Pages 등 다른 도메인 프론트 허용) ---
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -61,30 +90,47 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, hasKey: !!process.env.ANTHROPIC_API_KEY, model: "claude-sonnet-5" });
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
+  // --- 호출 제한: 다른 사이트/봇 차단 + IP당 빈도 제한 ---
+  const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+  const ref = String(req.headers.origin || req.headers.referer || "");
+  if (ref && !/wheny[\w-]*\.vercel\.app|choopermarket1\.github\.io|localhost/.test(ref))
+    return res.status(403).json({ error: "허용되지 않은 접근" });
+  if (rateLimited(ip)) return res.status(429).json({ error: "요청이 너무 잦아요. 잠시 후 다시 시도해주세요." });
+
   try {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch {} }
-    const { chart, persona = "dokseol", lang = "ko", question } = body || {};
+    const { chart, chartB, mode, persona = "dokseol", lang = "ko", question } = body || {};
     if (!chart) return res.status(400).json({ error: "chart(계산된 명식) 필요" });
     if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY 미설정" });
 
-    const focused = !!(question && String(question).trim()); // 후속 질문 모드
+    const compat = mode === "compat" && chartB;             // 궁합 모드
+    const focused = !compat && !!(question && String(question).trim()); // 후속 질문 모드
+
+    let system, userContent, maxTok;
+    if (compat) {
+      system = COMPAT(persona, lang);
+      userContent =
+        "두 사람의 궁합을 봐줘.\n\n[A · 본인]\n" + JSON.stringify(chart, null, 2) +
+        "\n\n[B · 상대]\n" + JSON.stringify(chartB, null, 2);
+      maxTok = 3000;
+    } else if (focused) {
+      system = FOCUS(persona, lang, question);
+      userContent = `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n` + JSON.stringify(chart, null, 2);
+      maxTok = 1200;
+    } else {
+      system = SYSTEM(persona, lang);
+      userContent = "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n" + JSON.stringify(chart, null, 2);
+      maxTok = 4000;
+    }
+
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const msg = await client.messages.create({
       model: "claude-sonnet-5", // 품질/속도/비용 균형. 최고 품질은 claude-opus-4-8
-      max_tokens: focused ? 1200 : 4000, // 후속질문은 짧게(비용↓), 전체 리포트는 4000
-      thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요 → 속도·비용↓
-      system: focused ? FOCUS(persona, lang, question) : SYSTEM(persona, lang),
-      messages: [
-        {
-          role: "user",
-          content:
-            (focused
-              ? `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n`
-              : "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n") +
-            JSON.stringify(chart, null, 2),
-        },
-      ],
+      max_tokens: maxTok,
+      thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요
+      system,
+      messages: [{ role: "user", content: userContent }],
     });
     const text = (msg.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
     if (!text) return res.status(502).json({ error: "빈 응답", raw: JSON.stringify(msg).slice(0, 400) });
