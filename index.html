@@ -449,6 +449,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
 </div>
 
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="msr.js"></script><!-- manseryeok: KASI 분단위 절기·공식음력·대운 (로드 실패시 자체엔진 폴백) -->
 <script>
 /* ===== 공통 천문 ===== */
 const RAD=Math.PI/180,sind=d=>Math.sin(d*RAD),cosd=d=>Math.cos(d*RAD),n360=d=>((d%360)+360)%360;
@@ -476,6 +477,8 @@ function moonLon(jd){const d=jd-2451543.5;const Ms=n360(356.047+0.9856002585*d),
 function newMoon(a){let jd=a;for(let i=0;i<10;i++){let df=moonLon(jd)-solarLongitude(jd);df=(((df+180)%360)+360)%360-180;jd-=df/12.1907;}return jd;}
 function zhongqiMonth(L){return(((L-270+360)%360)/30+10)%12+1;}
 function lunarToSolar(lY,lM,lD,leap,tz){
+  // KASI 공식 음력 데이터(manseryeok, 1391~2049) 우선 — 윤달·경계년 정확. 실패시 자체 근사 변환
+  if(typeof MSR!=='undefined'){try{const s=MSR.lunarToSolar(lY,lM,lD,!!leap);if(s&&s.year)return{y:s.year,m:s.month,d:s.day};}catch(e){}}
   const ws=findCross(270,toJD(lY-1,12,22,12)-tz/24);
   let nm0=newMoon(ws);if(nm0>ws)nm0=newMoon(ws-29.53);
   const starts=[];let cur=nm0;for(let i=0;i<16;i++){starts.push(cur);cur=newMoon(cur+29.53);}
@@ -498,7 +501,27 @@ function gzSB(s,b){for(let i=0;i<60;i++)if(i%10===s&&i%12===b)return i;return 0;
 const ANCHOR=2451551;
 const NOW=new Date().getFullYear(); // 올해(자동) — 하드코딩 금지
 function yearGZ(Y){return gz(((Y-4)%60+60)%60);} // 그 해의 간지
+// 명식 계산: manseryeok(KASI 분단위 절기·일진·대운) 우선, 실패/비한국시간대는 자체엔진 폴백
+const K2S={갑:0,을:1,병:2,정:3,무:4,기:5,경:6,신:7,임:8,계:9};
+const K2B={자:0,축:1,인:2,묘:3,진:4,사:5,오:6,미:7,신:8,유:9,술:10,해:11};
 function computeSaju(b){
+  if(typeof MSR!=='undefined'&&b.tz===9){try{return computeSajuMSR(b);}catch(e){}}
+  return computeSajuLocal(b);
+}
+function computeSajuMSR(b){
+  const r=MSR.calculateFourPillars({year:b.year,month:b.month,day:b.day,hour:b.hour,minute:b.minute||0,gender:b.gender==='male'?'male':'female'});
+  const pv=x=>gz(gzSB(K2S[x.heavenlyStem],K2B[x.earthlyBranch]));
+  const P={year:pv(r.year),month:pv(r.month),day:pv(r.day),hour:pv(r.hour)};
+  const dStem=P.day.s;
+  const el={木:0,火:0,土:0,金:0,水:0};[P.year,P.month,P.day,P.hour].forEach(p=>{el[STEMS[p.s][2]]++;el[BRANCHES[p.b][2]]++;});
+  const lp=r.luckPillars,fwd=lp?lp.forward:true;
+  const dw=(lp&&lp.pillars&&lp.pillars.length?lp.pillars:[]).slice(0,8).map(p=>{
+    const g=gz(gzSB(K2S[p.pillar.heavenlyStem],K2B[p.pillar.earthlyBranch]));
+    return{age:p.age,startYear:b.year+p.age,h:g.h,k:g.k,ss:sipsin(dStem,g.s)};});
+  if(!dw.length)return computeSajuLocal(b); // 대운 없으면 폴백
+  return{P,dStem,el,fwd,dw,zodiac:BRANCHES[P.year.b][3],dm:STEMS[dStem]};
+}
+function computeSajuLocal(b){
   const jdL=toJD(b.year,b.month,b.day,b.hour+b.minute/60),jdU=jdL-b.tz/24,lon=solarLongitude(jdU);
   const ipchun=findCross(315,toJD(b.year,2,4,12)-b.tz/24),sy=jdU<ipchun?b.year-1:b.year;
   const yIdx=((sy-4)%60+60)%60,yStem=yIdx%10;
