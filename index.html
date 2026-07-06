@@ -535,7 +535,11 @@ function speakEl(btn){
   document.querySelectorAll('.ttsbtn.on').forEach(b=>b.classList.remove('on'));
   if(wasOn)return;
   const box=btn.closest('.cm-body')||btn.closest('.ai-out')||btn.parentElement;
-  const text=(box?box.innerText:'').replace(/[▍＋›]/g,'').replace(/듣기|정지/g,'').trim();
+  const text=(box?box.innerText:'')
+    .replace(/[▍＋›•➡️🐢★]/g,'')      // 마커·이모지 제거
+    .replace(/듣기|정지/g,'')
+    .replace(/\s*\n+\s*/g,' ')          // 줄바꿈 → 공백(문장은 마침표로 자연 구분) = 끊김 방지
+    .replace(/\s{2,}/g,' ').trim();
   if(!text)return;
   const u=new SpeechSynthesisUtterance(text);
   const v=pickVoice();
