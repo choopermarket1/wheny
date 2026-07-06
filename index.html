@@ -843,6 +843,7 @@ function run(){
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
   const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
   CTX={r,tname:TT(picked).nm,chart,persona:picked,chat:[]};
+  if(LANG!=='ko'){renderForeign(t,d,w,noTime,conv);return;} // 외국어: AI가 그 언어로 생성(A안)
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
   const dwRows=d.dw.map((x,i)=>`<div class="dw ${i===nowIdx?'now':''}"><span class="hz">${x.h} ${x.k}${i===nowIdx?` · 지금(${NOW})`:''} <span style="font-size:11px;color:var(--dim);font-weight:400">${x.ss?'· '+YEAR_THEME[x.ss]:''}</span></span><span class="age">${Math.round(x.age)}~${Math.round(x.age)+9}세 · ${x.startYear}~${x.startYear+9}</span></div>`).join("");
   document.getElementById("result").innerHTML=`
@@ -896,6 +897,47 @@ function run(){
   breakResult();
   saveSession();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+// 외국어 결과(A안): 시각요소는 그대로 + 본문은 AI가 그 언어로 스트리밍 생성
+const FI18N={
+  en:{reads:'reads your chart',aiReading:'Your Reading',ohaeng:'Five Elements Balance',lifegraph:'Life Graph · Luck Cycles',myeongsik:'Your Four Pillars',ask:'Ask more',askDesc:'Type any question — answered in your language.',ph:'Ask anything…',send:'Send',note:'Chart, luck cycles & signs are real calculations. Your reading is written by AI.'},
+  ja:{reads:'があなたを占います',aiReading:'あなたの鑑定',ohaeng:'五行バランス',lifegraph:'人生グラフ · 大運の流れ',myeongsik:'あなたの四柱',ask:'もっと聞く',askDesc:'何でも質問してください — あなたの言語で答えます。',ph:'質問を入力…',send:'送信',note:'命式・大運・星座は実際の計算値。鑑定はAIが作成します。'},
+  zh:{reads:'为你解读',aiReading:'你的解读',ohaeng:'五行平衡',lifegraph:'人生曲线 · 大运走势',myeongsik:'你的四柱',ask:'继续提问',askDesc:'输入任何问题 — 用你的语言回答。',ph:'输入问题…',send:'发送',note:'命盘·大运·星座为真实推算。解读由AI生成。'}
+};
+function renderForeign(t,d,w,noTime,conv){
+  const F=FI18N[LANG]||FI18N.en;
+  document.getElementById("result").innerHTML=`
+    ${conv?`<div class="conv">${conv}</div>`:""}
+    <div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${TT(picked).nm}</b> ${F.reads}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div></div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}${F.ohaeng}</h3>${ohaengRadar(d.el)}</div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}${F.lifegraph}</h3>${lifeGraph(d)}</div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${F.myeongsik}</h3>
+      <table style="text-align:center"><tr><th>時</th><th>日</th><th>月</th><th>年</th></tr>
+      <tr><td class="hanja">${noTime?'—':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr></table>
+      <p style="margin:8px 0 0;text-align:center;font-size:12px;color:var(--dim)">${d.dm[0]} · ${w.sun[0]} ☉ · ${w.moon[0]} ☾</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${TT(picked).nm} · ${F.ask}</h3>
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${F.askDesc}</p>
+      <div id="more" class="chat-thread"></div>
+      <div class="chat-in"><input id="chatText" placeholder="${F.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
+    <div class="note">${F.note}</div>`;
+  saveSession();
+  autoForeignReport();
+  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function autoForeignReport(){
+  const box=document.getElementById('foreignReport');if(!box||!CTX)return;
+  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[_i];},1700);
+  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),80000);let acc='';
+  try{
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
+    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
+    clearInterval(_t);
+    if(res.body&&res.body.getReader){box.innerHTML='<span class="cur">▍</span>';const reader=res.body.getReader(),dec=new TextDecoder();while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});box.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}}
+    else{const data=await res.json();acc=data.reading||'';}
+    box.innerHTML=whenTimeline(acc)+mdToHtml(acc)+ttsBtn();breakResult();
+  }catch(e){clearInterval(_t);box.innerHTML=acc.trim()?whenTimeline(acc)+mdToHtml(acc)+ttsBtn():`<p style="color:var(--hong)">${errMsg(e)}</p>`;breakResult();}
+  clearTimeout(to);
 }
 // 로그인 없이 이 기기에 저장/복원 (localStorage). 진짜 계정(다기기)은 Supabase 단계에서.
 function saveSession(){try{if(!CTX||CTX.chartB)return;localStorage.setItem('wheny_sess',JSON.stringify({
