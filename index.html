@@ -498,6 +498,10 @@ function computeSaju(b){
 const SIGNS=[["Aries","양자리","불"],["Taurus","황소자리","흙"],["Gemini","쌍둥이자리","공기"],["Cancer","게자리","물"],["Leo","사자자리","불"],["Virgo","처녀자리","흙"],["Libra","천칭자리","공기"],["Scorpio","전갈자리","물"],["Sagittarius","궁수자리","불"],["Capricorn","염소자리","흙"],["Aquarius","물병자리","공기"],["Pisces","물고기자리","물"]];
 function computeWest(b){const jdU=toJD(b.year,b.month,b.day,b.hour+b.minute/60)-b.tz/24;
   return{sun:SIGNS[Math.floor(solarLongitude(jdU)/30)],moon:SIGNS[Math.floor(moonLon(jdU)/30)]};}
+// 별자리 이름 다국어(궁합 칩 등에서 한글 별자리 방지)
+const SIGN_JA=['牡羊座','牡牛座','双子座','蟹座','獅子座','乙女座','天秤座','蠍座','射手座','山羊座','水瓶座','魚座'];
+const SIGN_ZH=['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座'];
+function signLoc(kor,lang){const i=SIGNS.findIndex(s=>s[1]===kor);if(i<0)return kor;if(lang==='en')return SIGNS[i][0];if(lang==='ja')return SIGN_JA[i];if(lang==='zh')return SIGN_ZH[i];return kor;}
 const O2W={火:["불"],土:["흙"],水:["물"],木:["공기","불"],金:["공기","흙"]};
 
 /* ===== 선생님 ===== */
@@ -769,7 +773,7 @@ function chartOf(Y,M,D,h,mi,tz,gender,noTime){
 }
 async function runCompat(){
   const gv=id=>document.getElementById(id).value;
-  if(!gv("date")||!gv("pdate")){alert("두 사람의 생년월일을 입력해주세요");return;}
+  if(!gv("date")||!gv("pdate")){alert(AL('needDob2'));return;}
   const at=gv("time"),bt=gv("ptime"),aNo=at==="none",bNo=bt==="none";
   const [aY,aM,aD]=gv("date").split("-").map(Number),ah=aNo?12:Number(at);
   const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
@@ -778,33 +782,48 @@ async function runCompat(){
   const anm=(document.getElementById('hanja')?.value||'').trim();if(anm)A.이름=anm;
   if(!await ensurePaid())return;
   const box=document.getElementById("result");
-  box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 두 사람 궁합을 보는 중<span class="typing" style="display:inline-flex;margin-left:5px"><i></i><i></i><i></i></span></div></div>`;
+  // 궁합 UI 다국어 라벨(한국어면 기존 문구, 외국어면 FI18N)
+  const isK=LANG==='ko',F=FI18N[LANG]||FI18N.en,tname=isK?t.nm:TT(picked).nm;
+  const L={
+    title:(a,b)=>isK?`궁합 · ${a.일간} × ${b.일간}`:`${F.compat} · ${a.명식.일주} × ${b.명식.일주}`,
+    chips:(a,b)=>isK
+      ?`<div class="chips"><span class="chip">나 <b>${a.명식.일주} · ${a.태양별자리}</b></span><span class="chip">상대 <b>${b.명식.일주} · ${b.태양별자리}</b></span></div>`
+      :`<div class="chips"><span class="chip">${F.me} <b>${a.명식.일주} · ${signLoc(a.태양별자리,LANG)}</b></span><span class="chip">${F.partner} <b>${b.명식.일주} · ${signLoc(b.태양별자리,LANG)}</b></span></div>`,
+    loading:isK?`${t.nm} 선생님이 두 사람 궁합을 보는 중`:`${tname} ${F.readingCompat}`,
+    askMore:isK?`${t.nm}에게 궁합 더 물어보기`:`${tname} · ${F.askCompat}`,
+    askDesc:isK?'재회·결혼·속마음까지 <b style="color:var(--gold)">눌러보거나 직접</b> 물어보세요 — 두 사람 명식을 함께 봐드려요.':F.askCompatDesc,
+    ph:isK?`${t.nm}에게 궁합 물어보기…`:F.phCompat,
+    send:isK?'보내기':F.send,
+    share:isK?'궁합 캡처 공유':F.shareCompat,
+    redo:isK?'↑ 다시 보기':`↑ ${F.redo}`,
+  };
+  box.innerHTML=`<div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${L.loading}</b><span class="typing" style="display:inline-flex;margin-left:5px"><i></i><i></i><i></i></span></div></div>`;
   box.scrollIntoView({behavior:"smooth",block:"start"});
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),60000);let acc='';
   try{
     const res=await fetch("/api/reading",{method:"POST",headers:{"Content-Type":"application/json"},signal:ctrl.signal,body:JSON.stringify({mode:"compat",stream:true,chart:A,chartB:B,persona:picked,lang:LANG,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
-    box.innerHTML=`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}궁합 · ${A.일간} × ${B.일간}</h3>
-      <div class="chips"><span class="chip">나 <b>${A.명식.일주} · ${A.태양별자리}</b></span><span class="chip">상대 <b>${B.명식.일주} · ${B.태양별자리}</b></span></div>
+    box.innerHTML=`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}${L.title(A,B)}</h3>
+      ${L.chips(A,B)}
       <div class="ai-out" id="compatStream" style="margin-top:14px"><span class="cur">▍</span></div></div>`;
     if(res.body&&res.body.getReader){
       const reader=res.body.getReader(),dec=new TextDecoder();
       while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});const el=document.getElementById('compatStream');if(el)el.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}
     }else{const data=await res.json();acc=data.reading||'';}
-    const cm=acc.match(/(\d{1,3})\s*점/),cscore=cm?+cm[1]:78;
-    CTX={tname:TT(picked).nm,chart:A,chartB:B,persona:picked,chat:[]}; // 궁합 채팅 컨텍스트(상대 명식 포함)
+    const cm=acc.match(/(\d{1,3})\s*(?:점|\/\s*100|点|分)/),cscore=cm?+cm[1]:78;
+    CTX={tname:tname,chart:A,chartB:B,persona:picked,chat:[]}; // 궁합 채팅 컨텍스트(상대 명식 포함)
     box.innerHTML=`
-      <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}궁합 · ${A.일간} × ${B.일간}</h3>
-        <div class="chips"><span class="chip">나 <b>${A.명식.일주} · ${A.태양별자리}</b></span><span class="chip">상대 <b>${B.명식.일주} · ${B.태양별자리}</b></span></div>
+      <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}${L.title(A,B)}</h3>
+        ${L.chips(A,B)}
         ${compatDial(cscore)}
         <div class="ai-out" style="margin-top:14px">${mdToHtml(acc)}${ttsBtn()}</div></div>
-      <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 궁합 더 물어보기</h3>
-        <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">재회·결혼·속마음까지 <b style="color:var(--gold)">눌러보거나 직접</b> 물어보세요 — 두 사람 명식을 함께 봐드려요.</p>
+      <div class="block" style="--tc:var(${t.cv})"><h3>${L.askMore}</h3>
+        <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${L.askDesc}</p>
         <div class="followups" id="ctopics"></div>
         <div id="more" class="chat-thread"></div>
-        <div class="chat-in"><input id="chatText" placeholder="${t.nm}에게 궁합 물어보기…" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
-      <div class="actions"><button class="share" onclick="alert('궁합 결과를 캡처해서 상대에게 보내보세요')">${IC.cam}궁합 캡처 공유</button>
-        <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다시 보기</button></div>`;
+        <div class="chat-in"><input id="chatText" placeholder="${L.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${L.send}</button></div></div>
+      <div class="actions"><button class="share" onclick="alert('${isK?'궁합 결과를 캡처해서 상대에게 보내보세요':'Screenshot your match and share it'}')">${IC.cam}${L.share}</button>
+        <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">${L.redo}</button></div>`;
     breakResult();renderCompatTopics(t.cv);
   }catch(e){
     box.innerHTML=`<div class="block"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
@@ -815,7 +834,7 @@ function run(){
   if(mode==="compat"){runCompat();return;}
   const tsel=document.getElementById("time").value,noTime=(tsel==="none");
   const dv=document.getElementById("date").value;
-  if(!dv){alert("생년월일을 입력해주세요");return;}
+  if(!dv){alert(AL('needDob'));return;}
   let [Y,M,D]=dv.split("-").map(Number);const h=noTime?12:Number(tsel),mi=0;
   const tz=Number(document.getElementById("tz").value),gender=document.getElementById("gender").value;
   let conv="";
@@ -900,9 +919,9 @@ function run(){
 }
 // 외국어 결과(A안): 시각요소는 그대로 + 본문은 AI가 그 언어로 스트리밍 생성
 const FI18N={
-  en:{reads:'reads your chart',aiReading:'Your Reading',ohaeng:'Five Elements Balance',lifegraph:'Life Graph · Luck Cycles',myeongsik:'Your Four Pillars',ask:'Ask more',askDesc:'Type any question — answered in your language.',ph:'Ask anything…',send:'Send',note:'Chart, luck cycles & signs are real calculations. Your reading is written by AI.'},
-  ja:{reads:'があなたを占います',aiReading:'あなたの鑑定',ohaeng:'五行バランス',lifegraph:'人生グラフ · 大運の流れ',myeongsik:'あなたの四柱',ask:'もっと聞く',askDesc:'何でも質問してください — あなたの言語で答えます。',ph:'質問を入力…',send:'送信',note:'命式・大運・星座は実際の計算値。鑑定はAIが作成します。'},
-  zh:{reads:'为你解读',aiReading:'你的解读',ohaeng:'五行平衡',lifegraph:'人生曲线 · 大运走势',myeongsik:'你的四柱',ask:'继续提问',askDesc:'输入任何问题 — 用你的语言回答。',ph:'输入问题…',send:'发送',note:'命盘·大运·星座为真实推算。解读由AI生成。'}
+  en:{reads:'reads your chart',aiReading:'Your Reading',ohaeng:'Five Elements Balance',lifegraph:'Life Graph · Luck Cycles',myeongsik:'Your Four Pillars',ask:'Ask more',askDesc:'Type any question — answered in your language.',ph:'Ask anything…',send:'Send',note:'Chart, luck cycles & signs are real calculations. Your reading is written by AI.',compat:'Compatibility',me:'Me',partner:'Partner',readingCompat:'is reading your compatibility',askCompat:'Ask more about this match',askCompatDesc:'Ask about reunion, marriage, their true feelings — <b style="color:var(--gold)">tap or type</b>. Both charts read together.',phCompat:'Ask about this match…',shareCompat:'Share match',redo:'View again'},
+  ja:{reads:'があなたを占います',aiReading:'あなたの鑑定',ohaeng:'五行バランス',lifegraph:'人生グラフ · 大運の流れ',myeongsik:'あなたの四柱',ask:'もっと聞く',askDesc:'何でも質問してください — あなたの言語で答えます。',ph:'質問を入力…',send:'送信',note:'命式・大運・星座は実際の計算値。鑑定はAIが作成します。',compat:'相性',me:'あなた',partner:'お相手',readingCompat:'が二人の相性を占っています',askCompat:'相性についてもっと聞く',askCompatDesc:'復縁・結婚・本音まで <b style="color:var(--gold)">タップor直接</b> 質問を — 二人の命式を一緒に見ます。',phCompat:'相性について質問…',shareCompat:'相性をシェア',redo:'もう一度見る'},
+  zh:{reads:'为你解读',aiReading:'你的解读',ohaeng:'五行平衡',lifegraph:'人生曲线 · 大运走势',myeongsik:'你的四柱',ask:'继续提问',askDesc:'输入任何问题 — 用你的语言回答。',ph:'输入问题…',send:'发送',note:'命盘·大运·星座为真实推算。解读由AI生成。',compat:'合婚',me:'我',partner:'对方',readingCompat:'正在为两人合婚',askCompat:'继续询问合婚',askCompatDesc:'复合·结婚·对方心意都可 <b style="color:var(--gold)">点击或直接</b> 提问 — 一起看两人命盘。',phCompat:'询问合婚…',shareCompat:'分享合婚',redo:'重新查看'}
 };
 function renderForeign(t,d,w,noTime,conv){
   const F=FI18N[LANG]||FI18N.en;
@@ -1000,18 +1019,51 @@ function renderTopics(cv){
 // 주제 버튼 = 대화 시작. 자유 입력도 같은 대화로 이어짐(무월이 앞 대화 기억)
 function askTopic(i){if(!CTX)return;sendChat(`${noEmoji(TOPICS[i][0])} 자세히 봐줘`);}
 // 궁합 채팅 주제
-const COMPAT_TOPICS=[
-  ['재회 가능성','우리 재회 가능성이 있을까? 있다면 언제쯤인지 두 명식으로 알려줘'],
-  ['결혼운','이 사람과 결혼하면 어떨지, 좋은 시기가 언제인지 알려줘'],
-  ['상대 속마음','상대가 나를 진짜 어떻게 생각하는지 명식으로 짚어줘'],
-  ['언제 좋아져','우리 관계가 언제쯤 풀리는지 시기를 콕 집어줘'],
-  ['조심할 점','우리 사이에서 조심할 점과 갈등 포인트를 알려줘'],
-  ['궁합 총평','두 사람 궁합을 현실 조언까지 총평해줘'],
-];
-function renderCompatTopics(cv){const box=document.getElementById('ctopics');if(!box)return;box.innerHTML=COMPAT_TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askCompat(${i})"><span>${tp[0]}</span><i class="ask-ch">›</i></button>`).join('');}
-function askCompat(i){if(!CTX)return;sendChat(COMPAT_TOPICS[i][1]);}
+const COMPAT_TOPICS_I18N={
+  ko:[
+    ['재회 가능성','우리 재회 가능성이 있을까? 있다면 언제쯤인지 두 명식으로 알려줘'],
+    ['결혼운','이 사람과 결혼하면 어떨지, 좋은 시기가 언제인지 알려줘'],
+    ['상대 속마음','상대가 나를 진짜 어떻게 생각하는지 명식으로 짚어줘'],
+    ['언제 좋아져','우리 관계가 언제쯤 풀리는지 시기를 콕 집어줘'],
+    ['조심할 점','우리 사이에서 조심할 점과 갈등 포인트를 알려줘'],
+    ['궁합 총평','두 사람 궁합을 현실 조언까지 총평해줘'],
+  ],
+  en:[
+    ['Reunion','Is there a chance we reunite? If so, roughly when — read both charts.'],
+    ['Marriage','What would marrying this person be like, and when is a good time?'],
+    ["Their feelings",'How does this person really feel about me? Read it from the charts.'],
+    ['When it improves','When exactly does our relationship turn around? Pin the timing.'],
+    ['What to watch','What should we watch out for — our conflict points?'],
+    ['Overall','Give an overall verdict on our match, with practical advice.'],
+  ],
+  ja:[
+    ['復縁の可能性','私たちに復縁の可能性は？あるならいつ頃か、二人の命式で教えて'],
+    ['結婚運','この人と結婚したらどうか、良い時期はいつか教えて'],
+    ['相手の本音','相手が私を本当はどう思っているか命式で読んで'],
+    ['いつ好転','二人の関係がいつ頃良くなるか、時期をはっきり示して'],
+    ['注意点','二人の間で注意すべき点・衝突しやすい所を教えて'],
+    ['総合評価','二人の相性を現実的な助言まで含めて総評して'],
+  ],
+  zh:[
+    ['复合可能','我们有复合的可能吗？如果有大概什么时候，用两人命盘告诉我'],
+    ['结婚运','和这个人结婚会怎样，好的时机是什么时候'],
+    ['对方心意','对方到底怎么看我，用命盘帮我点破'],
+    ['何时好转','我们的关系大概什么时候好转，请点出具体时机'],
+    ['注意事项','我们之间要注意什么、容易冲突的地方'],
+    ['合婚总评','把两人合婚连同现实建议一起总评'],
+  ],
+};
+function ctopics(){return COMPAT_TOPICS_I18N[LANG]||COMPAT_TOPICS_I18N.ko;}
+function renderCompatTopics(cv){const box=document.getElementById('ctopics');if(!box)return;box.innerHTML=ctopics().map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askCompat(${i})"><span>${tp[0]}</span><i class="ask-ch">›</i></button>`).join('');}
+function askCompat(i){if(!CTX)return;sendChat(ctopics()[i][1]);}
 function sendText(){const el=document.getElementById('chatText');if(!el)return;const t=el.value.trim();if(!t)return;sendChat(t);}
-function setChatBusy(b){const s=document.querySelector('.chat-send');if(s){s.disabled=b;s.textContent=b?'…':'보내기';}document.querySelectorAll('#topics .ask, #ctopics .ask').forEach(x=>{x.disabled=b;});}
+function sendLabel(){return LANG==='ko'?'보내기':(FI18N[LANG]||FI18N.en).send;}
+const ALERT_I18N={
+  needDob:{ko:'생년월일을 입력해주세요',en:'Please enter your birth date',ja:'生年月日を入力してください',zh:'请输入出生日期'},
+  needDob2:{ko:'두 사람의 생년월일을 입력해주세요',en:"Please enter both people's birth dates",ja:'二人の生年月日を入力してください',zh:'请输入两人的出生日期'},
+};
+function AL(k){const m=ALERT_I18N[k]||{};return m[LANG]||m.ko;}
+function setChatBusy(b){const s=document.querySelector('.chat-send');if(s){s.disabled=b;s.textContent=b?'…':sendLabel();}document.querySelectorAll('#topics .ask, #ctopics .ask').forEach(x=>{x.disabled=b;});}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let CHAT_BUSY=false,CHAT_TIMER=null;
 const LOADING_MSGS=['돋보기를 꺼내는 중','명식을 펼치는 중','대운을 짚어보는 중','별자리랑 맞춰보는 중','오행을 세어보는 중','안경을 고쳐 쓰는 중','차 한 모금 하고 오는 중','한참 들여다보는 중','손가락으로 짚어보는 중'];
