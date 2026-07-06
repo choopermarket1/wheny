@@ -139,7 +139,7 @@
   @media(prefers-reduced-motion:no-preference){.followups{animation:tapPulse 1.5s ease .4s 2}}
   @keyframes tapPulse{0%,100%{transform:none}50%{transform:scale(1.012)}}
   /* 대화(챗봇) */
-  .chat-thread{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+  .chat-thread{display:flex;flex-direction:column;gap:9px;margin-top:14px}
   .chat-thread:empty{margin:0}
   .cm.user{align-self:flex-end;max-width:86%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;
     border-radius:15px 15px 5px 15px;padding:10px 14px;font-size:14px;font-weight:600;line-height:1.5;white-space:pre-wrap}
@@ -152,6 +152,7 @@
   .chat-in input{flex:1;min-width:0;padding:13px 14px;background:var(--ink);border:1px solid var(--line);border-radius:11px;color:var(--paper);font-size:15px;font-family:inherit}
   .chat-in input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold)}
   .chat-send{flex:none;padding:0 18px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:11px;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer}
+  .chat-send:disabled{opacity:.45;cursor:default}
   .typing{display:flex;align-items:center;gap:4px;color:var(--paperdim);font-size:14px;font-weight:600}
   .typing i{width:6px;height:6px;border-radius:50%;background:var(--gold);display:inline-block;animation:blink 1.3s infinite}
   .typing i:nth-child(1){margin-left:4px}
@@ -865,14 +866,16 @@ function renderTopics(cv){
 }
 // 주제 버튼 = 대화 시작. 자유 입력도 같은 대화로 이어짐(무월이 앞 대화 기억)
 function askTopic(i){if(!CTX)return;sendChat(`${noEmoji(TOPICS[i][0])} 자세히 봐줘`);}
-function sendText(){const el=document.getElementById('chatText');if(!el)return;const t=el.value.trim();if(!t)return;el.value='';sendChat(t);}
+function sendText(){const el=document.getElementById('chatText');if(!el)return;const t=el.value.trim();if(!t)return;sendChat(t);}
+function setChatBusy(b){const s=document.querySelector('.chat-send');if(s){s.disabled=b;s.textContent=b?'…':'보내기';}document.querySelectorAll('#topics .ask').forEach(x=>{x.disabled=b;});}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let CHAT_BUSY=false,CHAT_TIMER=null;
 const LOADING_MSGS=['돋보기를 꺼내는 중','명식을 펼치는 중','대운을 짚어보는 중','별자리랑 맞춰보는 중','오행을 세어보는 중','안경을 고쳐 쓰는 중','차 한 모금 하고 오는 중','한참 들여다보는 중','손가락으로 짚어보는 중'];
 async function sendChat(text){
   if(!CTX||CHAT_BUSY)return;
   if(!await ensurePaid())return;
-  CHAT_BUSY=true;
+  CHAT_BUSY=true;setChatBusy(true);
+  const _inp=document.getElementById('chatText');if(_inp)_inp.value='';
   CTX.chat.push({role:'user',content:text});
   renderChat(true);
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),55000);
@@ -891,7 +894,7 @@ async function sendChat(text){
     const msg=(e&&e.name==='AbortError')?'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.':errMsg(e);
     if(acc.trim())CTX.chat.push({role:'assistant',content:acc});else CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
   }
-  clearTimeout(to);CHAT_BUSY=false;renderChat();
+  clearTimeout(to);CHAT_BUSY=false;setChatBusy(false);renderChat();
 }
 function aiBubbleHTML(){return `<span class="cm-av">${avatar(CTX.persona)}</span>`;}
 function renderStreamStart(){
