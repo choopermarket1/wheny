@@ -384,12 +384,12 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
     <label data-t="name">이름 (선택 — 넣으면 이름 풀이까지)</label>
     <input id="hanja" data-tp="namePH" placeholder="한자 또는 한글 이름 · 비워둬도 돼요 (예: 秀賢 / 홍길동)" maxlength="10" autocomplete="off" />
     <div id="partnerBox" style="display:none">
-      <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
-      <label>상대 생년월일</label>
+      <div class="lbl-t" style="color:var(--hong)" data-t="pTitle">💞 상대방 (양력 기준)</div>
+      <label data-t="pBirth">상대 생년월일</label>
       <div class="drow"><select id="pY"></select><select id="pM"></select><select id="pD"></select></div>
       <input type="hidden" id="pdate" value="1994-08-20" />
       <div class="row">
-        <div><label>상대 태어난 시</label><select id="ptime">
+        <div><label data-t="pTime">상대 태어난 시</label><select id="ptime">
           <option value="none" selected>🕐 시간 모름</option>
           <option value="23">자시 (밤 11~1시)</option><option value="1">축시 (새벽 1~3시)</option>
           <option value="3">인시 (새벽 3~5시)</option><option value="5">묘시 (아침 5~7시)</option>
@@ -398,7 +398,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
           <option value="15">신시 (오후 3~5시)</option><option value="17">유시 (저녁 5~7시)</option>
           <option value="19">술시 (저녁 7~9시)</option><option value="21">해시 (밤 9~11시)</option>
         </select></div>
-        <div><label>성별</label><select id="pgender"><option value="male">남자</option><option value="female">여자</option></select></div>
+        <div><label data-t="gender">성별</label><select id="pgender"><option value="male" data-t="male">남자</option><option value="female" data-t="female">여자</option></select></div>
       </div>
     </div>
     <label data-t="tz">기준 시간대</label>
@@ -687,7 +687,7 @@ function setMode(m){mode=m;
   document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
   document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
   document.getElementById("partnerBox").style.display=m==="compat"?"block":"none";
-  document.querySelector(".go").textContent=m==="compat"?"💞 두 사람 궁합 보기":"내 소름 리포트 보기";}
+  const _T=I18N[LANG]||I18N.ko;document.querySelector(".go").textContent=m==="compat"?_T.goCompat:_T.go;}
 function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
   `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
     <span class="em">${avatar(k)}</span><div class="t-info"><span class="nm">${TT(k).nm}</span><span class="ds">${TT(k).ds}</span></div></div>`).join("");}
@@ -1453,10 +1453,10 @@ const TEACH_I18N={
 };
 function TT(k){const t=(TEACH_I18N[LANG]||TEACH_I18N.ko)[k]||TEACH_I18N.ko[k];return {nm:t.nm,ds:t.ds};}
 const I18N={
-  ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요",tagline:'<b>언제</b>인지까지 말해주는 사주',tagsub:'사주 만세력 × 서양 점성술 교차검증'},
-  en:{solo:'My Saju',compat:'Compatibility',solar:'Solar',lunar:'Lunar',birth:'Date of birth',btime:'Time of birth',unknown:"Don't know",gender:'Gender',female:'Female',male:'Male',name:'Name (optional)',namePH:'Hanja or your name · optional',tz:'Time zone',pickTeacher:'Choose your reader',go:'See my reading',note:"If you don't know the time, choose Unknown",tagline:'The saju that tells you <b>when</b>',tagsub:'Saju × Western astrology, cross-checked'},
-  ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',note:'時刻が不明なら「不明」を選択',tagline:'<b>いつ</b>かまで教える四柱推命',tagsub:'四柱推命 × 西洋占星術 クロス検証'},
-  zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',note:'不知道时辰就选"不知道"',tagline:'连<b>何时</b>都告诉你的八字',tagsub:'八字 × 西洋占星 交叉验证'}
+  ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',goCompat:'💞 두 사람 궁합 보기',pTitle:'💞 상대방 (양력 기준)',pBirth:'상대 생년월일',pTime:'상대 태어난 시',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요",tagline:'<b>언제</b>인지까지 말해주는 사주',tagsub:'사주 만세력 × 서양 점성술 교차검증'},
+  en:{solo:'My Saju',compat:'Compatibility',solar:'Solar',lunar:'Lunar',birth:'Date of birth',btime:'Time of birth',unknown:"Don't know",gender:'Gender',female:'Female',male:'Male',name:'Name (optional)',namePH:'Hanja or your name · optional',tz:'Time zone',pickTeacher:'Choose your reader',go:'See my reading',goCompat:'💞 See the match',pTitle:'💞 Partner (solar date)',pBirth:"Partner's date of birth",pTime:"Partner's time of birth",note:"If you don't know the time, choose Unknown",tagline:'The saju that tells you <b>when</b>',tagsub:'Saju × Western astrology, cross-checked'},
+  ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',goCompat:'💞 二人の相性を見る',pTitle:'💞 お相手 (新暦)',pBirth:'お相手の生年月日',pTime:'お相手の生まれた時刻',note:'時刻が不明なら「不明」を選択',tagline:'<b>いつ</b>かまで教える四柱推命',tagsub:'四柱推命 × 西洋占星術 クロス検証'},
+  zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',goCompat:'💞 查看两人合婚',pTitle:'💞 对方 (阳历)',pBirth:'对方出生日期',pTime:'对方出生时辰',note:'不知道时辰就选"不知道"',tagline:'连<b>何时</b>都告诉你的八字',tagsub:'八字 × 西洋占星 交叉验证'}
 };
 // 하단 정적 섹션(면책·유료상품카드·사업자푸터) 언어별 렌더 — 외국어에서 한국어로 남던 것 수정
 const STATIC_I18N={
@@ -1535,6 +1535,7 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   const ts=document.querySelector('.tagsub');if(ts)ts.textContent=T.tagsub;
   fillDob('dY','dM','dD','date');fillDob('pY','pM','pD','pdate');
   fillTime('time');fillTime('ptime');fillTz();
+  const _g=document.querySelector('.go');if(_g&&typeof mode!=='undefined'&&mode==='compat'&&T.goCompat)_g.textContent=T.goCompat; // 궁합모드면 궁합버튼 텍스트 유지
   if(typeof renderTeachers==='function')renderTeachers();
   renderStatic();
 }
