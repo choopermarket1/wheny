@@ -60,6 +60,8 @@
   input:focus,select:focus{outline:2px solid var(--hwang);outline-offset:1px;border-color:var(--hwang)}
   .row{display:flex;gap:11px}.row>div{flex:1}
   .drow{display:flex;gap:8px}.drow select{flex:1;min-width:0}
+  .langbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+  .langbar select{width:auto;padding:8px 12px;font-size:13px;background:var(--ink2)}
   .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
@@ -240,8 +242,11 @@
   .mh-cell.good b,.mh-cell.good span{color:#8fbf86}
   .mh-cell.bad{border-color:rgba(224,101,90,.4);background:rgba(224,101,90,.10)}
   .mh-cell.bad b,.mh-cell.bad span{color:#e0655a}
-  .mh-cell{cursor:pointer;transition:.13s}
+  .mh-cell{cursor:pointer;transition:.13s;position:relative}
   .mh-cell:hover{transform:translateY(-2px);border-color:var(--gold)}
+  .mh-arrow{position:absolute;top:5px;right:7px;font-size:11px;font-weight:800;color:var(--gold);opacity:.6;font-style:normal}
+  .mh-cell:hover .mh-arrow{opacity:1}
+  @media(prefers-reduced-motion:no-preference){.mh{animation:tapPulse 1.5s ease .5s 2}}
   .mh-detail{margin-top:12px;border:1px solid var(--goldLine);border-radius:12px;padding:14px 16px;background:color-mix(in srgb,var(--gold) 5%,var(--ink))}
   .mh-detail.good{border-color:rgba(143,191,134,.4)}.mh-detail.bad{border-color:rgba(224,101,90,.4)}
   .mh-dh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
@@ -300,13 +305,16 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
   </header>
 
   <div class="card" id="form">
+    <div class="langbar"><select id="lang" onchange="setLang(this.value)" aria-label="language">
+      <option value="ko">🇰🇷 한국어</option><option value="ja">🇯🇵 日本語</option><option value="en">🇺🇸 English</option><option value="zh">🇨🇳 中文</option>
+    </select></div>
     <div class="seg" role="tablist" style="margin-bottom:14px">
-      <button role="tab" aria-pressed="true" id="m-solo" onclick="setMode('solo')">🔮 내 사주</button>
-      <button role="tab" aria-pressed="false" id="m-compat" onclick="setMode('compat')">💞 궁합</button>
+      <button role="tab" aria-pressed="true" id="m-solo" data-t="solo" onclick="setMode('solo')">내 사주</button>
+      <button role="tab" aria-pressed="false" id="m-compat" data-t="compat" onclick="setMode('compat')">궁합</button>
     </div>
     <div class="seg" role="tablist">
-      <button role="tab" aria-pressed="true" id="seg-sol" onclick="setCal('sol')">양력</button>
-      <button role="tab" aria-pressed="false" id="seg-lun" onclick="setCal('lun')">음력</button>
+      <button role="tab" aria-pressed="true" id="seg-sol" data-t="solar" onclick="setCal('sol')">양력</button>
+      <button role="tab" aria-pressed="false" id="seg-lun" data-t="lunar" onclick="setCal('lun')">음력</button>
     </div>
     <label id="dateLbl">생년월일 (양력)</label>
     <div class="drow"><select id="dY" aria-label="연도"></select><select id="dM" aria-label="월"></select><select id="dD" aria-label="일"></select></div>
@@ -315,8 +323,8 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       <input type="checkbox" id="leap" /><label for="leap" style="margin:0;color:var(--paperdim);font-weight:600">이 달은 윤달이에요</label>
     </div>
     <div class="row">
-      <div><label>태어난 시</label><select id="time">
-        <option value="none" selected>🕐 시간 모름</option>
+      <div><label data-t="btime">태어난 시</label><select id="time">
+        <option value="none" data-t="unknown" selected>🕐 시간 모름</option>
         <option value="23">자시 (밤 11~1시)</option>
         <option value="1">축시 (새벽 1~3시)</option>
         <option value="3">인시 (새벽 3~5시)</option>
@@ -330,10 +338,10 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
         <option value="19">술시 (저녁 7~9시)</option>
         <option value="21">해시 (밤 9~11시)</option>
       </select></div>
-      <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
+      <div><label data-t="gender">성별</label><select id="gender"><option value="female" data-t="female">여자</option><option value="male" data-t="male">남자</option></select></div>
     </div>
-    <label>이름 (선택 — 넣으면 이름 풀이까지)</label>
-    <input id="hanja" placeholder="한자 또는 한글 이름 · 비워둬도 돼요 (예: 秀賢 / 홍길동)" maxlength="10" autocomplete="off" />
+    <label data-t="name">이름 (선택 — 넣으면 이름 풀이까지)</label>
+    <input id="hanja" data-tp="namePH" placeholder="한자 또는 한글 이름 · 비워둬도 돼요 (예: 秀賢 / 홍길동)" maxlength="10" autocomplete="off" />
     <div id="partnerBox" style="display:none">
       <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
       <label>상대 생년월일</label>
@@ -352,7 +360,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
         <div><label>성별</label><select id="pgender"><option value="male">남자</option><option value="female">여자</option></select></div>
       </div>
     </div>
-    <label>기준 시간대</label>
+    <label data-t="tz">기준 시간대</label>
     <select id="tz">
       <option value="9" selected>한국·일본 (UTC+9)</option>
       <option value="8">중국·대만 (UTC+8)</option>
@@ -361,19 +369,11 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       <option value="0">영국 (UTC+0)</option>
     </select>
 
-    <label>리포트 언어</label>
-    <select id="lang" onchange="LANG=this.value">
-      <option value="ko" selected>한국어</option>
-      <option value="ja">日本語 (일본어)</option>
-      <option value="en">English (영어)</option>
-      <option value="zh">中文 (중국어)</option>
-    </select>
-
-    <div class="lbl-t">당신을 봐줄 선생님을 고르세요</div>
+    <div class="lbl-t" data-t="pickTeacher">당신을 봐줄 선생님을 고르세요</div>
     <div class="teachers" id="teachers"></div>
 
-    <button class="go" onclick="run()">내 소름 리포트 보기</button>
-    <div class="form-note">태어난 시각을 모르면 '시간 모름'을 선택하세요 (시주 제외 분석)</div>
+    <button class="go" data-t="go" onclick="run()">내 소름 리포트 보기</button>
+    <div class="form-note" data-t="note">태어난 시각을 모르면 '시간 모름'을 선택하세요 (시주 제외 분석)</div>
   </div>
 
   <div id="result"></div>
@@ -556,7 +556,7 @@ function pick(k){picked=k;renderTeachers();}
 function setCal(c){cal=c;
   document.getElementById("seg-sol").setAttribute("aria-pressed",c==="sol");
   document.getElementById("seg-lun").setAttribute("aria-pressed",c==="lun");
-  document.getElementById("dateLbl").textContent="생년월일 ("+(c==="sol"?"양력":"음력")+")";
+  applyLang(LANG);
   document.getElementById("leapWrap").style.display=c==="lun"?"flex":"none";}
 
 /* ===== 소름 리포트(규칙형) ===== */
@@ -688,7 +688,7 @@ function monthHeatmap(dStem){
     const st=sc>=1?'좋음':sc<=-.8?'주의':'보통';
     MONTHS.push({M,k:mp?mp.k:'',h:mp?mp.h:'',ss,sc,st});
   }
-  const cells=MONTHS.map(m=>`<div class="mh-cell ${m.sc>=1?'good':m.sc<=-.8?'bad':'mid'}" role="button" tabindex="0" onclick="showMonthDetail(${m.M})" onkeydown="if(event.key==='Enter')showMonthDetail(${m.M})"><b>${m.M}월</b><span>${m.st}</span></div>`).join("");
+  const cells=MONTHS.map(m=>`<div class="mh-cell ${m.sc>=1?'good':m.sc<=-.8?'bad':'mid'}" role="button" tabindex="0" onclick="showMonthDetail(${m.M})" onkeydown="if(event.key==='Enter')showMonthDetail(${m.M})"><i class="mh-arrow">＋</i><b>${m.M}월</b><span>${m.st}</span></div>`).join("");
   return `<div class="mh">${cells}</div><div id="mhDetail"></div>`;
 }
 function showMonthDetail(M){
@@ -955,14 +955,17 @@ async function askAI(){
   if(!CTX)return;
   if(!await ensurePaid())return;
   const box=document.getElementById('ai-box');
-  box.innerHTML=`<div class="ai-out"><p style="color:var(--dim)">✨ ${CTX.tname} 선생님이 명식을 읽고 있어요… (10~20초)</p></div>`;
+  box.innerHTML=`<div class="ai-out"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~20초 걸려요</div></div>`;
+  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[_i];},1700);
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
     const data=await res.json();
+    clearInterval(_t);
     box.innerHTML=`<div class="ai-out">${aiHeader()}${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}</div>`;
     breakResult();
   }catch(e){
+    clearInterval(_t);
     box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
   }
 }
@@ -981,6 +984,20 @@ function fillDob(yId,mId,dId,hiddenId){
 }
 fillDob('dY','dM','dD','date');
 fillDob('pY','pM','pD','pdate');
+// 폼 다국어 (입력 흐름) — 외국인도 입력 가능하게. 리포트 본문 전체 번역은 정식 다국어 단계.
+const I18N={
+  ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요"},
+  en:{solo:'My Saju',compat:'Compatibility',solar:'Solar',lunar:'Lunar',birth:'Date of birth',btime:'Time of birth',unknown:"Don't know",gender:'Gender',female:'Female',male:'Male',name:'Name (optional)',namePH:'Hanja or your name · optional',tz:'Time zone',pickTeacher:'Choose your reader',go:'See my reading',note:"If you don't know the time, choose Unknown"},
+  ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',note:'時刻が不明なら「不明」を選択'},
+  zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',note:'不知道时辰就选"不知道"'}
+};
+function applyLang(l){const T=I18N[l]||I18N.ko;
+  document.querySelectorAll('[data-t]').forEach(e=>{const k=e.getAttribute('data-t');if(T[k]!=null)e.textContent=T[k];});
+  document.querySelectorAll('[data-tp]').forEach(e=>{const k=e.getAttribute('data-tp');if(T[k]!=null)e.setAttribute('placeholder',T[k]);});
+  const dl=document.getElementById('dateLbl');if(dl)dl.textContent=T.birth+(l==='ko'?` (${cal==='lun'?'음력':'양력'})`:'');
+}
+function setLang(v){LANG=v;applyLang(v);}
+applyLang(LANG);
 </script>
 </body>
 </html>
