@@ -86,6 +86,7 @@
   .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.5}
   .t .em{width:48px;height:48px;flex:none;border-radius:50%;overflow:hidden;border:1.5px solid var(--goldLine);box-shadow:0 4px 10px rgba(0,0,0,.45)}
   .t .em svg,.who .em svg{width:100%;height:100%;display:block}
+  .avimg{width:100%;height:100%;object-fit:cover;display:block}
   .t .nm{font-weight:800;font-size:14.5px}
   .t .ds{font-size:11px;color:var(--dim);margin-top:1px}
   .t[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 15%,var(--ink))}
@@ -545,7 +546,9 @@ const AV_CO={
  zh:{back:`<path d="M150 60c-58 0-86 34-86 94 0 30 12 56 30 74h112c18-18 30-44 30-74 0-60-28-94-86-94z" fill="#241a16"/><circle cx="110" cy="72" r="18" fill="#1c1310"/><circle cx="190" cy="72" r="18" fill="#1c1310"/><circle cx="110" cy="72" r="7" fill="#c0392b"/><circle cx="190" cy="72" r="7" fill="#c0392b"/><path d="M82 256c20 14 44 22 68 22s48-8 68-22v44H82z" fill="#b5352f"/>`,
      front:`<path d="M92 126q58 -42 116 0 -14 -32 -58 -32 -44 0 -58 32z" fill="#241a16"/><circle cx="150" cy="58" r="6" fill="#3aa17a"/><path d="M126 266h48v8q-24 12 -48 0z" fill="#d9b24a"/><path d="M150 264v18" stroke="#b5352f" stroke-width="4"/>`},
 };
-function avatar(k){const co=AV_CO[LANG]||AV_CO.ko;return `<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="${AV_BG[k]||'#888'}"/>${co.back}<ellipse cx="150" cy="166" rx="60" ry="68" fill="#e9bd97"/>${co.front}${AV_FACE[k]||''}</svg>`;}
+function avatarSVG(k){const co=AV_CO[LANG]||AV_CO.ko;return `<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="${AV_BG[k]||'#888'}"/>${co.back}<ellipse cx="150" cy="166" rx="60" ry="68" fill="#e9bd97"/>${co.front}${AV_FACE[k]||''}</svg>`;}
+// 실사 초상(나라별) 우선, 없으면 SVG 폴백. 파일: img/{persona}-{lang}.jpg
+function avatar(k){return `<img class="avimg" src="img/${k}-${LANG}.jpg" alt="" loading="lazy" onerror="this.onerror=null;this.outerHTML=avatarSVG('${k}')">`;}
 // 모던 모노라인 아이콘 세트 (이모지 대신) — currentColor 상속
 const IC={
   penta:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 2l6 4.6-2.3 7.4H4.3L2 6.6z"/></svg></span>`,
