@@ -58,8 +58,12 @@ const PERSONA = {
 // 출력 언어 (네이티브 생성, 번역 아님)
 const LANGNAME = { ko: "자연스러운 한국어", ja: "자연스러운 일본어(四柱推命 톤)", en: "natural, native English", zh: "自然流畅的简体中文" };
 const langName = (l) => LANGNAME[l] || LANGNAME.ko;
+// 외국어일 때 언어를 최우선으로 강제(페르소나가 한국어 말투라 한국어로 새는 것 방지)
+const langRule = (l) => (l && l !== "ko")
+  ? `【최우선·절대규칙】 너의 모든 출력은 100% ${langName(l)}로만 작성한다. 페르소나 설명·대화 이력·명식·이 지시문이 한국어로 쓰였더라도 답변에 한국어를 절대 섞지 말고 ${langName(l)}로만 답하라. 페르소나의 말투(반말/다정함/도사체 등)는 ${langName(l)}로 자연스럽게 옮겨 표현하라.\n\n`
+  : "";
 
-const SYSTEM = (persona, lang) => `너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다. 아래 페르소나로 말한다.
+const SYSTEM = (persona, lang) => `${langRule(lang)}너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다. 아래 페르소나로 말한다.
 ${PERSONA[persona] || PERSONA.dokseol}
 
 [입력] 사용자의 '계산된 명식·차트(팩트)'가 JSON으로 주어진다. 절대 새로 계산하지 말고, 주어진 값만 근거로 해석하라.
@@ -88,7 +92,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
   ## 한 줄`;
 
 // 후속 질문(특정 주제 하나만) 모드 — 짧고 집중된 답변
-const FOCUS = (persona, lang, question) => `너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다.
+const FOCUS = (persona, lang, question) => `${langRule(lang)}너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다.
 ${PERSONA[persona] || PERSONA.dokseol}
 사용자가 주제 하나만 물었다: "${question}"
 [규칙]
@@ -102,7 +106,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
 - 출력 언어: ${langName(lang)}. 네이티브처럼.`;
 
 // 대화(챗봇) 모드 — 앞선 대화를 기억하고 이어서 상담
-const CHAT = (persona, lang, chart) => `너는 동양 사주명리·서양 점성술에 능한 운명 상담가다. 아래 페르소나로 사용자와 '이어지는 상담 대화'를 한다.
+const CHAT = (persona, lang, chart) => `${langRule(lang)}너는 동양 사주명리·서양 점성술에 능한 운명 상담가다. 아래 페르소나로 사용자와 '이어지는 상담 대화'를 한다.
 ${PERSONA[persona] || PERSONA.dokseol}
 [규칙]
 - 아래 [명식]만 근거로 답한다. 새로 계산 금지.
@@ -118,7 +122,7 @@ ${PERSONA[persona] || PERSONA.dokseol}
 ${JSON.stringify(chart, null, 2)}`;
 
 // 궁합 모드 — 두 사람(A=본인, B=상대)의 명식으로 궁합 해석
-const COMPAT = (persona, lang) => `너는 동양 사주명리와 서양 점성술에 능한 궁합 전문가다.
+const COMPAT = (persona, lang) => `${langRule(lang)}너는 동양 사주명리와 서양 점성술에 능한 궁합 전문가다.
 ${PERSONA[persona] || PERSONA.dokseol}
 [입력] A(본인)와 B(상대)의 계산된 명식이 JSON으로 주어진다. 절대 새로 계산하지 말고 주어진 값만 근거로.
 [규칙]
