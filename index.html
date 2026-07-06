@@ -62,6 +62,10 @@
   .drow{display:flex;gap:8px}.drow select{flex:1;min-width:0}
   .langbar{display:flex;justify-content:flex-end;margin-bottom:12px}
   .langbar select{width:auto;padding:8px 12px;font-size:13px;background:var(--ink2)}
+  .restore-banner{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--gold) 10%,var(--card));border:1px solid var(--goldLine);border-radius:14px;padding:12px 14px;margin:0 0 16px;font-size:13.5px;color:var(--paperdim)}
+  .restore-banner span{flex:1;min-width:0}
+  .restore-banner .rb-go{flex:none;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:9px;padding:8px 13px;font-weight:800;font-size:13px;font-family:inherit;cursor:pointer}
+  .restore-banner .rb-x{flex:none;background:transparent;border:0;color:var(--dim);font-size:15px;cursor:pointer;padding:4px}
   .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
@@ -860,8 +864,34 @@ function run(){
     </div>`;
   renderTopics(t.cv);
   breakResult();
+  saveSession();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
+// 로그인 없이 이 기기에 저장/복원 (localStorage). 진짜 계정(다기기)은 Supabase 단계에서.
+function saveSession(){try{if(!CTX||CTX.chartB)return;localStorage.setItem('wheny_sess',JSON.stringify({
+  date:document.getElementById('date').value,time:document.getElementById('time').value,gender:document.getElementById('gender').value,
+  hanja:document.getElementById('hanja').value,tz:document.getElementById('tz').value,cal:cal,leap:document.getElementById('leap').checked,
+  persona:picked,lang:LANG,chat:CTX.chat,ts:Date.now()}));}catch(e){}}
+function restoreSession(){try{
+  const s=JSON.parse(localStorage.getItem('wheny_sess')||'null');if(!s)return;
+  document.getElementById('date').value=s.date;fillDob('dY','dM','dD','date');
+  document.getElementById('time').value=s.time;document.getElementById('gender').value=s.gender;
+  document.getElementById('hanja').value=s.hanja||'';document.getElementById('tz').value=s.tz;
+  if(document.getElementById('lang')){document.getElementById('lang').value=s.lang;setLang(s.lang);}
+  setCal(s.cal||'sol');document.getElementById('leap').checked=!!s.leap;
+  setMode('solo');pick(s.persona||'dokseol');
+  run();
+  if(s.chat&&s.chat.length){CTX.chat=s.chat;renderChat();}
+  const b=document.querySelector('.restore-banner');if(b)b.remove();
+}catch(e){}}
+function showRestoreBanner(){try{
+  const s=JSON.parse(localStorage.getItem('wheny_sess')||'null');if(!s||!s.date)return;
+  const wrap=document.querySelector('.wrap'),card=document.getElementById('form');if(!wrap||!card)return;
+  const b=document.createElement('div');b.className='restore-banner';
+  const cnt=(s.chat&&s.chat.length)?`지난 상담(${s.chat.filter(m=>m.role==='user').length}개 질문)이 저장돼 있어요`:'지난 사주가 저장돼 있어요';
+  b.innerHTML=`<span>${cnt}</span><button class="rb-go" onclick="restoreSession()">이어보기 →</button><button class="rb-x" onclick="localStorage.removeItem('wheny_sess');this.parentElement.remove()" aria-label="지우기">✕</button>`;
+  wrap.insertBefore(b,card);
+}catch(e){}}
 // 줄글 → 문장별 줄바꿈 (한글 종결어 뒤에서 끊고, 2032. 같은 숫자 마침표는 제외)
 function brk(html){return String(html||"")
   .replace(/([가-힣”"’\)】])([.!?])\s+/g,'$1$2<br>')   // 문장 끝에서 줄바꿈
@@ -936,7 +966,7 @@ async function sendChat(text){
     const msg=(e&&e.name==='AbortError')?'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.':errMsg(e);
     if(acc.trim())CTX.chat.push({role:'assistant',content:acc});else CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
   }
-  clearTimeout(to);CHAT_BUSY=false;setChatBusy(false);renderChat();
+  clearTimeout(to);CHAT_BUSY=false;setChatBusy(false);renderChat();saveSession();
 }
 function aiBubbleHTML(){return `<span class="cm-av">${avatar(CTX.persona)}</span>`;}
 function renderStreamStart(){
@@ -1023,6 +1053,7 @@ function fillDob(yId,mId,dId,hiddenId){
 }
 fillDob('dY','dM','dD','date');
 fillDob('pY','pM','pD','pdate');
+showRestoreBanner();
 // 폼 다국어 (입력 흐름) — 외국인도 입력 가능하게. 리포트 본문 전체 번역은 정식 다국어 단계.
 const I18N={
   ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요"},
