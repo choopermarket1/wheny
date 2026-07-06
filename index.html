@@ -81,12 +81,15 @@
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
   .teachers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;
-    display:flex;gap:11px;align-items:center;transition:.15s;position:relative;overflow:hidden}
-  .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.5}
-  .t .em{width:48px;height:48px;flex:none;border-radius:50%;overflow:hidden;border:1.5px solid var(--goldLine);box-shadow:0 4px 10px rgba(0,0,0,.45)}
+  .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
+    display:flex;flex-direction:column;transition:.15s;position:relative;overflow:hidden}
+  .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.6;z-index:2}
+  .t .em{width:100%;height:122px;flex:none;overflow:hidden;position:relative}
+  .t .em::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(10,10,13,.6));pointer-events:none}
   .t .em svg,.who .em svg{width:100%;height:100%;display:block}
-  .avimg{width:100%;height:100%;object-fit:cover;display:block}
+  .avimg{width:100%;height:100%;object-fit:cover;object-position:50% 24%;display:block}
+  .t-info{padding:10px 13px 13px}
+  .t .nm,.t .ds{display:block}
   .t .nm{font-weight:800;font-size:14.5px}
   .t .ds{font-size:11px;color:var(--dim);margin-top:1px}
   .t[aria-pressed="true"]{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 15%,var(--ink))}
@@ -109,7 +112,7 @@
     border:1px solid var(--tc);border-radius:18px;padding:24px 22px}
   .who{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--paperdim);margin-bottom:14px;
     letter-spacing:.02em}
-  .who .em{width:32px;height:32px;flex:none;border-radius:50%;overflow:hidden;border:1px solid var(--goldLine)}.who b{color:var(--tc);font-size:14px}
+  .who .em{width:46px;height:40px;flex:none;border-radius:9px;overflow:hidden;border:1px solid var(--goldLine)}.who b{color:var(--tc);font-size:14px}
   .oneline{font-family:"Noto Serif KR",serif;font-size:23px;line-height:1.48;font-weight:700;text-wrap:balance}
   .oneline b{color:var(--hwang)}
   .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:19px}
@@ -638,7 +641,7 @@ function setMode(m){mode=m;
   document.querySelector(".go").textContent=m==="compat"?"💞 두 사람 궁합 보기":"내 소름 리포트 보기";}
 function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
   `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
-    <span class="em">${avatar(k)}</span><span><span class="nm">${TT(k).nm}</span><span class="ds">${TT(k).ds}</span></span></div>`).join("");}
+    <span class="em">${avatar(k)}</span><div class="t-info"><span class="nm">${TT(k).nm}</span><span class="ds">${TT(k).ds}</span></div></div>`).join("");}
 function pick(k){picked=k;renderTeachers();}
 function setCal(c){cal=c;
   document.getElementById("seg-sol").setAttribute("aria-pressed",c==="sol");
