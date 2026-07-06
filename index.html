@@ -833,7 +833,7 @@ async function runCompat(){
         <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">${L.redo}</button></div>`;
     breakResult();renderCompatTopics(t.cv);
   }catch(e){
-    box.innerHTML=`<div class="block"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
+    box.innerHTML=`<div class="block"><p style="color:var(--hong)">${errMsg(e)}</p><button class="ttsbtn" style="margin-top:12px" onclick="run()">${IC.spark}${U('retry')}</button></div>`;
   }
   clearTimeout(to);
 }
@@ -951,8 +951,10 @@ function renderForeign(t,d,w,noTime,conv){
   autoForeignReport();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
-async function autoForeignReport(){
+async function autoForeignReport(attempt){
+  attempt=attempt||1;
   const box=document.getElementById('foreignReport');if(!box||!CTX)return;
+  if(attempt>1)box.innerHTML=`<div class="typing"><span class="lmsg">${U('retrying')}</span><i></i><i></i><i></i></div>`;
   let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%loadingMsgs().length;el.textContent=loadingMsgs()[_i];},1700);
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),80000);let acc='';
   try{
@@ -961,9 +963,12 @@ async function autoForeignReport(){
     clearInterval(_t);
     if(res.body&&res.body.getReader){box.innerHTML='<span class="cur">▍</span>';const reader=res.body.getReader(),dec=new TextDecoder();while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});box.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}}
     else{const data=await res.json();acc=data.reading||'';}
-    box.innerHTML=whenTimeline(acc)+mdToHtml(acc)+ttsBtn();breakResult();
-  }catch(e){clearInterval(_t);box.innerHTML=acc.trim()?whenTimeline(acc)+mdToHtml(acc)+ttsBtn():`<p style="color:var(--hong)">${errMsg(e)}</p>`;breakResult();}
-  clearTimeout(to);
+    box.innerHTML=whenTimeline(acc)+mdToHtml(acc)+ttsBtn();breakResult();clearTimeout(to);
+  }catch(e){
+    clearInterval(_t);clearTimeout(to);
+    if(!acc.trim()&&attempt<2){setTimeout(()=>autoForeignReport(2),1500);return;} // 콜드스타트·순간끊김 → 자동 1회 재시도
+    box.innerHTML=acc.trim()?whenTimeline(acc)+mdToHtml(acc)+ttsBtn():`<p style="color:var(--hong)">${errMsg(e)}</p><button class="ttsbtn" style="margin-top:12px" onclick="autoForeignReport(1)">${IC.spark}${U('retry')}</button>`;breakResult();
+  }
 }
 // 로그인 없이 이 기기에 저장/복원 (localStorage). 진짜 계정(다기기)은 Supabase 단계에서.
 function saveSession(){try{if(!CTX||CTX.chartB)return;localStorage.setItem('wheny_sess',JSON.stringify({
@@ -1081,6 +1086,8 @@ const UI18N={
   empty:{ko:'(빈 응답이에요. 다시 한 번 물어봐 주세요.)',en:'(Empty response. Please ask again.)',ja:'(応答が空でした。もう一度質問してください。)',zh:'(回复为空，请再问一次。)'},
   slow:{ko:'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.',en:"Taking a bit long 🐢 Please resend the same question in a moment.",ja:'返答が少し遅れています 🐢 少し待って同じ質問を再送してください。',zh:'回复有点慢 🐢 请稍后再发送相同的问题。'},
   zero:{ko:'없음',en:'none',ja:'なし',zh:'无'},
+  retry:{ko:'다시 시도',en:'Try again',ja:'再試行',zh:'重试'},
+  retrying:{ko:'다시 시도하는 중…',en:'Retrying…',ja:'再試行中…',zh:'重试中…'},
   opp:{ko:'기회',en:'Opportunity',ja:'チャンス',zh:'机会'},
   caution:{ko:'주의',en:'Caution',ja:'注意',zh:'注意'},
   oppTime:{ko:'기회의 시기',en:'Opportunity periods',ja:'チャンスの時期',zh:'机会时期'},
