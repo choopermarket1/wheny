@@ -805,6 +805,61 @@ function report(persona,d,w,age,gender){
   return{P,pct,cur,missing,charDetail,love,loveTime,money,year,future3,strength,health,advice};
 }
 
+// ═══════════ 2층: 해석 규칙 엔진 ═══════════
+// 십성×대운×세운×용신을 '언제·무엇·어떻게(+2좋음~-2주의)' 신호로 결정론적 변환.
+// AI는 이 신호를 캐릭터 목소리로 옮기기만 → 모델 바뀌어도 뼈대(정확도·일관성) 유지.
+const SS_MEAN={
+  정재:{dom:['재물'],dir:1,tag:'꾸준한 돈·안정',act:'저축·계약·안정 수입에 유리'},
+  편재:{dom:['재물','활동'],dir:1,tag:'큰돈·투자·이성',act:'투자·확장·인맥이 열리나 변동성 관리'},
+  정관:{dom:['직업'],dir:1,tag:'승진·직책·안정',act:'취업·승진·공적 지위(여성은 인연·결혼운)'},
+  편관:{dom:['직업','건강'],dir:0,tag:'도전·압박·경쟁',act:'큰 도전·시험엔 유리하나 과로·스트레스 조심'},
+  식신:{dom:['표현','재물'],dir:1,tag:'창작·시작·먹복',act:'새 일·창작·건강 회복에 좋음'},
+  상관:{dom:['변동','표현'],dir:0,tag:'재능·이직·구설',act:'이직·독립·표현엔 좋으나 말·계약 조심'},
+  정인:{dom:['문서'],dir:1,tag:'공부·문서·귀인',act:'공부·자격·계약·부동산·귀인복'},
+  편인:{dom:['문서','전환'],dir:0,tag:'자격·전환·고독',act:'재교육·전환기, 미룸·고립 주의'},
+  비견:{dom:['활동'],dir:0,tag:'경쟁·독립·동료',act:'독립·협업엔 좋으나 경쟁 심화'},
+  겁재:{dom:['재물','활동'],dir:-1,tag:'지출·경쟁·손재',act:'큰 지출·보증·동업 조심'},
+};
+const K2EL=k=>(K2S[k]!=null&&STEMS[K2S[k]])?STEMS[K2S[k]][2]:''; // 한글 천간 → 오행
+function interpret(d,w,age,gender){
+  const dS=d.dStem, dmEl=STEMS[dS][2], fem=gender==='female';
+  const yong=yongsin(d), fav=new Set(yong.용신후보), ALLEL=['木','火','土','金','水'];
+  const gishin=ALLEL.filter(e=>!fav.has(e)&&e!==dmEl);
+  const feel=el=>fav.has(el)?'순풍(용신)':gishin.includes(el)?'역풍(기신)':'평';
+  const dohwa=new Set([TRIAD.도화[d.P.day.b],TRIAD.도화[d.P.year.b]].filter(x=>x!=null));
+  const yeokma=new Set([TRIAD.역마[d.P.day.b],TRIAD.역마[d.P.year.b]].filter(x=>x!=null));
+  const hasGwan=[d.P.year.s,d.P.month.s,d.P.hour.s].some(s=>sipsin(dS,s)==='정관');
+  const sig=[];
+  for(let y=NOW;y<=NOW+20;y++){
+    const g=yearGZ(y), ss=sipsin(dS,g.s), m=SS_MEAN[ss], el=STEMS[g.s][2];
+    let grade=m.dir+(fav.has(el)?1:gishin.includes(el)?-1:0);
+    const dom=new Set(m.dom), sp=[];
+    if(fem&&(ss==='정관'||ss==='편관'))dom.add('연애');
+    if(!fem&&(ss==='정재'||ss==='편재'))dom.add('연애');
+    if(dohwa.has(g.b)){dom.add('연애');sp.push('도화');}
+    if(yeokma.has(g.b)){dom.add('변동');sp.push('역마');}
+    if(ss==='상관'&&hasGwan){grade-=1;dom.add('직업');sp.push('상관견관(구설·관재 주의)');}
+    if(ss==='겁재')grade=Math.min(grade,-1);
+    grade=Math.max(-2,Math.min(2,grade));
+    sig.push({연도:y,나이:age+(y-NOW),간지:g.k,십신:ss,오행:el,순역:feel(el),등급:grade,도메인:[...dom],태그:m.tag,조언:m.act,특수:sp});
+  }
+  const goodOf=nm=>sig.filter(s=>s.도메인.includes(nm)&&s.등급>=1).sort((a,b)=>b.등급-a.등급||a.연도-b.연도).slice(0,3).map(s=>s.연도);
+  const 타이밍=sig.filter(s=>s.연도<=NOW+12&&Math.abs(s.등급)>=1).sort((a,b)=>Math.abs(b.등급)-Math.abs(a.등급)||a.연도-b.연도).slice(0,8)
+    .sort((a,b)=>a.연도-b.연도).map(s=>({연도:s.연도,나이:s.나이,간지:s.간지,십신:s.십신,등급:s.등급,도메인:s.도메인,조언:s.조언,특수:s.특수}));
+  const dwSig=d.dw.map(x=>{const el=K2EL(x.k[0]),m=SS_MEAN[x.ss]||{tag:x.ss,act:''};let g=Math.round((SS_SCORE[x.ss]??0)+(fav.has(el)?.8:gishin.includes(el)?-.8:0));g=Math.max(-2,Math.min(2,g));
+    return{나이:Math.round(x.age),연도:x.startYear,간지:x.k,십신:x.ss,오행:el,등급:g,순역:feel(el),태그:m.tag,조언:m.act};});
+  const past=pastPivot(d,age),cur=curDaewoon(d,age),nxt=nextDaewoon(d,age);
+  const strongEls=Object.entries(d.el).filter(([k,v])=>v>=2).map(([k])=>k), missing=Object.keys(d.el).filter(k=>d.el[k]===0), gk=gyeok(dS,d.P.month.b);
+  return{
+    강약:yong.신강약, 용신:[...fav], 기신:gishin, 격국:gk,
+    올해:{연도:sig[0].연도,간지:sig[0].간지,십신:sig[0].십신,등급:sig[0].등급,도메인:sig[0].도메인,조언:sig[0].조언},
+    타이밍,
+    도메인:{연애:goodOf('연애'),재물:goodOf('재물'),직업:goodOf('직업'),문서:goodOf('문서'),주의해:sig.filter(s=>s.연도<=NOW+12&&s.등급<=-1).slice(0,3).map(s=>s.연도)},
+    대운흐름:dwSig, 현재대운:{나이:Math.round(cur.age),연도:cur.startYear,간지:cur.k,십신:cur.ss,순역:feel(K2EL(cur.k[0]))}, 다음대운:nxt?{나이:Math.round(nxt.age),연도:nxt.startYear,간지:nxt.k}:null, 과거변곡:{나이:Math.round(past.age),연도:past.startYear},
+    요약:{정체성:`${d.dm[1]}${dmEl} 일간·${yong.신강약}·${gk}`, 강점오행:strongEls, 약점오행:missing}
+  };
+}
+
 // 인생 그래프 — 대운(10년) 십신으로 운의 흐름 곡선 + 기회/주의 구간
 const SS_SCORE={정재:2,정관:2,정인:1.6,식신:1.5,편재:1,비견:.3,편인:-.2,상관:-1,편관:-1,겁재:-1.4};
 function lifeGraph(d){
@@ -1006,6 +1061,7 @@ function run(){
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
   const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
   chart.명리=myeongni(d,noTime); // 신살·십이운성·공망·격국·용신(억부)
+  chart.해석=interpret(d,w,age,gender); // 2층: 규칙엔진이 뽑은 '언제·무엇·등급' 타이밍 신호
   CTX={r,tname:TT(picked).nm,chart,persona:picked,chat:[]};
   if(LANG!=='ko'){renderForeign(t,d,w,noTime,conv);return;} // 외국어: AI가 그 언어로 생성(A안)
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
