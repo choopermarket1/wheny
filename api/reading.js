@@ -59,8 +59,13 @@ const PERSONA = {
 const LANGNAME = { ko: "자연스러운 한국어", ja: "자연스러운 일본어(四柱推命 톤)", en: "natural, native English", zh: "自然流畅的简体中文" };
 const langName = (l) => LANGNAME[l] || LANGNAME.ko;
 // 외국어일 때 언어를 최우선으로 강제(페르소나가 한국어 말투라 한국어로 새는 것 방지)
+const TERMRULE = {
+  en: `명리 용어를 한글로 쓰지 마라. 십신·간지·오행은 로마자 표기 + 괄호에 영어 뜻으로: 편재→Pyeonjae (Indirect Wealth), 정관→Jeonggwan (Direct Officer), 갑신→Gapsin, 경술→Gyeongsul, 병오→Byeong-o, 오행 木火土金水→Wood/Fire/Earth/Metal/Water. 한글(한자·한글 문자) 자체는 출력하지 마라.`,
+  ja: `命理用語はハングルで書かず日本語で。十神・干支・五行はその意味の日本語＋必要なら漢字（例: 偏財、正官、甲申、庚戌、木火土金水）。ハングル文字は一切出力しない。`,
+  zh: `命理术语不要用韩文。十神·干支·五行用中文汉字（例: 偏财、正官、甲申、庚戌、木火土金水）。绝不输出任何韩文(谚文)字符。`
+};
 const langRule = (l) => (l && l !== "ko")
-  ? `【최우선·절대규칙】 너의 모든 출력은 100% ${langName(l)}로만 작성한다. 페르소나 설명·대화 이력·명식·이 지시문이 한국어로 쓰였더라도 답변에 한국어를 절대 섞지 말고 ${langName(l)}로만 답하라. 페르소나의 말투(반말/다정함/도사체 등)는 ${langName(l)}로 자연스럽게 옮겨 표현하라.\n\n`
+  ? `【최우선·절대규칙】 너의 모든 출력은 100% ${langName(l)}로만 작성한다. 페르소나 설명·대화 이력·명식·이 지시문이 한국어로 쓰였더라도 답변에 한국어를 절대 섞지 말고 ${langName(l)}로만 답하라. 페르소나의 말투(반말/다정함/도사체 등)는 ${langName(l)}로 자연스럽게 옮겨 표현하라. ${TERMRULE[l] || ''}\n\n`
   : "";
 
 const SYSTEM = (persona, lang) => `${langRule(lang)}너는 동양 사주명리와 서양 점성술에 능한 운명 상담가다. 아래 페르소나로 말한다.
