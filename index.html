@@ -12,7 +12,7 @@
     --ink:#0a0a0d; --ink2:#101015; --card:#15151c; --card2:#1c1c24; --line:#2b2933;
     --paper:#ece4d3; --paperdim:#b7ad97; --dim:#807869;
     /* 절제된 주얼 톤 (선생님 액센트) */
-    --hong:#c06a5f; --hwang:#c9a961; --cheong:#6aa89a; --nam:#7f95cf;
+    --hong:#c06a5f; --hwang:#c9a961; --cheong:#6aa89a; --nam:#7f95cf; --san:#b08d57;
     /* 샴페인 골드 시스템 */
     --gold:#c9a961; --gold2:#e7d3a1; --goldDeep:#9c7f42; --goldLine:rgba(201,169,97,.18);
   }
@@ -86,6 +86,7 @@
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
   .teachers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .teachers .t:nth-child(odd):last-child{grid-column:1/-1} /* 5번째(도사) 홀수 카드는 와이드 */
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
     display:flex;flex-direction:column;transition:.15s;position:relative;overflow:hidden}
   .t::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--tc);opacity:.6;z-index:2}
@@ -464,6 +465,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
 
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
 <script src="msr.js"></script><!-- manseryeok: KASI 분단위 절기·공식음력·대운 (로드 실패시 자체엔진 폴백) -->
+<script src="myeongni2.js"></script><!-- 명리 심화 v2: 지장간·합충형파해·신강약 점수·조후 (chart 보강) -->
 <script>
 /* ===== 공통 천문 ===== */
 const RAD=Math.PI/180,sind=d=>Math.sin(d*RAD),cosd=d=>Math.cos(d*RAD),n360=d=>((d%360)+360)%360;
@@ -567,6 +569,7 @@ const TEACHERS={
   wiro:{nm:"금자 할머니",em:"🌷",ds:"다정·위로",cv:"--cheong"},
   coach:{nm:"마담 로사",em:"🧭",ds:"시크·전략",cv:"--nam"},
   shin:{nm:"무월",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
+  dosa:{nm:"백운도사",em:"⛰",ds:"묵직·직언",cv:"--san"},
 };
 // 선생님 캐릭터 = 할머니 점쟁이 4인 초상 (자체 SVG, 외부 이미지 0장). 실사 이미지로 교체 예정.
 const AV={
@@ -576,7 +579,9 @@ const AV={
   shin:`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><defs><radialGradient id="av4" cx="50%" cy="28%" r="82%"><stop offset="0" stop-color="#8f72bd"/><stop offset="1" stop-color="#5d4488"/></radialGradient></defs><rect width="300" height="300" fill="url(#av4)"/><path d="M236 44a20 20 0 1 0 8 15 15 15 0 1 1-8-15z" fill="#f0e4b8"/><g fill="#f0e4b8"><circle cx="62" cy="66" r="3"/><circle cx="250" cy="120" r="2.5"/></g><path d="M150 58c-52 0-80 30-80 66 0 10 4 18 10 24h140c6-6 10-14 10-24 0-36-28-66-80-66z" fill="#6a4fa0"/><path d="M78 120q72 -34 144 0" fill="none" stroke="#a98fd0" stroke-width="7"/><path d="M150 78l7 10-7 10-7-10z" fill="#f0e4b8"/><ellipse cx="150" cy="176" rx="60" ry="66" fill="#e6bd98"/><path d="M116 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><path d="M160 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><circle cx="150" cy="150" r="4" fill="#e0483c"/><path d="M136 206q14 8 28 0" fill="none" stroke="#7a3a5c" stroke-width="6" stroke-linecap="round"/><g stroke="#f0e4b8" stroke-width="3" fill="#f0e4b8"><path d="M92 202v14"/><circle cx="92" cy="222" r="5"/><path d="M208 202v14"/><circle cx="208" cy="222" r="5"/></g><path d="M86 244c16 18 38 28 64 28s48-10 64-28v56H86z" fill="#4e3a76"/></svg>`,
 };
 // 나라별 캐릭터 초상 = 아키타입(눈·입=색/성격) + 나라 문화층(머리·장신구·옷깃) 합성
-const AV_BG={dokseol:'#d9531f',wiro:'#cf5d78',coach:'#125f92',shin:'#59417f'};
+const AV_BG={dokseol:'#d9531f',wiro:'#cf5d78',coach:'#125f92',shin:'#59417f',dosa:'#6f5b3e'};
+// 백운도사(남·산도사)는 나라 공통 전용 초상: 상투+흰 수염+도포 (실사 이미지 오면 img/dosa-*.jpg가 우선)
+const DOSA_SVG=`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="#6f5b3e"/><path d="M60 84q28-20 44-10M240 84q-28-20-44-10" stroke="#8a744f" stroke-width="5" fill="none" opacity=".7"/><circle cx="150" cy="52" r="15" fill="#e9e4d8"/><rect x="143" y="60" width="14" height="10" fill="#4a3b28"/><path d="M150 66c-50 0-76 26-76 60 0 8 3 15 8 20h136c5-5 8-12 8-20 0-34-26-60-76-60z" fill="#e9e4d8"/><ellipse cx="150" cy="158" rx="58" ry="62" fill="#e6c39c"/><path d="M112 142q12-8 26-3M188 142q-12-8-26-3" stroke="#e9e4d8" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M120 158q9-6 18 0M162 158q9-6 18 0" fill="none" stroke="#4a3b28" stroke-width="5" stroke-linecap="round"/><path d="M150 214c-34 0-52-10-56-22-3 26 8 66 56 66s59-40 56-66c-4 12-22 22-56 22z" fill="#efe9dd"/><path d="M138 196q12 6 24 0" fill="none" stroke="#9c7a58" stroke-width="5" stroke-linecap="round"/><path d="M84 252c14 16 36 26 66 26s52-10 66-26v48H84z" fill="#57462e"/><path d="M150 252v46M128 258l14-6M172 258l-14-6" stroke="#3e3120" stroke-width="4" fill="none"/></svg>`;
 const AV_FACE={
  dokseol:`<path d="M94 150c0-13 15-20 32-18 11 1 19 7 20 16 1-9 9-15 20-16 17-2 32 5 32 18 0 15-15 24-32 22-11-1-19-8-20-17-1 9-9 16-20 17-17 2-32-7-32-22z" fill="#241a16"/><circle cx="123" cy="152" r="4" fill="#f7b733"/><path d="M134 200c8 6 24 6 32 0-6 9-26 9-32 0z" fill="#b83a2a"/>`,
  wiro:`<path d="M118 156q10-9 20 0M162 156q10-9 20 0" fill="none" stroke="#5c4a3a" stroke-width="5" stroke-linecap="round"/><circle cx="115" cy="182" r="10" fill="#ef9bb0" opacity=".55"/><circle cx="185" cy="182" r="10" fill="#ef9bb0" opacity=".55"/><path d="M128 196q22 18 44 0" fill="none" stroke="#c05c72" stroke-width="6" stroke-linecap="round"/>`,
@@ -593,7 +598,8 @@ const AV_CO={
  zh:{back:`<path d="M150 60c-58 0-86 34-86 94 0 30 12 56 30 74h112c18-18 30-44 30-74 0-60-28-94-86-94z" fill="#241a16"/><circle cx="110" cy="72" r="18" fill="#1c1310"/><circle cx="190" cy="72" r="18" fill="#1c1310"/><circle cx="110" cy="72" r="7" fill="#c0392b"/><circle cx="190" cy="72" r="7" fill="#c0392b"/><path d="M82 256c20 14 44 22 68 22s48-8 68-22v44H82z" fill="#b5352f"/>`,
      front:`<path d="M92 126q58 -42 116 0 -14 -32 -58 -32 -44 0 -58 32z" fill="#241a16"/><circle cx="150" cy="58" r="6" fill="#3aa17a"/><path d="M126 266h48v8q-24 12 -48 0z" fill="#d9b24a"/><path d="M150 264v18" stroke="#b5352f" stroke-width="4"/>`},
 };
-function avatarSVG(k){const co=AV_CO[LANG]||AV_CO.ko;return `<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="${AV_BG[k]||'#888'}"/>${co.back}<ellipse cx="150" cy="166" rx="60" ry="68" fill="#e9bd97"/>${co.front}${AV_FACE[k]||''}</svg>`;}
+function avatarSVG(k){if(k==='dosa')return DOSA_SVG; // 남성 도사는 전용 초상(할머니 문화층 미적용)
+  const co=AV_CO[LANG]||AV_CO.ko;return `<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="${AV_BG[k]||'#888'}"/>${co.back}<ellipse cx="150" cy="166" rx="60" ry="68" fill="#e9bd97"/>${co.front}${AV_FACE[k]||''}</svg>`;}
 // 실사 초상(나라별) 우선, 없으면 SVG 폴백. 파일: img/{persona}-{lang}.jpg
 function avatar(k){return `<img class="avimg" src="img/${k}-${LANG}.jpg" alt="" loading="lazy" onerror="this.onerror=null;this.outerHTML=avatarSVG('${k}')">`;}
 // 모던 모노라인 아이콘 세트 (이모지 대신) — currentColor 상속
@@ -761,7 +767,8 @@ const CLOSER={
   dokseol:["핑계 대지 말고 움직여.","알면서 왜 안 해.","엄살은 그만.","이번엔 진짜 챙겨.","시간 없다, 정신 차려."],
   wiro:["먼저 다가가도 괜찮아요.","너무 애쓰지 말아요.","스스로도 좀 챙겨요.","몸이 먼저예요.","천천히 가도 돼요."],
   coach:["선제적으로 접근하세요.","숫자로 관리하세요.","리스크부터 줄이세요.","루틴으로 관리하세요.","타이밍을 지키세요."],
-  shin:["먼저 마음을 열게.","욕심을 덜게.","마음을 비우게.","기운을 아끼게.","때를 기다리게."]};
+  shin:["먼저 마음을 열게.","욕심을 덜게.","마음을 비우게.","기운을 아끼게.","때를 기다리게."],
+  dosa:["길게 말 안 하마.","그거면 된다.","산은 급히 오르는 게 아니다.","미루면 그때는 없다.","묵묵히 가라."]};
 function pastPivot(d,age){let best=null;for(const x of d.dw)if(x.age>=15&&x.age<=age-1)best=x;return best||d.dw.find(x=>x.age<=age)||d.dw[0];}
 function curDaewoon(d,age){let c=d.dw[0];for(const x of d.dw)if(age>=x.age)c=x;return c;}
 function nextDaewoon(d,age){for(const x of d.dw)if(x.age>age)return x;return null;}
@@ -801,6 +808,9 @@ function report(persona,d,w,age,gender){
     shin:{head:`<b>${pastAge}살(${pastYear}년)</b> 즈음, 큰 물이 한 번 바뀌었네. 인연도 일도 그때 결이 갈렸어.`,
       me:`자네는 ${d.dm[1]}${dmEl}의 기운을 타고났네. ${ELEM_TRAIT[dmEl]}이야. ${missing.length?`허나 <b>${missTxt}</b>의 기운이 비었어. 그 자리에 자꾸 바람이 들지.`:`오행이 두루 도니 뿌리는 깊네.`}`,
       when:`지금은 <b>${cur.k}</b> 대운 자리. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>에 문이 하나 열려. 그 전엔 무리 말고 몸을 낮추게.`:`이 자리에서 매듭이 지어질 게야.`}`},
+    dosa:{head:`<b>${pastAge}살(${pastYear}년)</b>. 거기서 한 번 꺾였다. 길게 말 안 하마 — 그때부터가 지금 흐름이다.`,
+      me:`${d.dm[1]}${dmEl} 일간. ${ELEM_TRAIT[dmEl]}이다. ${missing.length?`<b>${missTxt}</b>가 비었다. 거기서 새는 걸 본인도 알 거다. 알면 막아라.`:`오행은 갖췄다. 그릇 탓은 하지 마라.`}`,
+      when:`지금은 <b>${cur.k}</b> 대운이다. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>에 판이 바뀐다. 그 전까지는 벌이지 말고 다져라. 그거면 된다.`:`이 안에서 결판난다. 한눈팔지 마라.`}`},
   }[persona];
   return{P,pct,cur,missing,charDetail,love,loveTime,money,year,future3,strength,health,advice};
 }
@@ -963,12 +973,14 @@ function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
   let el=d.el;
   if(noTime){el={木:0,火:0,土:0,金:0,水:0};[d.P.year,d.P.month,d.P.day].forEach(p=>{el[STEMS[p.s][2]]++;el[BRANCHES[p.b][2]]++;});d.el=el;}
-  return{성별:gender==='female'?'여':'남',나이:age,
+  const c={성별:gender==='female'?'여':'남',나이:age,
     명식:{시주:noTime?"미상(시간 모름)":d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:el,
     없는오행:Object.keys(el).filter(k=>el[k]===0),태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),현재대운:curDaewoon(d,age).k,
     명리:myeongni(d,noTime)};
+  try{if(typeof MY2!=='undefined')MY2.enrich(c);}catch(e){} // 심화 v2 (궁합 명식에도 지장간·합충 제공)
+  return c;
 }
 async function runCompat(){
   const gv=id=>document.getElementById(id).value;
@@ -1062,6 +1074,7 @@ function run(){
   const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
   chart.명리=myeongni(d,noTime); // 신살·십이운성·공망·격국·용신(억부)
   chart.해석=interpret(d,w,age,gender); // 2층: 규칙엔진이 뽑은 '언제·무엇·등급' 타이밍 신호
+  try{if(typeof MY2!=='undefined')MY2.enrich(chart);}catch(e){} // 심화 v2: 지장간·합충·신강약점수·조후 (실패해도 기존 흐름 유지)
   CTX={r,tname:TT(picked).nm,chart,persona:picked,chat:[]};
   if(LANG!=='ko'){renderForeign(t,d,w,noTime,conv);return;} // 외국어: AI가 그 언어로 생성(A안)
   let nowIdx=0;d.dw.forEach((x,i)=>{if(age>=x.age)nowIdx=i;});
@@ -1502,10 +1515,10 @@ fillDob('pY','pM','pD','pdate');
 showRestoreBanner();
 // 폼 다국어 (입력 흐름) — 외국인도 입력 가능하게. 리포트 본문 전체 번역은 정식 다국어 단계.
 const TEACH_I18N={
-  ko:{dokseol:{nm:'불여사',ds:'욕쟁이·팩폭'},wiro:{nm:'금자 할머니',ds:'다정·위로'},coach:{nm:'마담 로사',ds:'시크·전략'},shin:{nm:'무월',ds:'신끼·영험'}},
-  en:{dokseol:{nm:'Miss Ruby',ds:'blunt & fiery'},wiro:{nm:'Grandma Pearl',ds:'warm & caring'},coach:{nm:'Madame Céline',ds:'chic & strategic'},shin:{nm:'Sister Luna',ds:'mystic seer'}},
-  ja:{dokseol:{nm:'緋炎ばば',ds:'毒舌・ズバリ'},wiro:{nm:'花乃おばあ',ds:'優しく慰め'},coach:{nm:'マダム蘭',ds:'冷静・戦略'},shin:{nm:'宵月',ds:'霊感・神秘'}},
-  zh:{dokseol:{nm:'火婆婆',ds:'毒舌·直击'},wiro:{nm:'慈心奶奶',ds:'温暖·安慰'},coach:{nm:'兰夫人',ds:'冷静·策略'},shin:{nm:'玄月仙姑',ds:'通灵·神秘'}}
+  ko:{dokseol:{nm:'불여사',ds:'욕쟁이·팩폭'},wiro:{nm:'금자 할머니',ds:'다정·위로'},coach:{nm:'마담 로사',ds:'시크·전략'},shin:{nm:'무월',ds:'신끼·영험'},dosa:{nm:'백운도사',ds:'묵직·직언'}},
+  en:{dokseol:{nm:'Miss Ruby',ds:'blunt & fiery'},wiro:{nm:'Grandma Pearl',ds:'warm & caring'},coach:{nm:'Madame Céline',ds:'chic & strategic'},shin:{nm:'Sister Luna',ds:'mystic seer'},dosa:{nm:'Old Silas',ds:'few words · solid'}},
+  ja:{dokseol:{nm:'緋炎ばば',ds:'毒舌・ズバリ'},wiro:{nm:'花乃おばあ',ds:'優しく慰め'},coach:{nm:'マダム蘭',ds:'冷静・戦略'},shin:{nm:'宵月',ds:'霊感・神秘'},dosa:{nm:'玄斎',ds:'寡黙・重み'}},
+  zh:{dokseol:{nm:'火婆婆',ds:'毒舌·直击'},wiro:{nm:'慈心奶奶',ds:'温暖·安慰'},coach:{nm:'兰夫人',ds:'冷静·策略'},shin:{nm:'玄月仙姑',ds:'通灵·神秘'},dosa:{nm:'白云道长',ds:'沉稳·直言'}}
 };
 function TT(k){const t=(TEACH_I18N[LANG]||TEACH_I18N.ko)[k]||TEACH_I18N.ko[k];return {nm:t.nm,ds:t.ds};}
 const I18N={
