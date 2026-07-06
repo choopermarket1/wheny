@@ -984,10 +984,12 @@ function renderForeign(t,d,w,noTime,conv){
       <p style="margin:8px 0 0;text-align:center;font-size:12px;color:var(--dim)">${d.dm[0]} · ${w.sun[0]} ☉ · ${w.moon[0]} ☾</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${TT(picked).nm} · ${F.ask}</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${F.askDesc}</p>
+      <div class="followups" id="topics"></div>
       <div id="more" class="chat-thread"></div>
       <div class="chat-in"><input id="chatText" placeholder="${F.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
     <div class="note">${F.note}</div>`;
   saveSession();
+  renderTopics(t.cv); // 외국어에도 주제 버튼(한국어와 동일)
   if(!isLocked())autoForeignReport(); // 잠겼으면 AI 대신 잠금CTA(위에서 렌더)
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1067,12 +1069,52 @@ const TOPICS=[
   ["🩺 건강","기운상 약한 부분과 평소 건강 관리 포인트를 알려줘"],
   ["🧭 지금 뭐부터","지금 당장 뭐부터 해야 하는지 우선순위를 알려줘"],
 ];
+const TOPICS_I18N={
+  ko:TOPICS,
+  en:[
+    ['Love & compatibility','Tell me about my love luck and compatibility, and the connection I have or will have now.'],
+    ['Marriage timing','When does my marriage luck get strong, and what kind of partner suits me?'],
+    ['Wealth','My wealth luck, when money comes in, and where it leaks.'],
+    ['Career & job change','My aptitude as an employee, and the best timing for a job change or promotion.'],
+    ['Business','I run a business. Pin the best years for growth, new ventures and investment, my cash-flow trend, the benefactors and risks among partners, staff and clients, and whether now is a time to attack or defend.'],
+    ['Relationships','Who is truly on my side, and which relationships I should be careful with.'],
+    ['Moving & timing','Good timing and auspicious dates for moving or important contracts and exams.'],
+    ['This year monthly','Which months to watch out for and which are good in 2026.'],
+    ['Health','My weaker energies and everyday health points to manage.'],
+    ['Where to start','What I should do first right now — my priorities.'],
+  ],
+  ja:[
+    ['恋愛・相性','恋愛運と相性、今ある(またはこれからの)縁について教えて'],
+    ['結婚の時期','結婚運が強まる時期と、どんな伴侶が合うか教えて'],
+    ['財運','財運、お金が入る時期、漏れる穴を教えて'],
+    ['仕事・転職','会社員としての適性と、転職・昇進に有利なタイミングを教えて'],
+    ['事業・経営','私は事業をしている。拡大・新規事業・投資に良い年、資金繰りの流れ、共同経営者・社員・取引先での貴人とリスク、今は攻める時か守る時かまで教えて'],
+    ['人間関係','味方になる人と、注意すべき関係を教えて'],
+    ['引越し・吉日','引越しや重要な契約・試験に良い時期(吉日)を教えて'],
+    ['今年の月別','2026年の月別で注意すべき月と良い月を教えて'],
+    ['健康','弱い気と、普段の健康管理のポイントを教えて'],
+    ['今何から','今すぐ何から始めるべきか、優先順位を教えて'],
+  ],
+  zh:[
+    ['恋爱·合婚','告诉我恋爱运和合婚，以及现在或将来的缘分'],
+    ['结婚时机','结婚运变强的时期，以及什么样的伴侣适合我'],
+    ['财运','财运、进账的时机、漏财之处'],
+    ['事业·跳槽','作为上班族的适性，以及跳槽·升职有利的时机'],
+    ['事业·经营','我在做生意。请点出扩张·新事业·投资的好年份、资金现金流走势、合伙人·员工·客户中的贵人与风险，以及现在是进攻还是防守'],
+    ['人际关系','谁是我的贵人，哪些关系要小心'],
+    ['搬家·择日','搬家或重要合同·考试的好时机(择日)'],
+    ['今年月运','2026年月运中要注意的月份和好月份'],
+    ['健康','气上较弱的部分和日常健康管理要点'],
+    ['现在从何做起','现在应该先做什么——优先顺序'],
+  ],
+};
+function topicsList(){return TOPICS_I18N[LANG]||TOPICS_I18N.ko;}
 function renderTopics(cv){
   const box=document.getElementById('topics');if(!box)return;
-  box.innerHTML=TOPICS.map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)"><span>${noEmoji(tp[0])}</span><i class="ask-ch">›</i></button>`).join('');
+  box.innerHTML=topicsList().map((tp,i)=>`<button class="ask" style="--tc:var(${cv})" onclick="askTopic(${i},this)"><span>${noEmoji(tp[0])}</span><i class="ask-ch">›</i></button>`).join('');
 }
-// 주제 버튼 = 대화 시작. 자유 입력도 같은 대화로 이어짐(무월이 앞 대화 기억)
-function askTopic(i){if(!CTX)return;sendChat(`${noEmoji(TOPICS[i][0])} 자세히 봐줘`);}
+// 주제 버튼 = 대화 시작. 자유 입력도 같은 대화로 이어짐(선생님이 앞 대화 기억)
+function askTopic(i){if(!CTX)return;sendChat(topicsList()[i][1]);}
 // 궁합 채팅 주제
 const COMPAT_TOPICS_I18N={
   ko:[
@@ -1307,22 +1349,22 @@ const STATIC_I18N={
       pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'AI 선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',
       badge:'런칭 특가',hook:'결혼·이직·돈이 <b>‘언제’</b>인지 — 연도와 달까지 콕 집어드려요',g1:'연애·결혼운 터지는 <b>연도·달</b>',g2:'재물이 들어오는 시기 & 새는 구멍',g3:'직업·이직·사업 최적 <b>타이밍</b>',g4:'이름 성명학 + 궁합(상대 명식까지)',g5:'선생님과 <b>무제한 후속 질문</b>(대화 기억)',anchor:'오프라인 사주 3~5만원 · 전화상담 3만원',guarantee:'리포트 생성 전 취소 시 100% 환불',cta:'지금 내 타이밍 확인하기',
       pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
-      fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.'},
+      fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)'},
   en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>AI reader\'s full reading</b> is provided after payment.',
       pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The AI reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',
       badge:'Launch price',hook:'<b>When</b> you marry, switch jobs, come into money — down to the year and month',g1:'The <b>year & month</b> your love & marriage luck peaks',g2:'When wealth flows in — and where it leaks',g3:'Best <b>timing</b> for career, job change, business',g4:'Name reading + compatibility (both charts)',g5:'<b>Unlimited follow-up questions</b> (remembers you)',anchor:'Offline reading $25–40 · phone reading $25',guarantee:'100% refund if canceled before the reading is generated',cta:'Unlock my timing now',
       pay:'Payment: credit/debit card, etc. (PG: PortOne)',deliver:'Delivery: shown online immediately after payment',refundLbl:'Refund',refundLink:'Refund & withdrawal policy',refundTail:' applies (full refund if canceled before the reading is generated).',
-      fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.'},
+      fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
   ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>AI占い師の詳しい鑑定</b>は決済後に提供されます。',
       pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'AI占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',
       badge:'ローンチ特価',hook:'結婚・転職・お金が<b>「いつ」</b>か — 年と月まで的確に',g1:'恋愛・結婚運が弾ける<b>年・月</b>',g2:'お金が入る時期と漏れる穴',g3:'仕事・転職・事業の最適<b>タイミング</b>',g4:'姓名判断＋相性（お相手の命式も）',g5:'占い師への<b>無制限の追加質問</b>（会話を記憶）',anchor:'対面鑑定3〜5万ウォン・電話相談3万ウォン',guarantee:'鑑定生成前のキャンセルは100%返金',cta:'今すぐ私のタイミングを見る',
       pay:'決済手段: クレジット・デビットカード等（決済代行 PortOne）',deliver:'提供方法: 決済完了後すぐ画面でオンライン提供',refundLbl:'返金',refundLink:'返金・キャンセル方針',refundTail:'に従います（コンテンツ生成前のキャンセルは全額返金）。',
-      fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。'},
+      fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
   zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>AI老师的精细解读</b>在付款后提供。',
       pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'AI老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',
       badge:'上线特价',hook:'结婚·跳槽·财运<b>「何时」</b>——精确到年和月',g1:'恋爱·婚姻运爆发的<b>年·月</b>',g2:'财运进账的时机与漏财之处',g3:'事业·跳槽·创业的最佳<b>时机</b>',g4:'姓名学＋合婚（含对方命盘）',g5:'向老师<b>无限追问</b>（记住对话）',anchor:'线下算命3~5万韩元·电话咨询3万韩元',guarantee:'内容生成前取消可100%退款',cta:'立即查看我的时机',
       pay:'支付方式: 信用卡·借记卡等（支付代行 PortOne）',deliver:'提供方式: 付款完成后即时在页面在线提供',refundLbl:'退款',refundLink:'退款·撤销政策',refundTail:'（内容生成前取消可全额退款）。',
-      fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。'},
+      fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
 };
 function renderStatic(){
   const s=STATIC_I18N[LANG]||STATIC_I18N.ko;
@@ -1341,12 +1383,12 @@ function renderStatic(){
       <a href="./policy.html#terms" style="color:#c7bfa9;text-decoration:none">${s.fTerms}</a> &nbsp;·&nbsp;
       <a href="./policy.html#privacy" style="color:#c7bfa9;text-decoration:none;font-weight:700">${s.fPrivacy}</a> &nbsp;·&nbsp;
       <a href="./policy.html#refund" style="color:#c7bfa9;text-decoration:none">${s.fRefund}</a></div>
-    ${s.lBiz}: 주식회사 로렌츄컴퍼니 &nbsp;|&nbsp; ${s.lRep}: 추세은<br>
+    ${s.lBiz}: ${s.vBiz} &nbsp;|&nbsp; ${s.lRep}: ${s.vRep}<br>
     ${s.lReg}: 310-86-01763<br>${s.lMail}: 2024-부산해운대-0897<br>
-    ${s.lAddr}: 부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)<br>
+    ${s.lAddr}: ${s.vAddr}<br>
     ${s.lTel}: 070-8845-2848 &nbsp;|&nbsp; ${s.lEmail}: choopermarket1@gmail.com<br>
     ${s.lHost}: Vercel Inc.<br>
-    <span style="display:block;margin-top:10px;color:#5c5749">© 2026 주식회사 로렌츄컴퍼니 · Wheny. ${s.disc}</span>`;
+    <span style="display:block;margin-top:10px;color:#5c5749">© 2026 ${s.vBiz} · Wheny. ${s.disc}</span>`;
 }
 function applyLang(l){const T=I18N[l]||I18N.ko;
   document.querySelectorAll('[data-t]').forEach(e=>{const k=e.getAttribute('data-t');if(T[k]!=null)e.textContent=T[k];});
