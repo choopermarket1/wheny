@@ -558,6 +558,11 @@ const HEART=`<span class="hm"><svg viewBox="0 0 20 20" fill="currentColor"><path
 // 라벨 앞 이모지 제거 (모던 텍스트 칩)
 function noEmoji(s){return String(s).replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}️⭐⭕]+\s*/u,'');}
 let picked="dokseol",cal="sol",CTX=null,mode="solo",LANG="ko";
+// 드롭다운 다국어 데이터
+const DATE_SUF={ko:['년','월','일'],ja:['年','月','日'],zh:['年','月','日'],en:['','','']};
+const HOURS=[[23,'자시','밤 11~1시'],[1,'축시','새벽 1~3시'],[3,'인시','새벽 3~5시'],[5,'묘시','아침 5~7시'],[7,'진시','아침 7~9시'],[9,'사시','오전 9~11시'],[11,'오시','낮 11~1시'],[13,'미시','낮 1~3시'],[15,'신시','오후 3~5시'],[17,'유시','저녁 5~7시'],[19,'술시','저녁 7~9시'],[21,'해시','밤 9~11시']];
+const HCLOCK={23:'23:00–01:00',1:'01:00–03:00',3:'03:00–05:00',5:'05:00–07:00',7:'07:00–09:00',9:'09:00–11:00',11:'11:00–13:00',13:'13:00–15:00',15:'15:00–17:00',17:'17:00–19:00',19:'19:00–21:00',21:'21:00–23:00'};
+const TZLABEL=[[9,{ko:'한국·일본 (UTC+9)',ja:'韓国·日本 (UTC+9)',en:'Korea/Japan (UTC+9)',zh:'韩国·日本 (UTC+9)'}],[8,{ko:'중국·대만 (UTC+8)',ja:'中国·台湾 (UTC+8)',en:'China/Taiwan (UTC+8)',zh:'中国·台湾 (UTC+8)'}],[-5,{ko:'미국 동부 (UTC-5)',ja:'米国東部 (UTC-5)',en:'US East (UTC-5)',zh:'美国东部 (UTC-5)'}],[-8,{ko:'미국 서부 (UTC-8)',ja:'米国西部 (UTC-8)',en:'US West (UTC-8)',zh:'美国西部 (UTC-8)'}],[0,{ko:'영국 (UTC+0)',ja:'英国 (UTC+0)',en:'UK (UTC+0)',zh:'英国 (UTC+0)'}]];
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
 let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
 (async function initPay(){
@@ -1073,14 +1078,22 @@ async function askAI(){
 function fillDob(yId,mId,dId,hiddenId){
   const yS=document.getElementById(yId),mS=document.getElementById(mId),dS=document.getElementById(dId),hid=document.getElementById(hiddenId);
   if(!yS||!hid)return;
+  const suf=DATE_SUF[LANG]||DATE_SUF.ko;
   const [dy,dm,dd]=(hid.value||'1995-05-15').split('-').map(Number);
-  let o='';for(let y=2020;y>=1920;y--)o+=`<option value="${y}"${y===dy?' selected':''}>${y}년</option>`;yS.innerHTML=o;
-  o='';for(let m=1;m<=12;m++)o+=`<option value="${m}"${m===dm?' selected':''}>${m}월</option>`;mS.innerHTML=o;
+  let o='';for(let y=2020;y>=1920;y--)o+=`<option value="${y}"${y===dy?' selected':''}>${y}${suf[0]}</option>`;yS.innerHTML=o;
+  o='';for(let m=1;m<=12;m++)o+=`<option value="${m}"${m===dm?' selected':''}>${m}${suf[1]}</option>`;mS.innerHTML=o;
   function set(){hid.value=`${yS.value}-${String(mS.value).padStart(2,'0')}-${String(dS.value).padStart(2,'0')}`;}
-  function days(keep){const dim=new Date(+yS.value,+mS.value,0).getDate();let cur=keep?Math.min(+dS.value||dd,dim):dd;if(cur>dim)cur=dim;let x='';for(let d=1;d<=dim;d++)x+=`<option value="${d}"${d===cur?' selected':''}>${d}일</option>`;dS.innerHTML=x;}
+  function days(keep){const dim=new Date(+yS.value,+mS.value,0).getDate();let cur=keep?Math.min(+dS.value||dd,dim):dd;if(cur>dim)cur=dim;let x='';for(let d=1;d<=dim;d++)x+=`<option value="${d}"${d===cur?' selected':''}>${d}${suf[2]}</option>`;dS.innerHTML=x;}
   days(false);set();
   yS.onchange=()=>{days(true);set();};mS.onchange=()=>{days(true);set();};dS.onchange=set;
 }
+// 태어난 시 드롭다운: 한국어는 시진(자시…), 외국어는 24시 표기
+function fillTime(id){const s=document.getElementById(id);if(!s)return;const cur=s.value||'none';const T=I18N[LANG]||I18N.ko;
+  let o=`<option value="none">${T.unknown}</option>`;
+  HOURS.forEach(([v,nm,ko])=>{o+=`<option value="${v}">${LANG==='ko'?`${nm} (${ko})`:HCLOCK[v]}</option>`;});
+  s.innerHTML=o;s.value=cur;}
+function fillTz(){const s=document.getElementById('tz');if(!s)return;const cur=s.value||'9';let o='';
+  TZLABEL.forEach(([v,names])=>{o+=`<option value="${v}">${names[LANG]||names.ko}</option>`;});s.innerHTML=o;s.value=cur;}
 fillDob('dY','dM','dD','date');
 fillDob('pY','pM','pD','pdate');
 showRestoreBanner();
@@ -1104,6 +1117,8 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   const dl=document.getElementById('dateLbl');if(dl)dl.textContent=T.birth+(l==='ko'?` (${cal==='lun'?'음력':'양력'})`:'');
   const tl=document.querySelector('.tagline');if(tl)tl.innerHTML=T.tagline;
   const ts=document.querySelector('.tagsub');if(ts)ts.textContent=T.tagsub;
+  fillDob('dY','dM','dD','date');fillDob('pY','pM','pD','pdate');
+  fillTime('time');fillTime('ptime');fillTz();
   if(typeof renderTeachers==='function')renderTeachers();
 }
 function setLang(v){LANG=v;applyLang(v);}
