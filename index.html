@@ -541,7 +541,7 @@ function speakEl(btn){
   const box=btn.closest('.cm-body')||btn.closest('.ai-out')||btn.parentElement;
   const text=(box?box.innerText:'')
     .replace(/[▍＋›•➡️🐢★]/g,'')      // 마커·이모지 제거
-    .replace(/듣기|정지/g,'')
+    .replace(/듣기|정지|Listen|Stop|聴く|停止|收听/g,'')
     .replace(/\s*\n+\s*/g,' ')          // 줄바꿈 → 공백(문장은 마침표로 자연 구분) = 끊김 방지
     .replace(/\s{2,}/g,' ').trim();
   if(!text)return;
@@ -561,7 +561,7 @@ function pickVoice(){
       || forLang.find(v=>!/microsoft/i.test(v.name)) || forLang[0] || null;
 }
 if('speechSynthesis' in window){try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();}catch(e){}}
-function ttsBtn(){return `<button class="ttsbtn" onclick="speakEl(this)" aria-label="음성으로 듣기">${IC.sound}듣기</button>`;}
+function ttsBtn(){return `<button class="ttsbtn" onclick="speakEl(this)" aria-label="${U('tts')}">${IC.sound}${U('tts')}</button>`;}
 const HEART=`<span class="hm"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 17.3S2.6 12.4 2.6 7.4A3.8 3.8 0 0 1 10 5.1a3.8 3.8 0 0 1 7.4 2.3c0 5-7.4 9.9-7.4 9.9z"/></svg></span>`;
 // 라벨 앞 이모지 제거 (모던 텍스트 칩)
 function noEmoji(s){return String(s).replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}️⭐⭕]+\s*/u,'');}
@@ -757,7 +757,7 @@ function showMonthDetail(M){
 function compatDial(score){
   score=Math.max(0,Math.min(100,Math.round(score)));
   const r=42,c=2*Math.PI*r,off=c*(1-score/100),col=score>=75?'#8fbf86':score>=50?'#c9a961':'#e0655a';
-  return `<div class="cd"><svg viewBox="0 0 110 110" class="cd-svg"><circle cx="55" cy="55" r="${r}" class="cd-bg"/><circle cx="55" cy="55" r="${r}" class="cd-fg" style="stroke:${col};stroke-dasharray:${c.toFixed(1)};stroke-dashoffset:${off.toFixed(1)}"/><text x="55" y="53" class="cd-num" style="fill:${col}">${score}</text><text x="55" y="72" class="cd-unit">점</text></svg></div>`;
+  return `<div class="cd"><svg viewBox="0 0 110 110" class="cd-svg"><circle cx="55" cy="55" r="${r}" class="cd-bg"/><circle cx="55" cy="55" r="${r}" class="cd-fg" style="stroke:${col};stroke-dasharray:${c.toFixed(1)};stroke-dashoffset:${off.toFixed(1)}"/><text x="55" y="53" class="cd-num" style="fill:${col}">${score}</text><text x="55" y="72" class="cd-unit">${U('pts')}</text></svg></div>`;
 }
 
 /* ===== 실행 ===== */
@@ -928,7 +928,7 @@ function renderForeign(t,d,w,noTime,conv){
   document.getElementById("result").innerHTML=`
     ${conv?`<div class="conv">${conv}</div>`:""}
     <div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${TT(picked).nm}</b> ${F.reads}</div></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div></div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport"><div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}${F.ohaeng}</h3>${ohaengRadar(d.el)}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}${F.lifegraph}</h3>${lifeGraph(d)}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${F.myeongsik}</h3>
@@ -946,7 +946,7 @@ function renderForeign(t,d,w,noTime,conv){
 }
 async function autoForeignReport(){
   const box=document.getElementById('foreignReport');if(!box||!CTX)return;
-  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[_i];},1700);
+  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%loadingMsgs().length;el.textContent=loadingMsgs()[_i];},1700);
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),80000);let acc='';
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
@@ -989,7 +989,7 @@ function brk(html){return String(html||"")
   .replace(/([가-힣”"’\)】]),\s+/g,'$1,<br>');}         // 쉼표 뒤에서도 줄바꿈(숫자 3,900은 공백없어 안전)
 function breakResult(){document.querySelectorAll('#result .block p, #result .ai-p, #result .ansitem>p').forEach(el=>{if(el.dataset.brk)return;el.dataset.brk='1';el.innerHTML=brk(el.innerHTML);});}
 // 에러 표시: 서버가 준 메시지(429 등)를 그대로 보여주고, 진짜 네트워크 오류만 일반 문구로.
-function errMsg(e){const m=(e&&e.message)||"";return (m&&!/fetch|network|failed|load/i.test(m))?m:"AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.";}
+function errMsg(e){const m=(e&&e.message)||"";return (m&&!/fetch|network|failed|load/i.test(m))?m:U('err');}
 // 답변에 말한 할머니 얼굴 헤더
 function aiHeader(){if(!CTX)return "";return `<div class="ai-hd"><span class="ava">${avatar(CTX.persona)}</span><span class="t2"><b>${CTX.tname}</b>의 사주 리딩</span></div>`;}
 // 언급된 연도를 뽑아 '당신의 타이밍' 시각 타임라인으로 (읽기 쉽게 + USP 강조)
@@ -997,8 +997,8 @@ function whenTimeline(text){
   const ys=[...String(text||"").matchAll(/\b(20\d\d)\b/g)].map(m=>+m[1]);
   const u=[...new Set(ys)].filter(y=>y>=NOW-1&&y<=NOW+45).sort((a,b)=>a-b).slice(0,5);
   if(u.length<2)return "";
-  const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y}</b>${y===NOW?'<i>지금</i>':''}</div>`).join("");
-  return `<div class="tl-wrap"><div class="tl-cap">${IC.clock}당신의 타이밍</div><div class="tl">${dots}</div></div>`;
+  const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y}</b>${y===NOW?`<i>${U('now')}</i>`:''}</div>`).join("");
+  return `<div class="tl-wrap"><div class="tl-cap">${IC.clock}${U('timing')}</div><div class="tl">${dots}</div></div>`;
 }
 const TOPICS=[
   ["💕 연애·궁합","연애운과 궁합, 지금 만나는(혹은 만날) 인연이 어떤지 알려줘"],
@@ -1063,10 +1063,29 @@ const ALERT_I18N={
   needDob2:{ko:'두 사람의 생년월일을 입력해주세요',en:"Please enter both people's birth dates",ja:'二人の生年月日を入力してください',zh:'请输入两人的出生日期'},
 };
 function AL(k){const m=ALERT_I18N[k]||{};return m[LANG]||m.ko;}
+// 외국어 화면에 남는 마이크로 라벨(듣기·점·지금·타이밍·대기·에러)
+const UI18N={
+  tts:{ko:'듣기',en:'Listen',ja:'聴く',zh:'收听'},
+  pts:{ko:'점',en:'',ja:'点',zh:'分'},
+  now:{ko:'지금',en:'now',ja:'今',zh:'现在'},
+  timing:{ko:'당신의 타이밍',en:'Your Timing',ja:'あなたのタイミング',zh:'你的时机'},
+  wait:{ko:'보통 10~15초 걸려요',en:'Usually 10-15 sec',ja:'通常10〜15秒ほど',zh:'通常需10〜15秒'},
+  err:{ko:'AI 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.',en:"Couldn't reach the AI server. Please try again shortly.",ja:'AIサーバーに接続できませんでした。しばらくして再度お試しください。',zh:'无法连接AI服务器，请稍后再试。'},
+  empty:{ko:'(빈 응답이에요. 다시 한 번 물어봐 주세요.)',en:'(Empty response. Please ask again.)',ja:'(応答が空でした。もう一度質問してください。)',zh:'(回复为空，请再问一次。)'},
+  slow:{ko:'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.',en:"Taking a bit long 🐢 Please resend the same question in a moment.",ja:'返答が少し遅れています 🐢 少し待って同じ質問を再送してください。',zh:'回复有点慢 🐢 请稍后再发送相同的问题。'},
+};
+function U(k){const m=UI18N[k]||{};return m[LANG]!=null?m[LANG]:m.ko;}
 function setChatBusy(b){const s=document.querySelector('.chat-send');if(s){s.disabled=b;s.textContent=b?'…':sendLabel();}document.querySelectorAll('#topics .ask, #ctopics .ask').forEach(x=>{x.disabled=b;});}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let CHAT_BUSY=false,CHAT_TIMER=null;
-const LOADING_MSGS=['돋보기를 꺼내는 중','명식을 펼치는 중','대운을 짚어보는 중','별자리랑 맞춰보는 중','오행을 세어보는 중','안경을 고쳐 쓰는 중','차 한 모금 하고 오는 중','한참 들여다보는 중','손가락으로 짚어보는 중'];
+const LOADING_I18N={
+  ko:['돋보기를 꺼내는 중','명식을 펼치는 중','대운을 짚어보는 중','별자리랑 맞춰보는 중','오행을 세어보는 중','안경을 고쳐 쓰는 중','차 한 모금 하고 오는 중','한참 들여다보는 중','손가락으로 짚어보는 중'],
+  en:['Pulling out the magnifying glass','Unrolling your chart','Tracing your luck cycles','Cross-checking the stars','Counting the five elements','Adjusting my glasses','Taking a sip of tea','Peering in close','Pointing it out one by one'],
+  ja:['虫眼鏡を取り出し中','命式を広げ中','大運をたどり中','星と照らし合わせ中','五行を数え中','眼鏡をかけ直し中','お茶を一口飲み中','じっくり覗き込み中','指で一つずつ確認中'],
+  zh:['拿出放大镜中','铺开命盘中','推算大运中','对照星象中','数五行中','扶正眼镜中','喝口茶中','仔细端详中','逐一点算中'],
+};
+function loadingMsgs(){return LOADING_I18N[LANG]||LOADING_I18N.ko;}
+const LOADING_MSGS=LOADING_I18N.ko; // 하위호환(직접참조 대비)
 async function sendChat(text){
   if(!CTX||CHAT_BUSY)return;
   if(!await ensurePaid())return;
@@ -1085,9 +1104,9 @@ async function sendChat(text){
       const reader=res.body.getReader(),dec=new TextDecoder();
       while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});renderStreamUpdate(acc);}
     }else{const data=await res.json().catch(()=>({}));acc=data.reading||'';}
-    CTX.chat.push({role:'assistant',content:acc||'(빈 응답이에요. 다시 한 번 물어봐 주세요.)'});
+    CTX.chat.push({role:'assistant',content:acc||U('empty')});
   }catch(e){
-    const msg=(e&&e.name==='AbortError')?'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.':errMsg(e);
+    const msg=(e&&e.name==='AbortError')?U('slow'):errMsg(e);
     if(acc.trim())CTX.chat.push({role:'assistant',content:acc});else CTX.chat.push({role:'assistant',content:'__ERR__'+msg});
   }
   clearTimeout(to);CHAT_BUSY=false;setChatBusy(false);renderChat();saveSession();
@@ -1114,9 +1133,9 @@ function renderChat(loading){
     ? `<div class="cm user">${escapeHtml(m.content)}</div>`
     : `<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body">${String(m.content).startsWith('__ERR__')?`<p style="margin:0;color:var(--hong)">${escapeHtml(m.content.slice(7))}</p>`:whenTimeline(m.content)+mdToHtml(m.content)+ttsBtn()}</div></div>`
   ).join('');
-  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~15초 걸려요</div></div></div>`;
+  if(loading)html+=`<div class="cm ai"><span class="cm-av">${avatar(CTX.persona)}</span><div class="cm-body"><div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">${U('wait')}</div></div></div>`;
   more.innerHTML=html;breakResult();
-  if(loading){let i=0;CHAT_TIMER=setInterval(()=>{const el=document.querySelector('#more .lmsg');if(!el){clearInterval(CHAT_TIMER);return;}i=(i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[i];},1700);}
+  if(loading){let i=0;CHAT_TIMER=setInterval(()=>{const el=document.querySelector('#more .lmsg');if(!el){clearInterval(CHAT_TIMER);return;}i=(i+1)%loadingMsgs().length;el.textContent=loadingMsgs()[i];},1700);}
   const last=more.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function shareCard(){if(!CTX)return;
@@ -1148,8 +1167,8 @@ async function askAI(){
   if(!CTX)return;
   if(!await ensurePaid())return;
   const box=document.getElementById('ai-box');
-  box.innerHTML=`<div class="ai-out"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~20초 걸려요</div></div>`;
-  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[_i];},1700);
+  box.innerHTML=`<div class="ai-out"><div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">${U('wait')}</div></div>`;
+  let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%loadingMsgs().length;el.textContent=loadingMsgs()[_i];},1700);
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),75000);let acc='';
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
