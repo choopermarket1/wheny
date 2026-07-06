@@ -388,7 +388,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
 
   <div id="result"></div>
 
-  <div class="note">
+  <div class="note" id="disclaimer">
     명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.<br>
     음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).<br>
     <b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.
@@ -412,7 +412,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
   </div>
 
   <!-- 사업자 정보 푸터 (전자상거래법 필수 표시) -->
-  <footer style="margin:26px 0 0;padding:22px 4px 6px;border-top:1px solid #2b2f3a;color:#7d7768;font-size:12px;line-height:1.85">
+  <footer id="bizfooter" style="margin:26px 0 0;padding:22px 4px 6px;border-top:1px solid #2b2f3a;color:#7d7768;font-size:12px;line-height:1.85">
     <div style="margin-bottom:10px">
       <a href="./policy.html#terms" style="color:#c7bfa9;text-decoration:none">이용약관</a>
       &nbsp;·&nbsp; <a href="./policy.html#privacy" style="color:#c7bfa9;text-decoration:none;font-weight:700">개인정보처리방침</a>
@@ -1243,6 +1243,45 @@ const I18N={
   ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',note:'時刻が不明なら「不明」を選択',tagline:'<b>いつ</b>かまで教える四柱推命',tagsub:'四柱推命 × 西洋占星術 クロス検証'},
   zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',note:'不知道时辰就选"不知道"',tagline:'连<b>何时</b>都告诉你的八字',tagsub:'八字 × 西洋占星 交叉验证'}
 };
+// 하단 정적 섹션(면책·유료상품카드·사업자푸터) 언어별 렌더 — 외국어에서 한국어로 남던 것 수정
+const STATIC_I18N={
+  ko:{n1:'명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.',n2:'음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).',n3:'<b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.',
+      pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'AI 선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',
+      pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
+      fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.'},
+  en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>AI reader\'s full reading</b> is provided after payment.',
+      pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The AI reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',
+      pay:'Payment: credit/debit card, etc. (PG: PortOne)',deliver:'Delivery: shown online immediately after payment',refundLbl:'Refund',refundLink:'Refund & withdrawal policy',refundTail:' applies (full refund if canceled before the reading is generated).',
+      fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.'},
+  ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>AI占い師の詳しい鑑定</b>は決済後に提供されます。',
+      pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'AI占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',
+      pay:'決済手段: クレジット・デビットカード等（決済代行 PortOne）',deliver:'提供方法: 決済完了後すぐ画面でオンライン提供',refundLbl:'返金',refundLink:'返金・キャンセル方針',refundTail:'に従います（コンテンツ生成前のキャンセルは全額返金）。',
+      fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。'},
+  zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>AI老师的精细解读</b>在付款后提供。',
+      pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'AI老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',
+      pay:'支付方式: 信用卡·借记卡等（支付代行 PortOne）',deliver:'提供方式: 付款完成后即时在页面在线提供',refundLbl:'退款',refundLink:'退款·撤销政策',refundTail:'（内容生成前取消可全额退款）。',
+      fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。'},
+};
+function renderStatic(){
+  const s=STATIC_I18N[LANG]||STATIC_I18N.ko;
+  const nt=document.getElementById('disclaimer');if(nt)nt.innerHTML=`${s.n1}<br>${s.n2}<br>${s.n3}`;
+  const pc=document.getElementById('pricing');if(pc)pc.innerHTML=`<div style="color:#c9a961;font-weight:700;letter-spacing:1px;font-size:13px;margin-bottom:14px">${s.pTag}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #2b2f3a;padding-bottom:16px;margin-bottom:16px">
+      <div><div style="font-size:18px;font-weight:800">${s.pName}</div>
+        <div style="color:#9a9280;font-size:13.5px;margin-top:6px;line-height:1.6">${s.pDesc}</div></div>
+      <div style="text-align:right;white-space:nowrap"><span style="font-size:33px;font-weight:800;color:#e7d3a1;letter-spacing:-.01em;font-variant-numeric:tabular-nums">3,900</span><span style="color:#c9a961;font-size:17px;font-weight:700;margin-left:3px">${s.cur}</span></div></div>
+    <div style="color:#9a9280;font-size:12.5px;line-height:1.7">· ${s.pay}<br>· ${s.deliver}<br>· ${s.refundLbl}: <a href="./policy.html#refund" style="color:#c9a961">${s.refundLink}</a>${s.refundTail}</div>`;
+  const ft=document.getElementById('bizfooter');if(ft)ft.innerHTML=`<div style="margin-bottom:10px">
+      <a href="./policy.html#terms" style="color:#c7bfa9;text-decoration:none">${s.fTerms}</a> &nbsp;·&nbsp;
+      <a href="./policy.html#privacy" style="color:#c7bfa9;text-decoration:none;font-weight:700">${s.fPrivacy}</a> &nbsp;·&nbsp;
+      <a href="./policy.html#refund" style="color:#c7bfa9;text-decoration:none">${s.fRefund}</a></div>
+    ${s.lBiz}: 주식회사 로렌츄컴퍼니 &nbsp;|&nbsp; ${s.lRep}: 추세은<br>
+    ${s.lReg}: 310-86-01763<br>${s.lMail}: 2024-부산해운대-0897<br>
+    ${s.lAddr}: 부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)<br>
+    ${s.lTel}: 070-8845-2848 &nbsp;|&nbsp; ${s.lEmail}: choopermarket1@gmail.com<br>
+    ${s.lHost}: Vercel Inc.<br>
+    <span style="display:block;margin-top:10px;color:#5c5749">© 2026 주식회사 로렌츄컴퍼니 · Wheny. ${s.disc}</span>`;
+}
 function applyLang(l){const T=I18N[l]||I18N.ko;
   document.querySelectorAll('[data-t]').forEach(e=>{const k=e.getAttribute('data-t');if(T[k]!=null)e.textContent=T[k];});
   document.querySelectorAll('[data-tp]').forEach(e=>{const k=e.getAttribute('data-tp');if(T[k]!=null)e.setAttribute('placeholder',T[k]);});
@@ -1252,6 +1291,7 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   fillDob('dY','dM','dD','date');fillDob('pY','pM','pD','pdate');
   fillTime('time');fillTime('ptime');fillTz();
   if(typeof renderTeachers==='function')renderTeachers();
+  renderStatic();
 }
 function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);
   // 이미 결과가 떠 있으면 새 언어로 자동 재생성(한글리포트+영어UI 뒤섞임 방지)
