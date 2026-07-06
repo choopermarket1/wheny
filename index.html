@@ -68,6 +68,15 @@
   .restore-banner span{flex:1;min-width:0}
   .restore-banner .rb-go{flex:none;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:9px;padding:8px 13px;font-weight:800;font-size:13px;font-family:inherit;cursor:pointer}
   .restore-banner .rb-x{flex:none;background:transparent;border:0;color:var(--dim);font-size:15px;cursor:pointer;padding:4px}
+  .lk{display:inline-flex;align-items:center;justify-content:center;vertical-align:-2px;color:var(--gold);opacity:.92}
+  .lk .ic svg{width:15px;height:15px}
+  .lockblur{filter:blur(6px);opacity:.7;user-select:none;pointer-events:none}
+  .lockcard{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 12%,var(--card)),var(--card));border:1px solid var(--gold);border-radius:18px;padding:22px 20px;margin:18px 0 0;text-align:center;box-shadow:0 24px 60px -30px rgba(201,169,97,.5)}
+  .lockcard-h{font-size:16.5px;font-weight:800;color:var(--gold2);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+  .lockcard-h .ic svg{width:19px;height:19px}
+  .lockcard p{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--paperdim)}
+  .lockcard-btn{width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:13px;padding:15px;font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer}
+  .lockcard-g{margin-top:11px;font-size:12px;color:var(--green,#8fbf86)}
   .leap{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--paperdim)}
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
@@ -548,6 +557,7 @@ const IC={
   clock:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.7"/><path d="M8 4.9V8l2.2 1.6"/></svg></span>`,
   cam:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="1.6" y="4.6" width="12.8" height="8.8" rx="2"/><circle cx="8" cy="9" r="2.6"/><path d="M5.4 4.6l1-1.6h3.2l1 1.6"/></svg></span>`,
   sound:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z"/><path d="M11 6a2.6 2.6 0 0 1 0 4M12.6 4.6a4.8 4.8 0 0 1 0 6.8"/></svg></span>`,
+  lock:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="3.3" y="7" width="9.4" height="6.6" rx="1.6"/><path d="M5.4 7V5.1a2.6 2.6 0 0 1 5.2 0V7"/></svg></span>`,
 };
 // 음성 읽기 (브라우저 TTS, 무료). 언어에 맞춰 읽음.
 function speakEl(btn){
@@ -613,6 +623,11 @@ async function ensurePaid(){
     return true;
   }catch(e){alert('결제 처리 중 문제가 생겼어요. 다시 시도해주세요.');return false;}
 }
+// ── 미래 잠금(blur) 메커니즘: 결제 켜졌고(아직 안 냈으면) 미래 '연도'를 가림 → 결제 유도. 페이월 꺼짐=항상 다 보임.
+function isLocked(){return PAY.on&&!PAID_ID;}
+function lockYr(y){return isLocked()?`<span class="lk">${IC.lock}</span>`:y;} // 미래 연도 마스킹(과거·현재는 그대로)
+async function unlock(){if(await ensurePaid()){if(mode==='compat')runCompat();else run();}} // 결제 성공 시 그 언어로 재생성(연도 공개)
+function lockCTA(){if(!isLocked())return'';return `<div class="lockcard"><div class="lockcard-h">${IC.lock}<span>${U('lockTitle')}</span></div><p>${U('lockDesc')}</p><button class="lockcard-btn" onclick="unlock()">${U('lockBtn')} · ${won(PAY.price)} →</button><div class="lockcard-g">${U('lockGuar')}</div></div>`;}
 function setMode(m){mode=m;
   document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
   document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
@@ -708,11 +723,11 @@ function lifeGraph(d){
   const base=ys(mn),area=`${path} L${P[n-1][0]},${base} L${P[0][0]},${base} Z`,zeroY=ys(0),curX=xs(curIdx);
   const dots=pts.map((p,i)=>{const cls=p.score>=1?'op':p.score<=-.8?'ca':'nu',cur=i===curIdx;
     return `<circle cx="${xs(i)}" cy="${ys(p.score)}" r="${cur?5.5:4}" class="lg-dot ${cls}${cur?' cur':''}"/>`;}).join("");
-  const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">'${String(p.year).slice(2)}</text>`).join("");
+  const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">${isLocked()&&p.year>NOW?'··':"'"+String(p.year).slice(2)}</text>`).join("");
   const fut=pts.filter(p=>p.year+10>NOW); // 현재+미래 대운만 (지나간 시기는 하이라이트 제외)
   const opp=[...fut].filter(p=>p.score>=1).sort((a,b)=>b.score-a.score).slice(0,2);
   const cau=[...fut].filter(p=>p.score<=-.8).sort((a,b)=>a.score-b.score).slice(0,2);
-  const li=arr=>arr.map(p=>`<li><b>${p.year}~</b> ${ageFmt(p.age)} · ${yearTheme(p.ss)}</li>`).join("");
+  const li=arr=>arr.map(p=>`<li>${isLocked()?`<b class="lk">${IC.lock}</b>`:`<b>${p.year}~</b> ${ageFmt(p.age)}`} · ${yearTheme(p.ss)}</li>`).join("");
   return `<div class="lg">
     <svg viewBox="0 0 ${W} ${H}" class="lg-svg">
       <defs><linearGradient id="lgfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9a961" stop-opacity=".26"/><stop offset="1" stop-color="#c9a961" stop-opacity="0"/></linearGradient></defs>
@@ -750,7 +765,7 @@ function loveTimeline(dStem,gender){
   if(!hits.length)return "";
   const pts=[...new Set([NOW,...hits])].sort((a,b)=>a-b).slice(0,6);
   const dots=pts.map(y=>{const love=hits.includes(y),now=y===NOW;
-    return `<div class="lt-dot"><span class="lt-mk">${love?HEART:'<span class="lt-o"></span>'}</span><b class="${now?'now':''}">${y}</b>${now?'<i class="now">지금</i>':(love?'<i>인연운</i>':'')}</div>`;}).join("");
+    return `<div class="lt-dot"><span class="lt-mk">${love?HEART:'<span class="lt-o"></span>'}</span><b class="${now?'now':''}">${now?y:lockYr(y)}</b>${now?`<i class="now">${U('now')}</i>`:(love?`<i>${U('loveYr')}</i>`:'')}</div>`;}).join("");
   return `<div class="lt"><div class="lt-cap">${HEART} 인연운이 강해지는 해</div><div class="lt-row">${dots}</div></div>`;
 }
 // 🗓 올해 월별 히트맵 — 12달 좋음/보통/주의 색으로
@@ -904,11 +919,11 @@ function run(){
     ${chart.이름?`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}이름 풀이</h3><p>입력하신 이름 <b>${chart.이름}</b> — 이 이름이 사주의 ${missing.length?`부족한 <b style="color:#e0655a">${missing.join('·')}</b> 기운을 보완하는지`:'오행 균형에 어떻게 작용하는지'}, <b>${t.nm}</b>이 <b>획수·오행·뜻</b>으로 풀어드려요.</p><p style="margin:8px 0 0;font-size:12px;color:var(--dim)">정밀 해석·대화에서 이름까지 깊게 봐드려요.</p></div>`:''}
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p>${r.loveTime}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${isLocked()?'lockblur':''}">${r.loveTime}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
       <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)"><b style="color:var(--gold)">월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p>${r.future3}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p class="${isLocked()?'lockblur':''}">${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
       <tr><td class="hanja">${noTime?'<span style="color:var(--dim);font-size:14px">미상</span>':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
@@ -917,7 +932,8 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>동서양 교차검증</h3>
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍</h3><p>${r.P.when}</p><div class="dwrap">${dwRows}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${isLocked()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${isLocked()?'lockblur':''}">${dwRows}</div></div>
+    ${lockCTA()}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}인생 그래프 · 대운 흐름</h3>
       <p style="margin:0 0 14px">10년 단위 <b>대운</b>의 기운을 곡선으로 봤어요. <b style="color:#8fbf86">기회</b>엔 밀고 <b style="color:#e0655a">주의</b>엔 지키세요.</p>
       ${lifeGraph(d)}
@@ -953,7 +969,7 @@ function renderForeign(t,d,w,noTime,conv){
   document.getElementById("result").innerHTML=`
     ${conv?`<div class="conv">${conv}</div>`:""}
     <div class="hero-r" style="--tc:var(${t.cv})"><div class="who"><span class="em">${avatar(picked)}</span><b>${TT(picked).nm}</b> ${F.reads}</div></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport"><div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div></div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport">${isLocked()?lockCTA():`<div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div>`}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}${F.ohaeng}</h3>${ohaengRadar(d.el)}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}${F.lifegraph}</h3>${lifeGraph(d)}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${F.myeongsik}</h3>
@@ -966,7 +982,7 @@ function renderForeign(t,d,w,noTime,conv){
       <div class="chat-in"><input id="chatText" placeholder="${F.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
     <div class="note">${F.note}</div>`;
   saveSession();
-  autoForeignReport();
+  if(!isLocked())autoForeignReport(); // 잠겼으면 AI 대신 잠금CTA(위에서 렌더)
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 async function autoForeignReport(attempt){
@@ -977,7 +993,7 @@ async function autoForeignReport(attempt){
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),80000);let acc='';
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
-    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
+    if(!res.ok){let j={};try{j=await res.json()}catch(_){} if(j.needPay){clearInterval(_t);box.innerHTML=lockCTA();return;} throw new Error(j.error||("연결 오류 "+res.status));}
     clearInterval(_t);
     if(res.body&&res.body.getReader){box.innerHTML='<span class="cur">▍</span>';const reader=res.body.getReader(),dec=new TextDecoder();while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});box.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}}
     else{const data=await res.json();acc=data.reading||'';}
@@ -1030,7 +1046,7 @@ function whenTimeline(text){
   const ys=[...String(text||"").matchAll(/\b(20\d\d)\b/g)].map(m=>+m[1]);
   const u=[...new Set(ys)].filter(y=>y>=NOW-1&&y<=NOW+45).sort((a,b)=>a-b).slice(0,5);
   if(u.length<2)return "";
-  const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y}</b>${y===NOW?`<i>${U('now')}</i>`:''}</div>`).join("");
+  const dots=u.map(y=>`<div class="tl-dot${y===NOW?' now':''}"><span></span><b>${y===NOW?y:lockYr(y)}</b>${y===NOW?`<i>${U('now')}</i>`:''}</div>`).join("");
   return `<div class="tl-wrap"><div class="tl-cap">${IC.clock}${U('timing')}</div><div class="tl">${dots}</div></div>`;
 }
 const TOPICS=[
@@ -1107,6 +1123,11 @@ const UI18N={
   empty:{ko:'(빈 응답이에요. 다시 한 번 물어봐 주세요.)',en:'(Empty response. Please ask again.)',ja:'(応答が空でした。もう一度質問してください。)',zh:'(回复为空，请再问一次。)'},
   slow:{ko:'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.',en:"Taking a bit long 🐢 Please resend the same question in a moment.",ja:'返答が少し遅れています 🐢 少し待って同じ質問を再送してください。',zh:'回复有点慢 🐢 请稍后再发送相同的问题。'},
   zero:{ko:'없음',en:'none',ja:'なし',zh:'无'},
+  lockTitle:{ko:'당신의 ‘언제’가 여기 잠겨 있어요',en:"Your 'when' is locked here",ja:'あなたの「いつ」はここに',zh:'你的「何时」锁在这里'},
+  lockDesc:{ko:'과거는 맞혔죠? 결혼·재물·이직이 <b>몇 년 몇 월</b>인지 — 정밀 리포트에서 콕 집어드려요.',en:'The past checked out, right? The exact <b>year and month</b> of your marriage, wealth and career moves — revealed in the full reading.',ja:'過去は当たりましたよね？結婚・財運・転職が<b>何年何月</b>か — 精密鑑定で的確に。',zh:'过去说准了吧？结婚·财运·跳槽在<b>哪年哪月</b>——精密解读为你点破。'},
+  lockBtn:{ko:'내 타이밍 잠금 해제',en:'Unlock my timing',ja:'私のタイミングを見る',zh:'解锁我的时机'},
+  lockGuar:{ko:'생성 전 취소 시 100% 환불',en:'100% refund if canceled before generating',ja:'生成前のキャンセルは100%返金',zh:'生成前取消可100%退款'},
+  loveYr:{ko:'인연운',en:'love luck',ja:'縁の年',zh:'姻缘运'},
   restoreSaved:{ko:'지난 사주가 저장돼 있어요',en:'Your last reading is saved',ja:'前回の鑑定が保存されています',zh:'上次的解读已保存'},
   resume:{ko:'이어보기',en:'Resume',ja:'続きを見る',zh:'继续查看'},
   clearAria:{ko:'지우기',en:'Clear',ja:'消去',zh:'清除'},
@@ -1218,7 +1239,7 @@ async function askAI(){
   const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),75000);let acc='';
   try{
     const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
-    if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
+    if(!res.ok){let j={};try{j=await res.json()}catch(_){} if(j.needPay){clearInterval(_t);box.innerHTML=lockCTA();return;} throw new Error(j.error||("연결 오류 "+res.status));}
     clearInterval(_t);
     if(res.body&&res.body.getReader){
       box.innerHTML=`<div class="ai-out" id="reportStream"><span class="cur">▍</span></div>`;
