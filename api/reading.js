@@ -185,6 +185,8 @@ export default async function handler(req, res) {
       if (!hist.length || hist[hist.length - 1].role !== "user")
         return res.status(400).json({ error: "대화 형식 오류(마지막은 user)" });
       system = CHAT(persona, lang, chart);
+      if (chartB) system += "\n\n[상대방 명식 B]\n" + JSON.stringify(chartB, null, 2) +
+        "\n※ 지금은 두 사람의 '궁합·관계' 상담이다. A=본인, B=상대. 재회·결혼·이별·속마음·궁합 관련 질문에 두 명식(오행 상생상극·일간 관계·대운)을 함께 근거로 답하라.";
       msgs = hist;
       maxTok = 1600;
     } else if (compat) {
