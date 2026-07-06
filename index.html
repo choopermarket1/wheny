@@ -642,6 +642,9 @@ const HOURS=[[23,'자시','밤 11~1시'],[1,'축시','새벽 1~3시'],[3,'인시
 const HCLOCK={23:'23:00–01:00',1:'01:00–03:00',3:'03:00–05:00',5:'05:00–07:00',7:'07:00–09:00',9:'09:00–11:00',11:'11:00–13:00',13:'13:00–15:00',15:'15:00–17:00',17:'17:00–19:00',19:'19:00–21:00',21:'21:00–23:00'};
 const TZLABEL=[[9,{ko:'한국·일본 (UTC+9)',ja:'韓国·日本 (UTC+9)',en:'Korea/Japan (UTC+9)',zh:'韩国·日本 (UTC+9)'}],[8,{ko:'중국·대만 (UTC+8)',ja:'中国·台湾 (UTC+8)',en:'China/Taiwan (UTC+8)',zh:'中国·台湾 (UTC+8)'}],[-5,{ko:'미국 동부 (UTC-5)',ja:'米国東部 (UTC-5)',en:'US East (UTC-5)',zh:'美国东部 (UTC-5)'}],[-8,{ko:'미국 서부 (UTC-8)',ja:'米国西部 (UTC-8)',en:'US West (UTC-8)',zh:'美国西部 (UTC-8)'}],[0,{ko:'영국 (UTC+0)',ja:'英国 (UTC+0)',en:'UK (UTC+0)',zh:'英国 (UTC+0)'}]];
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
+// ★ 무료 공개 스위치: true면 서버 페이월이 켜져 있어도 결제창을 절대 띄우지 않고 전 기능 무료(잠금도 해제).
+//   정식 유료화 때 false로 바꾸고 배포하면 끝. (백엔드는 PORTONE_API_SECRET 유무로 별도 제어)
+const FREE_LAUNCH=true;
 let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
 (async function initPay(){
   try{const r=await fetch('/api/reading');if(!r.ok)return;const h=await r.json();
@@ -651,6 +654,7 @@ let PAY={on:false,price:5900,storeId:"",channelKey:""},PAID_ID=null;
 function won(n){return n.toLocaleString('ko-KR')+'원';}
 // 결제창 띄우고 성공하면 PAID_ID 세팅. 이미 냈으면 통과. 페이월 꺼져있으면 그냥 통과.
 async function ensurePaid(){
+  if(FREE_LAUNCH)return true; // 무료 공개 기간: 결제창 절대 안 띄움
   if(!PAY.on||PAID_ID)return true;
   if(!window.PortOne||!PAY.storeId||!PAY.channelKey){alert('결제 준비 중이에요. 잠시 후 다시 시도해주세요.');return false;}
   try{
@@ -666,7 +670,7 @@ async function ensurePaid(){
   }catch(e){alert('결제 처리 중 문제가 생겼어요. 다시 시도해주세요.');return false;}
 }
 // ── 미래 잠금(blur) 메커니즘: 결제 켜졌고(아직 안 냈으면) 미래 '연도'를 가림 → 결제 유도. 페이월 꺼짐=항상 다 보임.
-function isLocked(){return PAY.on&&!PAID_ID;}
+function isLocked(){return !FREE_LAUNCH&&PAY.on&&!PAID_ID;}
 function lockYr(y){return isLocked()?`<span class="lk">${IC.lock}</span>`:y;} // 미래 연도 마스킹(과거·현재는 그대로)
 async function unlock(){if(await ensurePaid()){if(mode==='compat')runCompat();else run();}} // 결제 성공 시 그 언어로 재생성(연도 공개)
 function lockCTA(){if(!isLocked())return'';return `<div class="lockcard"><div class="lockcard-h">${IC.lock}<span>${U('lockTitle')}</span></div><p>${U('lockDesc')}</p><button class="lockcard-btn" onclick="unlock()">${U('lockBtn')} · ${won(PAY.price)} →</button><div class="lockcard-g">${U('lockGuar')}</div></div>`;}
@@ -1033,8 +1037,8 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}AI 선생님 정밀 해석</h3>
       <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
-      <button class="aibtn" onclick="askAI()">${PAY.on?`${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
-      ${PAY.on?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
+      <button class="aibtn" onclick="askAI()">${PAY.on&&!FREE_LAUNCH?`${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
+      ${PAY.on&&!FREE_LAUNCH?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">아래 주제를 <b style="color:var(--gold)">눌러보세요</b> — <b>${t.nm}</b>이 그 주제만 콕 짚어 바로 답해드려요.</p>
@@ -1445,13 +1449,13 @@ const I18N={
 };
 // 하단 정적 섹션(면책·유료상품카드·사업자푸터) 언어별 렌더 — 외국어에서 한국어로 남던 것 수정
 const STATIC_I18N={
-  ko:{n1:'명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.',n2:'음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).',n3:'<b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.',
+  ko:{n1:'명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.',n2:'음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).',n3:'<b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.',n3free:'<b style="color:#8fbf86">지금은 무료 공개 기간</b> — 결제 없이 정밀 해석·질문·궁합까지 전부 이용할 수 있어요.',freeNote:'지금은 <b style="color:#8fbf86">무료 공개 기간</b> — 결제 없이 전부 이용 가능해요',
       pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'AI 선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',
       badge:'런칭 특가',hook:'결혼·이직·돈이 <b>‘언제’</b>인지 — 연도와 달까지 콕 집어드려요',g1:'연애·결혼운 터지는 <b>연도·달</b>',g2:'재물이 들어오는 시기 & 새는 구멍',g3:'직업·이직·사업 최적 <b>타이밍</b>',g4:'이름 성명학 + 궁합(상대 명식까지)',g5:'선생님과 <b>무제한 후속 질문</b>(대화 기억)',anchor:'오프라인 사주 3~5만원 · 전화상담 3만원',guarantee:'리포트 생성 전 취소 시 100% 환불',cta:'지금 내 타이밍 확인하기',
       pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
       fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)',
       wTitle:'왜 Wheny여야 하나요',w1t:'"언제"를 년·월로 콕 집습니다',w1d:'좋은 말만 하는 운세가 아니에요. <b style="color:#c7bfa9">한국천문연구원(KASI) 검증 만세력</b>으로 절기를 분 단위까지 계산하고, 결혼·이직·돈이 <b style="color:#e7d3a1">몇 년 몇 월</b>인지 근거와 함께 짚습니다.',w2t:'과거를 먼저 맞히는지 보고 결정하세요',w2d:'무료 리포트가 <b style="color:#c7bfa9">당신의 과거 변곡점</b>(흐름이 꺾인 나이)부터 맞히는지 먼저 확인하세요. 과거가 맞아야 미래도 믿을 수 있으니까요. 생성 전 취소는 <b style="color:#8fbf86">100% 환불</b>입니다.'},
-  en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>AI reader\'s full reading</b> is provided after payment.',
+  en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>AI reader\'s full reading</b> is provided after payment.',n3free:'<b style="color:#8fbf86">Free launch period</b> — the full reading, questions and compatibility are all free right now, no payment needed.',freeNote:'<b style="color:#8fbf86">Free launch period</b> — everything is free right now, no payment',
       pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The AI reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',
       badge:'Launch price',hook:'<b>When</b> you marry, switch jobs, come into money — down to the year and month',g1:'The <b>year & month</b> your love & marriage luck peaks',g2:'When wealth flows in — and where it leaks',g3:'Best <b>timing</b> for career, job change, business',g4:'Name reading + compatibility (both charts)',g5:'<b>Unlimited follow-up questions</b> (remembers you)',anchor:'Offline reading $25–40 · phone reading $25',guarantee:'100% refund if canceled before the reading is generated',cta:'Unlock my timing now',
       pay:'Payment: credit/debit card, etc. (PG: PortOne)',deliver:'Delivery: shown online immediately after payment',refundLbl:'Refund',refundLink:'Refund & withdrawal policy',refundTail:' applies (full refund if canceled before the reading is generated).',
@@ -1461,13 +1465,13 @@ const STATIC_I18N={
       ob2t:'Why it can say "when"',ob2d:'Western astrology reads 12 signs. Saju computes 60-cycle pillars plus 10-year luck cycles — a timeline of your life, not just a personality type.',
       ob3t:'Calculated, then read for you',ob3d:'Your chart is computed to the minute on a KASI-verified ephemeris, cross-checked with your Sun & Moon signs — then your chosen reader interprets it.',
       wTitle:'Why Wheny',w1t:'We pin your "when" to the year and month',w1d:'Not feel-good fortunes. Your chart is computed on an ephemeris <b style="color:#c7bfa9">verified against KASI</b> (Korea Astronomy & Space Science Institute) down to the minute — so marriage, career moves and money are pinned to <b style="color:#e7d3a1">a year and month</b>, with reasons.',w2t:'Verify the past before you pay',w2d:'The free reading first calls out <b style="color:#c7bfa9">the turning points of your past</b>. If it nails where your life bent, you can trust where it points next. Cancel before generation for a <b style="color:#8fbf86">100% refund</b>.'},
-  ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>AI占い師の詳しい鑑定</b>は決済後に提供されます。',
+  ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>AI占い師の詳しい鑑定</b>は決済後に提供されます。',n3free:'<b style="color:#8fbf86">今は無料公開期間</b> — 決済なしで詳しい鑑定・質問・相性まですべてご利用いただけます。',freeNote:'今は<b style="color:#8fbf86">無料公開期間</b> — 決済なしですべて利用できます',
       pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'AI占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',
       badge:'ローンチ特価',hook:'結婚・転職・お金が<b>「いつ」</b>か — 年と月まで的確に',g1:'恋愛・結婚運が弾ける<b>年・月</b>',g2:'お金が入る時期と漏れる穴',g3:'仕事・転職・事業の最適<b>タイミング</b>',g4:'姓名判断＋相性（お相手の命式も）',g5:'占い師への<b>無制限の追加質問</b>（会話を記憶）',anchor:'対面鑑定3〜5万ウォン・電話相談3万ウォン',guarantee:'鑑定生成前のキャンセルは100%返金',cta:'今すぐ私のタイミングを見る',
       pay:'決済手段: クレジット・デビットカード等（決済代行 PortOne）',deliver:'提供方法: 決済完了後すぐ画面でオンライン提供',refundLbl:'返金',refundLink:'返金・キャンセル方針',refundTail:'に従います（コンテンツ生成前のキャンセルは全額返金）。',
       fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',
       wTitle:'なぜWhenyなのか',w1t:'「いつ」を年・月まで特定します',w1d:'耳ざわりの良い占いではありません。<b style="color:#c7bfa9">韓国天文研究院(KASI)検証の万年暦</b>で節気を分単位まで計算し、結婚・転職・お金が<b style="color:#e7d3a1">何年何月</b>かを根拠とともに示します。',w2t:'まず過去が当たるか確かめてから',w2d:'無料鑑定がまず<b style="color:#c7bfa9">あなたの過去の転機</b>(流れが変わった年齢)を当てるか確認してください。過去が当たってこそ未来も信じられます。生成前のキャンセルは<b style="color:#8fbf86">100%返金</b>。'},
-  zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>AI老师的精细解读</b>在付款后提供。',
+  zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>AI老师的精细解读</b>在付款后提供。',n3free:'<b style="color:#8fbf86">现为免费公开期</b> — 无需付款即可使用精细解读·提问·合婚全部功能。',freeNote:'现为<b style="color:#8fbf86">免费公开期</b> — 无需付款即可全部使用',
       pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'AI老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',
       badge:'上线特价',hook:'结婚·跳槽·财运<b>「何时」</b>——精确到年和月',g1:'恋爱·婚姻运爆发的<b>年·月</b>',g2:'财运进账的时机与漏财之处',g3:'事业·跳槽·创业的最佳<b>时机</b>',g4:'姓名学＋合婚（含对方命盘）',g5:'向老师<b>无限追问</b>（记住对话）',anchor:'线下算命3~5万韩元·电话咨询3万韩元',guarantee:'内容生成前取消可100%退款',cta:'立即查看我的时机',
       pay:'支付方式: 信用卡·借记卡等（支付代行 PortOne）',deliver:'提供方式: 付款完成后即时在页面在线提供',refundLbl:'退款',refundLink:'退款·撤销政策',refundTail:'（内容生成前取消可全额退款）。',
@@ -1476,7 +1480,7 @@ const STATIC_I18N={
 };
 function renderStatic(){
   const s=STATIC_I18N[LANG]||STATIC_I18N.ko;
-  const nt=document.getElementById('disclaimer');if(nt)nt.innerHTML=`${s.n1}<br>${s.n2}<br>${s.n3}`;
+  const nt=document.getElementById('disclaimer');if(nt)nt.innerHTML=`${s.n1}<br>${s.n2}<br>${FREE_LAUNCH?s.n3free:s.n3}`;
   const chk='<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8fbf86" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M3 8.5l3.5 3.5 6.5-8"/></svg>';
   const ob=document.getElementById('onboard');
   if(ob)ob.innerHTML=s.obTitle?`<div style="background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 7%,#14141b),#101015);border:1px solid rgba(201,169,97,.24);border-radius:20px;padding:24px 22px;margin:0 0 16px">
@@ -1499,7 +1503,7 @@ function renderStatic(){
       <div style="min-width:0"><div style="color:#7d7768;font-size:12px;text-decoration:line-through;margin-bottom:3px">${s.anchor}</div><div style="font-size:13px;color:#c9a961;font-weight:700">${s.pName}</div></div>
       <div style="text-align:right;white-space:nowrap"><span style="font-size:34px;font-weight:800;color:#e7d3a1;font-variant-numeric:tabular-nums">3,900</span><span style="color:#c9a961;font-size:16px;font-weight:700;margin-left:2px">${s.cur}</span></div></div>
     <button onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})" style="width:100%;margin-top:16px;background:linear-gradient(180deg,#e7d3a1,#c9a961);color:#1a1408;border:0;border-radius:13px;padding:15px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer">${s.cta} →</button>
-    <div style="display:flex;align-items:center;gap:7px;justify-content:center;margin-top:13px;color:#8fbf86;font-size:12.5px">${chk}<span>${s.guarantee}</span></div>
+    ${FREE_LAUNCH?`<div style="text-align:center;margin-top:13px;background:rgba(143,191,134,.10);border:1px solid rgba(143,191,134,.35);border-radius:11px;padding:10px 12px;color:#c7d9c2;font-size:13px">${s.freeNote}</div>`:`<div style="display:flex;align-items:center;gap:7px;justify-content:center;margin-top:13px;color:#8fbf86;font-size:12.5px">${chk}<span>${s.guarantee}</span></div>`}
     <div style="color:#7d7768;font-size:11.5px;line-height:1.7;margin-top:14px;border-top:1px solid #23262f;padding-top:12px">· ${s.pay}<br>· ${s.deliver}<br>· ${s.refundLbl}: <a href="./policy.html#refund" style="color:#c9a961">${s.refundLink}</a>${s.refundTail}</div>`;
   const ft=document.getElementById('bizfooter');if(ft)ft.innerHTML=`<div style="margin-bottom:10px">
       <a href="./policy.html#terms" style="color:#c7bfa9;text-decoration:none">${s.fTerms}</a> &nbsp;·&nbsp;
