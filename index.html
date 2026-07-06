@@ -62,8 +62,13 @@
   .drow{display:flex;gap:8px}.drow select{flex:1;min-width:0}
   .langbar{display:flex;justify-content:flex-end;margin-bottom:12px}
   .langbar select{width:auto;padding:8px 12px;font-size:13px;background:var(--ink2)}
-  .langbar-top{justify-content:center;margin:14px 0 -6px}
-  .langbar-top select{border-color:var(--goldLine)}
+  .langbar-top{justify-content:center;margin:16px 0 -4px}
+  .langpick{display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 13px;border:1.6px solid var(--gold);border-radius:999px;
+    background:color-mix(in srgb,var(--gold) 12%,var(--card));box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 45%,transparent);animation:langpulse 2.6s ease-out 3}
+  .langpick .globe{color:var(--gold2);flex:none}
+  .langpick select{width:auto;border:0;background:transparent;color:var(--gold2);font-weight:800;font-size:14px;padding:7px 6px;cursor:pointer}
+  @keyframes langpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 50%,transparent)}70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  @media(prefers-reduced-motion:reduce){.langpick{animation:none}}
   .restore-banner{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--gold) 10%,var(--card));border:1px solid var(--goldLine);border-radius:14px;padding:12px 14px;margin:0 0 16px;font-size:13.5px;color:var(--paperdim)}
   .restore-banner span{flex:1;min-width:0}
   .restore-banner .rb-go{flex:none;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:9px;padding:8px 13px;font-weight:800;font-size:13px;font-family:inherit;cursor:pointer}
@@ -308,9 +313,11 @@
 if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choopermarket1-8270s-projects.vercel.app/");</script>
 <div class="saekdong"></div>
 <div class="wrap">
-  <div class="langbar langbar-top"><select id="lang" onchange="setLang(this.value)" aria-label="language">
+  <div class="langbar langbar-top"><div class="langpick">
+    <svg class="globe" viewBox="0 0 16 16" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M1.7 8h12.6M8 1.7c1.9 2 1.9 10.6 0 12.6M8 1.7c-1.9 2-1.9 10.6 0 12.6"/></svg>
+    <select id="lang" onchange="setLang(this.value)" aria-label="language / 언어 / 言語 / 语言">
     <option value="ko">🇰🇷 한국어</option><option value="ja">🇯🇵 日本語</option><option value="en">🇺🇸 English</option><option value="zh">🇨🇳 中文</option>
-  </select></div>
+  </select></div></div>
   <header>
     <svg class="mun" viewBox="0 0 100 100" aria-hidden="true">
       <defs>
@@ -782,20 +789,22 @@ function monthHeatmap(dStem){
   for(let M=1;M<=12;M++){
     let mp=null;try{mp=computeSaju({year:NOW,month:M,day:15,hour:12,minute:0,tz:9}).P.month;}catch(e){}
     const ss=mp?sipsin(dStem,mp.s):'',sc=SS_SCORE[ss]??0;
-    const st=sc>=1?'좋음':sc<=-.8?'주의':'보통';
+    const st=sc>=1?U('mGood'):sc<=-.8?U('mCaution'):U('mNormal');
     MONTHS.push({M,k:mp?mp.k:'',h:mp?mp.h:'',ss,sc,st});
   }
-  const cells=MONTHS.map(m=>`<div class="mh-cell ${m.sc>=1?'good':m.sc<=-.8?'bad':'mid'}" role="button" tabindex="0" onclick="showMonthDetail(${m.M})" onkeydown="if(event.key==='Enter')showMonthDetail(${m.M})"><i class="mh-arrow">＋</i><b>${m.M}월</b><span>${m.st}</span></div>`).join("");
+  const cells=MONTHS.map(m=>`<div class="mh-cell ${m.sc>=1?'good':m.sc<=-.8?'bad':'mid'}" role="button" tabindex="0" onclick="showMonthDetail(${m.M})" onkeydown="if(event.key==='Enter')showMonthDetail(${m.M})"><i class="mh-arrow">＋</i><b>${monthLabel(m.M)}</b><span>${m.st}</span></div>`).join("");
   return `<div class="mh">${cells}</div><div id="mhDetail"></div>`;
 }
 function showMonthDetail(M){
   const m=MONTHS.find(x=>x.M===M),box=document.getElementById('mhDetail');if(!m||!box)return;
-  const theme=YEAR_THEME[m.ss]||m.ss||'무난한 흐름';
-  const advice=m.sc>=1?'적극적으로 움직이기 좋은 달이에요. 미뤄둔 일에 힘을 실어보세요.':m.sc<=-.8?'큰 결정·계약·큰 지출은 한 박자 미루고, 지키는 데 힘쓰는 게 이득이에요.':'무난한 흐름이에요. 평소 페이스대로 가면 됩니다.';
+  const theme=yearTheme(m.ss)||U('mSmooth');
+  const advice=m.sc>=1?U('mAdvGood'):m.sc<=-.8?U('mAdvBad'):U('mAdvMid');
   const cls=m.sc>=1?'good':m.sc<=-.8?'bad':'mid';
-  box.innerHTML=`<div class="mh-detail ${cls}"><div class="mh-dh"><b>${M}월</b><span class="mh-gz">${m.h} ${m.k}월</span><span class="mh-tag ${cls}">${m.st}</span></div>`+
-    `<p>이 달은 <b>${theme}</b>의 기운이에요. ${advice}</p>`+
-    `<p class="mh-cap">사주 월운은 <b>절기(節氣)</b>로 나뉘어요 — 이 칸은 절기상 <b>양력 ${M}월 초 ~ ${M===12?'다음해 1월':(M+1)+'월'} 초</b>를 봅니다.</p></div>`;
+  const gzSuf=LANG==='ko'?'월':LANG==='en'?'':'月';
+  const nextM=M===12?monthLabel(1):monthLabel(M+1);
+  box.innerHTML=`<div class="mh-detail ${cls}"><div class="mh-dh"><b>${monthLabel(M)}</b><span class="mh-gz">${m.h} ${m.k}${gzSuf}</span><span class="mh-tag ${cls}">${m.st}</span></div>`+
+    `<p>${U('mThemeIntro').replace('{T}',theme)} ${advice}</p>`+
+    `<p class="mh-cap">${U('mSolarCap').replace('{M}',monthLabel(M)).replace('{N}',nextM)}</p></div>`;
   box.querySelectorAll('p').forEach(p=>p.innerHTML=brk(p.innerHTML));
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -978,6 +987,8 @@ function renderForeign(t,d,w,noTime,conv){
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${F.aiReading}</h3><div class="ai-out" id="foreignReport">${isLocked()?lockCTA():`<div class="typing"><span class="lmsg">${loadingMsgs()[0]}</span><i></i><i></i><i></i></div>`}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}${F.ohaeng}</h3>${ohaengRadar(d.el)}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}${F.lifegraph}</h3>${lifeGraph(d)}</div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} ${U('monthTitle')}</h3>${monthHeatmap(d.dStem)}
+      <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)">${U('mTapHint')}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${F.myeongsik}</h3>
       <table style="text-align:center"><tr><th>時</th><th>日</th><th>月</th><th>年</th></tr>
       <tr><td class="hanja">${noTime?'—':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr></table>
@@ -1176,6 +1187,17 @@ const UI18N={
   lockBtn:{ko:'내 타이밍 잠금 해제',en:'Unlock my timing',ja:'私のタイミングを見る',zh:'解锁我的时机'},
   lockGuar:{ko:'생성 전 취소 시 100% 환불',en:'100% refund if canceled before generating',ja:'生成前のキャンセルは100%返金',zh:'生成前取消可100%退款'},
   loveYr:{ko:'인연운',en:'love luck',ja:'縁の年',zh:'姻缘运'},
+  mGood:{ko:'좋음',en:'Good',ja:'良い',zh:'佳'},
+  mCaution:{ko:'주의',en:'Caution',ja:'注意',zh:'注意'},
+  mNormal:{ko:'보통',en:'Normal',ja:'普通',zh:'一般'},
+  mSmooth:{ko:'무난한 흐름',en:'a steady flow',ja:'無難な流れ',zh:'平稳走势'},
+  mAdvGood:{ko:'적극적으로 움직이기 좋은 달이에요. 미뤄둔 일에 힘을 실어보세요.',en:"A good month to move boldly — put energy into what you've put off.",ja:'積極的に動くのに良い月。先延ばしにしたことに力を入れて。',zh:'适合积极行动的月份，把拖延的事推进一把。'},
+  mAdvBad:{ko:'큰 결정·계약·큰 지출은 한 박자 미루고, 지키는 데 힘쓰는 게 이득이에요.',en:'Hold off big decisions, contracts and large spending — focus on protecting what you have.',ja:'大きな決断・契約・大きな出費は一拍おいて、守りに徹するのが得。',zh:'重大决定·合同·大额支出稍缓，以守为宜。'},
+  mAdvMid:{ko:'무난한 흐름이에요. 평소 페이스대로 가면 됩니다.',en:'A steady month — keep your usual pace.',ja:'無難な流れ。いつものペースで大丈夫。',zh:'走势平稳，按平常节奏即可。'},
+  mThemeIntro:{ko:'이 달은 <b>{T}</b>의 기운이에요.',en:'This month carries <b>{T}</b> energy.',ja:'この月は<b>{T}</b>の気です。',zh:'这个月是<b>{T}</b>之气。'},
+  monthTitle:{ko:'올해 월별 흐름',en:'This Year, Month by Month',ja:'今年の月別の流れ',zh:'今年月运走势'},
+  mTapHint:{ko:'<b>월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)',en:'<b>Tap a month</b> for detail · <span class="dot g"></span>good <span class="dot r"></span>caution — monthly luck follows the <b>solar terms</b> (represents that calendar month).',ja:'<b>月をタップ</b>で詳しく · <span class="dot g"></span>良い <span class="dot r"></span>注意 — 月運は<b>節気</b>基準(その暦月の代表)。',zh:'<b>点击月份</b>看详情 · <span class="dot g"></span>佳 <span class="dot r"></span>注意 — 月运以<b>节气</b>为准(代表该公历月)。'},
+  mSolarCap:{ko:'사주 월운은 <b>절기(節氣)</b>로 나뉘어요 — 이 칸은 절기상 <b>양력 {M}월 초 ~ {N} 초</b>를 봅니다.',en:'Monthly luck is divided by the <b>solar terms</b> — this cell covers roughly <b>early {M} to early {N}</b>.',ja:'月運は<b>節気</b>で分かれます — この枠は<b>{M}月初め～{N}初め</b>頃です。',zh:'月运以<b>节气</b>划分 — 此格约为<b>{M}月初～{N}初</b>。'},
   restoreSaved:{ko:'지난 사주가 저장돼 있어요',en:'Your last reading is saved',ja:'前回の鑑定が保存されています',zh:'上次的解读已保存'},
   resume:{ko:'이어보기',en:'Resume',ja:'続きを見る',zh:'继续查看'},
   clearAria:{ko:'지우기',en:'Clear',ja:'消去',zh:'清除'},
@@ -1190,6 +1212,7 @@ const UI18N={
 };
 function U(k){const m=UI18N[k]||{};return m[LANG]!=null?m[LANG]:m.ko;}
 function ageFmt(a){return LANG==='en'?`age ${a}`:LANG==='ja'?`${a}歳`:LANG==='zh'?`${a}岁`:`${a}세`;}
+function monthLabel(M){return LANG==='en'?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][M-1]:LANG==='ko'?`${M}월`:`${M}月`;}
 function setChatBusy(b){const s=document.querySelector('.chat-send');if(s){s.disabled=b;s.textContent=b?'…':sendLabel();}document.querySelectorAll('#topics .ask, #ctopics .ask').forEach(x=>{x.disabled=b;});}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let CHAT_BUSY=false,CHAT_TIMER=null;
