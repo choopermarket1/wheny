@@ -536,10 +536,21 @@ function speakEl(btn){
   const text=(box?box.innerText:'').replace(/[▍＋›]/g,'').replace(/듣기|정지/g,'').trim();
   if(!text)return;
   const u=new SpeechSynthesisUtterance(text);
-  u.lang=({ko:'ko-KR',ja:'ja-JP',en:'en-US',zh:'zh-CN'})[LANG]||'ko-KR';
+  const v=pickVoice();
+  if(v){u.voice=v;u.lang=v.lang;}else{u.lang=({ko:'ko-KR',ja:'ja-JP',en:'en-US',zh:'zh-CN'})[LANG]||'ko-KR';}
+  u.rate=0.95;u.pitch=1.02; // 살짝 느리고 부드럽게 = 덜 로봇
   u.onend=()=>btn.classList.remove('on');u.onerror=()=>btn.classList.remove('on');
   speechSynthesis.speak(u);btn.classList.add('on');
 }
+// 자연스러운 음성 우선 선택 (구글/뉴럴/자연 음성 > 기본)
+function pickVoice(){
+  const vs=(('speechSynthesis' in window)?speechSynthesis.getVoices():[])||[];
+  const pref=({ko:'ko',ja:'ja',en:'en',zh:'zh'})[LANG]||'ko';
+  const forLang=vs.filter(v=>v.lang&&v.lang.toLowerCase().startsWith(pref));
+  return forLang.find(v=>/google|neural|natural|siri|premium|wavenet|yuna|heami|sora|nari/i.test(v.name))
+      || forLang.find(v=>!/microsoft/i.test(v.name)) || forLang[0] || null;
+}
+if('speechSynthesis' in window){try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();}catch(e){}}
 function ttsBtn(){return `<button class="ttsbtn" onclick="speakEl(this)" aria-label="음성으로 듣기">${IC.sound}듣기</button>`;}
 const HEART=`<span class="hm"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 17.3S2.6 12.4 2.6 7.4A3.8 3.8 0 0 1 10 5.1a3.8 3.8 0 0 1 7.4 2.3c0 5-7.4 9.9-7.4 9.9z"/></svg></span>`;
 // 라벨 앞 이모지 제거 (모던 텍스트 칩)
