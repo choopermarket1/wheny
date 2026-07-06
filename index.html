@@ -414,8 +414,11 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
     <b>AI 선생님의 정밀 해석</b>은 결제 후 제공됩니다.
   </div>
 
+  <!-- 왜 Wheny인가 (구매 이유 2가지) -->
+  <div id="whyw" style="margin:36px 0 0"></div>
+
   <!-- 상품·가격 안내 (전자상거래 표시) -->
-  <div id="pricing" style="margin:36px 0 0;background:linear-gradient(180deg,#16161d,#101015);border:1px solid rgba(201,169,97,.20);border-radius:20px;padding:28px 26px;box-shadow:0 30px 70px -44px rgba(0,0,0,.9)">
+  <div id="pricing" style="margin:18px 0 0;background:linear-gradient(180deg,#16161d,#101015);border:1px solid rgba(201,169,97,.20);border-radius:20px;padding:28px 26px;box-shadow:0 30px 70px -44px rgba(0,0,0,.9)">
     <div style="color:#c9a961;font-weight:700;letter-spacing:1px;font-size:13px;margin-bottom:14px">유료 상품 안내</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #2b2f3a;padding-bottom:16px;margin-bottom:16px">
       <div>
@@ -798,7 +801,11 @@ function lifeGraph(d){
   const P=pts.map((p,i)=>[xs(i),ys(p.score)]);
   let path=`M${P[0][0]},${P[0][1]}`;
   for(let i=0;i<P.length-1;i++){const cx=(P[i][0]+P[i+1][0])/2;path+=` C${cx},${P[i][1]} ${cx},${P[i+1][1]} ${P[i+1][0]},${P[i+1][1]}`;}
-  const base=ys(mn),area=`${path} L${P[n-1][0]},${base} L${P[0][0]},${base} Z`,zeroY=ys(0),curX=xs(curIdx);
+  const base=ys(mn),area=`${path} L${P[n-1][0]},${base} L${P[0][0]},${base} Z`,zeroY=ys(0);
+  // '지금' 선 = 대운 시작점이 아니라 실제 올해(NOW) 위치로 보간 (예: '18 대운 중이라도 2026이면 '18~'28 사이 6할 지점)
+  let curX=xs(curIdx);
+  if(NOW>pts[curIdx].year){const span=(pts[curIdx+1]?pts[curIdx+1].year-pts[curIdx].year:10)||10;
+    curX=xs(Math.min(n-1,curIdx+Math.min(1,(NOW-pts[curIdx].year)/span)));}
   const dots=pts.map((p,i)=>{const cls=p.score>=1?'op':p.score<=-.8?'ca':'nu',cur=i===curIdx;
     return `<circle cx="${xs(i)}" cy="${ys(p.score)}" r="${cur?5.5:4}" class="lg-dot ${cls}${cur?' cur':''}"/>`;}).join("");
   const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">${isLocked()&&p.year>NOW?'··':"'"+String(p.year).slice(2)}</text>`).join("");
@@ -1439,27 +1446,36 @@ const STATIC_I18N={
       pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'AI 선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',
       badge:'런칭 특가',hook:'결혼·이직·돈이 <b>‘언제’</b>인지 — 연도와 달까지 콕 집어드려요',g1:'연애·결혼운 터지는 <b>연도·달</b>',g2:'재물이 들어오는 시기 & 새는 구멍',g3:'직업·이직·사업 최적 <b>타이밍</b>',g4:'이름 성명학 + 궁합(상대 명식까지)',g5:'선생님과 <b>무제한 후속 질문</b>(대화 기억)',anchor:'오프라인 사주 3~5만원 · 전화상담 3만원',guarantee:'리포트 생성 전 취소 시 100% 환불',cta:'지금 내 타이밍 확인하기',
       pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
-      fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)'},
+      fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)',
+      wTitle:'왜 Wheny여야 하나요',w1t:'"언제"를 년·월로 콕 집습니다',w1d:'좋은 말만 하는 운세가 아니에요. <b style="color:#c7bfa9">한국천문연구원(KASI) 검증 만세력</b>으로 절기를 분 단위까지 계산하고, 결혼·이직·돈이 <b style="color:#e7d3a1">몇 년 몇 월</b>인지 근거와 함께 짚습니다.',w2t:'과거를 먼저 맞히는지 보고 결정하세요',w2d:'무료 리포트가 <b style="color:#c7bfa9">당신의 과거 변곡점</b>(흐름이 꺾인 나이)부터 맞히는지 먼저 확인하세요. 과거가 맞아야 미래도 믿을 수 있으니까요. 생성 전 취소는 <b style="color:#8fbf86">100% 환불</b>입니다.'},
   en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>AI reader\'s full reading</b> is provided after payment.',
       pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The AI reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',
       badge:'Launch price',hook:'<b>When</b> you marry, switch jobs, come into money — down to the year and month',g1:'The <b>year & month</b> your love & marriage luck peaks',g2:'When wealth flows in — and where it leaks',g3:'Best <b>timing</b> for career, job change, business',g4:'Name reading + compatibility (both charts)',g5:'<b>Unlimited follow-up questions</b> (remembers you)',anchor:'Offline reading $25–40 · phone reading $25',guarantee:'100% refund if canceled before the reading is generated',cta:'Unlock my timing now',
       pay:'Payment: credit/debit card, etc. (PG: PortOne)',deliver:'Delivery: shown online immediately after payment',refundLbl:'Refund',refundLink:'Refund & withdrawal policy',refundTail:' applies (full refund if canceled before the reading is generated).',
-      fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
+      fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',
+      wTitle:'Why Wheny',w1t:'We pin your "when" to the year and month',w1d:'Not feel-good fortunes. Your chart is computed on an ephemeris <b style="color:#c7bfa9">verified against KASI</b> (Korea Astronomy & Space Science Institute) down to the minute — so marriage, career moves and money are pinned to <b style="color:#e7d3a1">a year and month</b>, with reasons.',w2t:'Verify the past before you pay',w2d:'The free reading first calls out <b style="color:#c7bfa9">the turning points of your past</b>. If it nails where your life bent, you can trust where it points next. Cancel before generation for a <b style="color:#8fbf86">100% refund</b>.'},
   ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>AI占い師の詳しい鑑定</b>は決済後に提供されます。',
       pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'AI占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',
       badge:'ローンチ特価',hook:'結婚・転職・お金が<b>「いつ」</b>か — 年と月まで的確に',g1:'恋愛・結婚運が弾ける<b>年・月</b>',g2:'お金が入る時期と漏れる穴',g3:'仕事・転職・事業の最適<b>タイミング</b>',g4:'姓名判断＋相性（お相手の命式も）',g5:'占い師への<b>無制限の追加質問</b>（会話を記憶）',anchor:'対面鑑定3〜5万ウォン・電話相談3万ウォン',guarantee:'鑑定生成前のキャンセルは100%返金',cta:'今すぐ私のタイミングを見る',
       pay:'決済手段: クレジット・デビットカード等（決済代行 PortOne）',deliver:'提供方法: 決済完了後すぐ画面でオンライン提供',refundLbl:'返金',refundLink:'返金・キャンセル方針',refundTail:'に従います（コンテンツ生成前のキャンセルは全額返金）。',
-      fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
+      fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',
+      wTitle:'なぜWhenyなのか',w1t:'「いつ」を年・月まで特定します',w1d:'耳ざわりの良い占いではありません。<b style="color:#c7bfa9">韓国天文研究院(KASI)検証の万年暦</b>で節気を分単位まで計算し、結婚・転職・お金が<b style="color:#e7d3a1">何年何月</b>かを根拠とともに示します。',w2t:'まず過去が当たるか確かめてから',w2d:'無料鑑定がまず<b style="color:#c7bfa9">あなたの過去の転機</b>(流れが変わった年齢)を当てるか確認してください。過去が当たってこそ未来も信じられます。生成前のキャンセルは<b style="color:#8fbf86">100%返金</b>。'},
   zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>AI老师的精细解读</b>在付款后提供。',
       pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'AI老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',
       badge:'上线特价',hook:'结婚·跳槽·财运<b>「何时」</b>——精确到年和月',g1:'恋爱·婚姻运爆发的<b>年·月</b>',g2:'财运进账的时机与漏财之处',g3:'事业·跳槽·创业的最佳<b>时机</b>',g4:'姓名学＋合婚（含对方命盘）',g5:'向老师<b>无限追问</b>（记住对话）',anchor:'线下算命3~5万韩元·电话咨询3万韩元',guarantee:'内容生成前取消可100%退款',cta:'立即查看我的时机',
       pay:'支付方式: 信用卡·借记卡等（支付代行 PortOne）',deliver:'提供方式: 付款完成后即时在页面在线提供',refundLbl:'退款',refundLink:'退款·撤销政策',refundTail:'（内容生成前取消可全额退款）。',
-      fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea'},
+      fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',
+      wTitle:'为什么选 Wheny',w1t:'把「何时」精确到年和月',w1d:'不是只说好话的运势。以<b style="color:#c7bfa9">韩国天文研究院(KASI)验证的万年历</b>将节气计算到分钟级，结婚·跳槽·财运<b style="color:#e7d3a1">在哪年哪月</b>，连同依据一并点破。',w2t:'先验证过去，再决定付费',w2d:'先看免费解读能否说中<b style="color:#c7bfa9">你过去的转折点</b>(人生转向的年龄)。过去说得准，未来才值得信。内容生成前取消<b style="color:#8fbf86">100%退款</b>。'},
 };
 function renderStatic(){
   const s=STATIC_I18N[LANG]||STATIC_I18N.ko;
   const nt=document.getElementById('disclaimer');if(nt)nt.innerHTML=`${s.n1}<br>${s.n2}<br>${s.n3}`;
   const chk='<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8fbf86" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M3 8.5l3.5 3.5 6.5-8"/></svg>';
+  const ww=document.getElementById('whyw');if(ww&&s.wTitle)ww.innerHTML=`<div style="color:#c9a961;font-weight:700;letter-spacing:1px;font-size:13px;margin-bottom:12px;text-align:center">${s.wTitle}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+    ${[[s.w1t,s.w1d,IC.clock],[s.w2t,s.w2d,IC.spark]].map(([t2,d2,ic])=>`<div style="background:linear-gradient(180deg,#16161d,#101015);border:1px solid rgba(201,169,97,.20);border-radius:18px;padding:20px 19px">
+      <div style="display:flex;align-items:center;gap:8px;color:#e7d3a1;font-weight:800;font-size:15px;margin-bottom:9px">${ic}${t2}</div>
+      <div style="color:#9a9280;font-size:13.5px;line-height:1.7">${d2}</div></div>`).join('')}</div>`;
   const pc=document.getElementById('pricing');if(pc)pc.innerHTML=`<div style="display:inline-block;background:rgba(201,169,97,.16);color:#e7d3a1;font-size:11.5px;font-weight:700;letter-spacing:.5px;padding:5px 11px;border-radius:999px;margin-bottom:14px">${s.badge}</div>
     <div style="font-size:19px;font-weight:800;line-height:1.5;margin-bottom:18px">${s.hook}</div>
     <div style="display:grid;gap:11px;margin-bottom:20px">${[s.g1,s.g2,s.g3,s.g4,s.g5].map(g=>`<div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;color:#d8d2c4">${chk}<span>${g}</span></div>`).join('')}</div>
