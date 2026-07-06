@@ -195,7 +195,15 @@
   .ansitem p{margin:0;font-size:14.5px;color:var(--paperdim)}
   .aibtn{width:100%;padding:16px;background:linear-gradient(180deg,var(--gold2),var(--gold) 60%,var(--goldDeep));color:#1a1408;
     border:0;border-radius:14px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;letter-spacing:.04em;
-    box-shadow:0 14px 34px -16px rgba(201,169,97,.6)}
+    box-shadow:0 14px 34px -16px rgba(201,169,97,.6);transition:transform .15s,box-shadow .15s;animation:aibtnPulse 2.6s ease-in-out infinite}
+  .aibtn:hover{transform:translateY(-2px);box-shadow:0 20px 46px -16px rgba(201,169,97,.8)}
+  .aibtn:active{transform:translateY(0) scale(.99)}
+  @keyframes aibtnPulse{0%,100%{box-shadow:0 14px 34px -16px rgba(201,169,97,.6),0 0 0 0 rgba(201,169,97,0)}55%{box-shadow:0 14px 34px -16px rgba(201,169,97,.6),0 0 0 7px rgba(201,169,97,.13)}}
+  .chat-cue{display:flex;align-items:center;gap:8px;margin:16px 0 9px;padding:11px 13px;border:1px dashed var(--goldLine);border-radius:12px;background:color-mix(in srgb,var(--gold) 6%,transparent);font-size:13px;color:var(--paperdim)}
+  .chat-cue .ic svg{width:17px;height:17px;color:var(--gold)}
+  .chat-in input{animation:cueGlow 2.8s ease-in-out 3}
+  @keyframes cueGlow{0%,100%{box-shadow:0 0 0 0 rgba(201,169,97,0)}50%{box-shadow:0 0 0 3px rgba(201,169,97,.18)}}
+  @media(prefers-reduced-motion:reduce){.aibtn,.chat-in input{animation:none}}
   .ai-out{background:var(--card);border:1px solid var(--hwang);border-radius:14px;padding:18px}
   .ai-h{font-family:"Noto Serif KR",serif;font-size:15.5px;font-weight:800;color:var(--hwang);
     margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
@@ -600,6 +608,7 @@ const IC={
   cam:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="1.6" y="4.6" width="12.8" height="8.8" rx="2"/><circle cx="8" cy="9" r="2.6"/><path d="M5.4 4.6l1-1.6h3.2l1 1.6"/></svg></span>`,
   sound:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2.5 6h2.5L8.5 3v10L5 10H2.5z"/><path d="M11 6a2.6 2.6 0 0 1 0 4M12.6 4.6a4.8 4.8 0 0 1 0 6.8"/></svg></span>`,
   lock:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="3.3" y="7" width="9.4" height="6.6" rx="1.6"/><path d="M5.4 7V5.1a2.6 2.6 0 0 1 5.2 0V7"/></svg></span>`,
+  chat:`<span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.6 4.4a1.8 1.8 0 0 1 1.8-1.8h7.2a1.8 1.8 0 0 1 1.8 1.8v4.6a1.8 1.8 0 0 1-1.8 1.8H6.5L3.2 13.4V10.8h-.6z"/><path d="M5.6 6.5h4.8M5.6 8.6h3"/></svg></span>`,
 };
 // 음성 읽기 (브라우저 TTS, 무료). 언어에 맞춰 읽음.
 function speakEl(btn){
@@ -1040,11 +1049,12 @@ function run(){
       <button class="aibtn" onclick="askAI()">${PAY.on&&!FREE_LAUNCH?`${t.nm} 정밀 해석 받기 · ${won(PAY.price)}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
       ${PAY.on&&!FREE_LAUNCH?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${t.nm}에게 더 물어보기</h3>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chat}${t.nm}에게 더 물어보기</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">아래 주제를 <b style="color:var(--gold)">눌러보세요</b> — <b>${t.nm}</b>이 그 주제만 콕 짚어 바로 답해드려요.</p>
       <div class="followups" id="topics"></div>
+      <div class="chat-cue">${IC.chat}<span><b style="color:var(--paper)">무엇이든 직접 물어봐도 돼요.</b> 앞 대화를 기억하고 이어서 답해드려요 — <b style="color:var(--gold)">무료</b></span></div>
       <div id="more" class="chat-thread"></div>
-      <div class="chat-in"><input id="chatText" placeholder="${t.nm}에게 직접 물어보기…" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
+      <div class="chat-in"><input id="chatText" placeholder="예) 올해 이직해도 될까요?" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
     <div class="actions">
       <button class="share" onclick="shareCard()">${IC.cam}이 소름 이미지로 저장·공유</button>
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
@@ -1056,9 +1066,9 @@ function run(){
 }
 // 외국어 결과(A안): 시각요소는 그대로 + 본문은 AI가 그 언어로 스트리밍 생성
 const FI18N={
-  en:{reads:'reads your chart',aiReading:'Your Reading',ohaeng:'Five Elements Balance',lifegraph:'Life Graph · Luck Cycles',myeongsik:'Your Four Pillars',ask:'Ask more',askDesc:'Type any question — answered in your language.',ph:'Ask anything…',send:'Send',note:'Chart, luck cycles & signs are real calculations. Your reading is written by AI.',compat:'Compatibility',me:'Me',partner:'Partner',readingCompat:'is reading your compatibility',askCompat:'Ask more about this match',askCompatDesc:'Ask about reunion, marriage, their true feelings — <b style="color:var(--gold)">tap or type</b>. Both charts read together.',phCompat:'Ask about this match…',shareCompat:'Share match',redo:'View again'},
-  ja:{reads:'があなたを占います',aiReading:'あなたの鑑定',ohaeng:'五行バランス',lifegraph:'人生グラフ · 大運の流れ',myeongsik:'あなたの四柱',ask:'もっと聞く',askDesc:'何でも質問してください — あなたの言語で答えます。',ph:'質問を入力…',send:'送信',note:'命式・大運・星座は実際の計算値。鑑定はAIが作成します。',compat:'相性',me:'あなた',partner:'お相手',readingCompat:'が二人の相性を占っています',askCompat:'相性についてもっと聞く',askCompatDesc:'復縁・結婚・本音まで <b style="color:var(--gold)">タップor直接</b> 質問を — 二人の命式を一緒に見ます。',phCompat:'相性について質問…',shareCompat:'相性をシェア',redo:'もう一度見る'},
-  zh:{reads:'为你解读',aiReading:'你的解读',ohaeng:'五行平衡',lifegraph:'人生曲线 · 大运走势',myeongsik:'你的四柱',ask:'继续提问',askDesc:'输入任何问题 — 用你的语言回答。',ph:'输入问题…',send:'发送',note:'命盘·大运·星座为真实推算。解读由AI生成。',compat:'合婚',me:'我',partner:'对方',readingCompat:'正在为两人合婚',askCompat:'继续询问合婚',askCompatDesc:'复合·结婚·对方心意都可 <b style="color:var(--gold)">点击或直接</b> 提问 — 一起看两人命盘。',phCompat:'询问合婚…',shareCompat:'分享合婚',redo:'重新查看'}
+  en:{reads:'reads your chart',aiReading:'Your Reading',ohaeng:'Five Elements Balance',lifegraph:'Life Graph · Luck Cycles',myeongsik:'Your Four Pillars',ask:'Ask more',askDesc:'Type any question — answered in your language.',ph:'Ask anything…',send:'Send',note:'Chart, luck cycles & signs are real calculations. Your reading is written by AI.',compat:'Compatibility',me:'Me',partner:'Partner',readingCompat:'is reading your compatibility',askCompat:'Ask more about this match',askCompatDesc:'Ask about reunion, marriage, their true feelings — <b style="color:var(--gold)">tap or type</b>. Both charts read together.',phCompat:'Ask about this match…',shareCompat:'Share match',redo:'View again',chatCue:'<b style="color:var(--paper)">Ask anything you want.</b> Your reader remembers the conversation and keeps going — <b style="color:var(--gold)">free</b>.',phEx:'e.g. Should I change jobs this year?'},
+  ja:{reads:'があなたを占います',aiReading:'あなたの鑑定',ohaeng:'五行バランス',lifegraph:'人生グラフ · 大運の流れ',myeongsik:'あなたの四柱',ask:'もっと聞く',askDesc:'何でも質問してください — あなたの言語で答えます。',ph:'質問を入力…',send:'送信',note:'命式・大運・星座は実際の計算値。鑑定はAIが作成します。',compat:'相性',me:'あなた',partner:'お相手',readingCompat:'が二人の相性を占っています',askCompat:'相性についてもっと聞く',askCompatDesc:'復縁・結婚・本音まで <b style="color:var(--gold)">タップor直接</b> 質問を — 二人の命式を一緒に見ます。',phCompat:'相性について質問…',shareCompat:'相性をシェア',redo:'もう一度見る',chatCue:'<b style="color:var(--paper)">何でも直接聞いてOK。</b>前の会話を覚えて続けて答えます — <b style="color:var(--gold)">無料</b>。',phEx:'例) 今年転職してもいい？'},
+  zh:{reads:'为你解读',aiReading:'你的解读',ohaeng:'五行平衡',lifegraph:'人生曲线 · 大运走势',myeongsik:'你的四柱',ask:'继续提问',askDesc:'输入任何问题 — 用你的语言回答。',ph:'输入问题…',send:'发送',note:'命盘·大运·星座为真实推算。解读由AI生成。',compat:'合婚',me:'我',partner:'对方',readingCompat:'正在为两人合婚',askCompat:'继续询问合婚',askCompatDesc:'复合·结婚·对方心意都可 <b style="color:var(--gold)">点击或直接</b> 提问 — 一起看两人命盘。',phCompat:'询问合婚…',shareCompat:'分享合婚',redo:'重新查看',chatCue:'<b style="color:var(--paper)">什么都可以直接问。</b>老师会记住对话继续回答 — <b style="color:var(--gold)">免费</b>。',phEx:'例) 我今年适合跳槽吗？'}
 };
 function renderForeign(t,d,w,noTime,conv){
   const F=FI18N[LANG]||FI18N.en;
@@ -1074,11 +1084,12 @@ function renderForeign(t,d,w,noTime,conv){
       <table style="text-align:center"><tr><th>時</th><th>日</th><th>月</th><th>年</th></tr>
       <tr><td class="hanja">${noTime?'—':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr></table>
       <p style="margin:8px 0 0;text-align:center;font-size:12px;color:var(--dim)">${d.dm[0]} · ${w.sun[0]} ☉ · ${w.moon[0]} ☾</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${TT(picked).nm} · ${F.ask}</h3>
+    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chat}${TT(picked).nm} · ${F.ask}</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${F.askDesc}</p>
       <div class="followups" id="topics"></div>
+      <div class="chat-cue">${IC.chat}<span>${F.chatCue}</span></div>
       <div id="more" class="chat-thread"></div>
-      <div class="chat-in"><input id="chatText" placeholder="${F.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
+      <div class="chat-in"><input id="chatText" placeholder="${F.phEx}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
     <div class="note">${F.note}</div>`;
   saveSession();
   renderTopics(t.cv); // 외국어에도 주제 버튼(한국어와 동일)
