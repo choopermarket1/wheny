@@ -332,8 +332,8 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       </select></div>
       <div><label>성별</label><select id="gender"><option value="female">여자</option><option value="male">남자</option></select></div>
     </div>
-    <label>이름 (한자, 선택)</label>
-    <input id="hanja" placeholder="예: 秀賢 — 이름 오행까지 풀이 (없으면 비워두세요)" maxlength="8" autocomplete="off" />
+    <label>이름 (선택 — 넣으면 이름 풀이까지)</label>
+    <input id="hanja" placeholder="한자 또는 한글 이름 · 비워둬도 돼요 (예: 秀賢 / 홍길동)" maxlength="10" autocomplete="off" />
     <div id="partnerBox" style="display:none">
       <div class="lbl-t" style="color:var(--hong)">💞 상대방 (양력 기준)</div>
       <label>상대 생년월일</label>
@@ -768,13 +768,16 @@ function run(){
   const d=computeSaju(b),w=computeWest(b),age=NOW-Y,t=TEACHERS[picked];
   if(noTime){const e={木:0,火:0,土:0,金:0,水:0};[d.P.year,d.P.month,d.P.day].forEach(p=>{e[STEMS[p.s][2]]++;e[BRANCHES[p.b][2]]++;});d.el=e;} // 시주 제외 3주 오행
   const r=report(picked,d,w,age,gender),missing=r.missing;
+  // MCP식 날짜 계산: 미래 세운(연도별 20년)·월운(월별 12개월)을 미리 계산해 AI에 제공 → 특정 연/월 질문에 정확히 답
+  const seun=[];for(let y=NOW;y<=NOW+20;y++){const g=yearGZ(y),ss=sipsin(d.dStem,g.s);seun.push({연도:y,간지:g.k,십신:ss,테마:YEAR_THEME[ss]||ss});}
+  const worun=[];{const base=NOW*12+new Date().getMonth();for(let i=0;i<12;i++){const t=base+i,Y=Math.floor(t/12),M=(t%12)+1;let mp;try{mp=computeSaju({year:Y,month:M,day:15,hour:12,minute:0,tz:9}).P.month;}catch(e){continue;}worun.push({연월:`${Y}-${String(M).padStart(2,'0')}`,간지:mp.k,십신:sipsin(d.dStem,mp.s)});}}
   const chart={생년월일:cal==='lun'?conv:`${Y}-${String(M).padStart(2,'0')}-${String(D).padStart(2,'0')}`,성별:gender==='female'?'여':'남',나이:age,
     명식:{시주:noTime?"미상(시간 모름)":d.P.hour.h,일주:d.P.day.h,월주:d.P.month.h,년주:d.P.year.h},
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]}·${d.dm[3]})`,띠:d.zodiac,오행분포:d.el,없는오행:missing,
     태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),
     현재대운:r.cur.k,올해:NOW,
-    세운:{[NOW]:yearGZ(NOW).h,[NOW+1]:yearGZ(NOW+1).h,[NOW+2]:yearGZ(NOW+2).h},
+    "세운(연도별)":seun,"월운(월별)":worun,
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
   const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
   CTX={r,tname:t.nm,chart,persona:picked,chat:[]};
