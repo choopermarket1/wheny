@@ -1167,7 +1167,10 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   fillTime('time');fillTime('ptime');fillTz();
   if(typeof renderTeachers==='function')renderTeachers();
 }
-function setLang(v){LANG=v;applyLang(v);}
+function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);
+  // 이미 결과가 떠 있으면 새 언어로 자동 재생성(한글리포트+영어UI 뒤섞임 방지)
+  if(changed&&CTX&&document.getElementById('result')&&document.getElementById('result').innerHTML.trim()){run();}
+}
 applyLang(LANG);
 </script>
 </body>
