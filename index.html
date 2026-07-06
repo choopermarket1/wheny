@@ -991,8 +991,11 @@ function showRestoreBanner(){try{
   const s=JSON.parse(localStorage.getItem('wheny_sess')||'null');if(!s||!s.date)return;
   const wrap=document.querySelector('.wrap'),card=document.getElementById('form');if(!wrap||!card)return;
   const b=document.createElement('div');b.className='restore-banner';
-  const cnt=(s.chat&&s.chat.length)?`지난 상담(${s.chat.filter(m=>m.role==='user').length}개 질문)이 저장돼 있어요`:'지난 사주가 저장돼 있어요';
-  b.innerHTML=`<span>${cnt}</span><button class="rb-go" onclick="restoreSession()">이어보기 →</button><button class="rb-x" onclick="localStorage.removeItem('wheny_sess');this.parentElement.remove()" aria-label="지우기">✕</button>`;
+  const nq=(s.chat||[]).filter(m=>m.role==='user').length;
+  const cnt=(s.chat&&s.chat.length)
+    ?({ko:`지난 상담(${nq}개 질문)이 저장돼 있어요`,en:`Your last session (${nq} questions) is saved`,ja:`前回の相談(${nq}件の質問)が保存されています`,zh:`上次的咨询(${nq}个问题)已保存`}[LANG]||`지난 상담(${nq}개 질문)이 저장돼 있어요`)
+    :U('restoreSaved');
+  b.innerHTML=`<span>${cnt}</span><button class="rb-go" onclick="restoreSession()">${U('resume')} →</button><button class="rb-x" onclick="localStorage.removeItem('wheny_sess');this.parentElement.remove()" aria-label="${U('clearAria')}">✕</button>`;
   wrap.insertBefore(b,card);
 }catch(e){}}
 // 줄글 → 문장별 줄바꿈 (한글 종결어 뒤에서 끊고, 2032. 같은 숫자 마침표는 제외)
@@ -1086,6 +1089,9 @@ const UI18N={
   empty:{ko:'(빈 응답이에요. 다시 한 번 물어봐 주세요.)',en:'(Empty response. Please ask again.)',ja:'(応答が空でした。もう一度質問してください。)',zh:'(回复为空，请再问一次。)'},
   slow:{ko:'답변이 좀 늦네요 🐢 잠시 후 같은 질문을 다시 보내주세요.',en:"Taking a bit long 🐢 Please resend the same question in a moment.",ja:'返答が少し遅れています 🐢 少し待って同じ質問を再送してください。',zh:'回复有点慢 🐢 请稍后再发送相同的问题。'},
   zero:{ko:'없음',en:'none',ja:'なし',zh:'无'},
+  restoreSaved:{ko:'지난 사주가 저장돼 있어요',en:'Your last reading is saved',ja:'前回の鑑定が保存されています',zh:'上次的解读已保存'},
+  resume:{ko:'이어보기',en:'Resume',ja:'続きを見る',zh:'继续查看'},
+  clearAria:{ko:'지우기',en:'Clear',ja:'消去',zh:'清除'},
   retry:{ko:'다시 시도',en:'Try again',ja:'再試行',zh:'重试'},
   retrying:{ko:'다시 시도하는 중…',en:'Retrying…',ja:'再試行中…',zh:'重试中…'},
   opp:{ko:'기회',en:'Opportunity',ja:'チャンス',zh:'机会'},
