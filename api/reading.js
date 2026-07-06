@@ -211,7 +211,7 @@ export default async function handler(req, res) {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     // --- 스트리밍: 텍스트를 실시간으로 흘려보냄(체감속도 ↑) ---
-    if (stream && mode !== "compat") {
+    if (stream) {
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
       res.setHeader("Cache-Control", "no-cache, no-transform");
       res.setHeader("X-Accel-Buffering", "no");
