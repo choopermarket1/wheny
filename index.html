@@ -1045,17 +1045,26 @@ async function askAI(){
   const box=document.getElementById('ai-box');
   box.innerHTML=`<div class="ai-out"><div class="typing"><span class="lmsg">${LOADING_MSGS[0]}</span><i></i><i></i><i></i></div><div style="font-size:11px;color:var(--dim);margin-top:6px">보통 10~20초 걸려요</div></div>`;
   let _i=0;const _t=setInterval(()=>{const el=box.querySelector('.lmsg');if(!el){clearInterval(_t);return;}_i=(_i+1)%LOADING_MSGS.length;el.textContent=LOADING_MSGS[_i];},1700);
+  const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),75000);let acc='';
   try{
-    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
+    const res=await fetch('/api/reading',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctrl.signal,body:JSON.stringify({stream:true,chart:CTX.chart,persona:CTX.persona,lang:LANG,paymentId:PAID_ID})});
     if(!res.ok){let m="";try{m=(await res.json()).error||""}catch(_){} throw new Error(m||("연결 오류 "+res.status));}
-    const data=await res.json();
     clearInterval(_t);
-    box.innerHTML=`<div class="ai-out">${aiHeader()}${whenTimeline(data.reading||'')}${mdToHtml(data.reading||'')}${ttsBtn()}</div>`;
+    if(res.body&&res.body.getReader){
+      box.innerHTML=`<div class="ai-out" id="reportStream"><span class="cur">▍</span></div>`;
+      const reader=res.body.getReader(),dec=new TextDecoder();
+      while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});const el=document.getElementById('reportStream');if(el)el.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}
+    }else{const data=await res.json();acc=data.reading||'';}
+    box.innerHTML=`<div class="ai-out">${aiHeader()}${whenTimeline(acc)}${mdToHtml(acc)}${ttsBtn()}</div>`;
     breakResult();
   }catch(e){
     clearInterval(_t);
-    box.innerHTML=`<div class="ai-out"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
+    box.innerHTML=acc.trim()
+      ? `<div class="ai-out">${aiHeader()}${whenTimeline(acc)}${mdToHtml(acc)}${ttsBtn()}</div>`
+      : `<div class="ai-out"><p style="color:var(--hong)">${errMsg(e)}</p></div>`;
+    breakResult();
   }
+  clearTimeout(to);
 }
 renderTeachers();
 // 생년월일 드롭다운(클릭 선택). 히든 #date/#pdate 값을 YYYY-MM-DD로 유지 → 기존 로직 그대로 작동.
