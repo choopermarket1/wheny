@@ -2319,11 +2319,22 @@ function buildCompatPdfDoc(){
   const A=CTX.chart,B=CTX.chartB,P=pdfP(LANG),pages=[];
   const KO=(LANG==='ko'),P4=(ko,en,ja,zh)=>LANG==='ja'?ja:LANG==='zh'?zh:LANG==='ko'?ko:en;
   const th=(x)=>yearTheme?yearTheme(x):x;
-  const OH5x=P4(OH5,OH5_EN,OH5_JA,OH5_ZH);
+  const OH5x=P4(OH5,OH5_EN,OH5_JA,OH5_ZH),OHb=P4(OH_BIYU,OH_BIYU_EN,OH_BIYU_JA,OH_BIYU_ZH);
+  const GJ=(g)=>KO?g:(typeof ganjiHanja==='function'?ganjiHanja(g):g);
   _pdfCh=0;
   const elOf=s=>((String(s||'').match(/[木火土金水]/)||[])[0])||'';
   const ilA=KO?(A.일간||''):(A.일간||'').replace(/[가-힣]/g,''), ilB=KO?(B.일간||''):(B.일간||'').replace(/[가-힣]/g,'');
   const dmA=elOf(A.일간),dmB=elOf(B.일간);
+  const polA=/陽/.test(A.일간||'')?'Y':'N', polB=/陽/.test(B.일간||'')?'Y':'N';
+  const brA=(A.명식?.일주||'').slice(-1), brB=(B.명식?.일주||'').slice(-1);
+  const GEN2={木:'火',火:'土',土:'金',金:'水',水:'木'},CON2={木:'土',土:'水',水:'火',火:'金',金:'木'};
+  const tenGodOf=(de,dp,oe,op)=>{const sp=(dp===op);if(!de||!oe)return'';if(de===oe)return sp?'비견':'겁재';if(GEN2[de]===oe)return sp?'식신':'상관';if(GEN2[oe]===de)return sp?'편인':'정인';if(CON2[de]===oe)return sp?'편재':'정재';if(CON2[oe]===de)return sp?'편관':'정관';return'';};
+  const YUKHAP={子:'丑',丑:'子',寅:'亥',亥:'寅',卯:'戌',戌:'卯',辰:'酉',酉:'辰',巳:'申',申:'巳',午:'未',未:'午'};
+  const CHUNG={子:'午',午:'子',丑:'未',未:'丑',寅:'申',申:'寅',卯:'酉',酉:'卯',辰:'戌',戌:'辰',巳:'亥',亥:'巳'};
+  const SAMHAP=[['申','子','辰'],['巳','酉','丑'],['寅','午','戌'],['亥','卯','未']];
+  const branchRel=(a,b)=>{if(!a||!b)return'none';if(a===b)return'same';if(YUKHAP[a]===b)return'yukhap';if(CHUNG[a]===b)return'chung';if(SAMHAP.some(g=>g.includes(a)&&g.includes(b)))return'samhap';return'none';};
+  const godLbl=k=>KO?k:LANG==='en'?(GOD_EN[k]||k):(GOD_EN[k]||k).split(' ').pop();
+  const bToA=tenGodOf(dmA,polA,dmB,polB), aToB=tenGodOf(dmB,polB,dmA,polA), brKey=branchRel(brA,brB);
   const nmA=A.이름||P4('나','You','あなた','你'),nmB=P4('상대','Partner','お相手','对方');
   const score=CTX.cscore||78, tName=CTX.tname||P4('선생님','your reader','占い師','老师');
   const dayA=A.명식?.일주||'',dayB=B.명식?.일주||'';
@@ -2369,6 +2380,37 @@ function buildCompatPdfDoc(){
   pages.push(pg(pdfHead(P4('일간 궁합 — 두 기운의 관계','Day-Master match','日主の相性','日主合婚'),null)+
     `<div style="text-align:center;font-size:34px;margin:3mm 0 1mm;color:#2a2118">${boxit(elLabel(dmA))} <span style="color:#c9a961">↔</span> ${boxit(elLabel(dmB))}</div>`+
     compatRelText(dmA,dmB,'full',P4)));
+  // ── 십신 궁합 (배우자성) ──
+  const grp=g=>({정재:'wealth',편재:'wealth',정관:'auth',편관:'auth',정인:'res',편인:'res',식신:'out',상관:'out',비견:'peer',겁재:'peer'}[g]||'peer');
+  const sipLine=(g,giver,receiver)=>{const gr=grp(g);
+    return P4(
+      {wealth:`<b>${godLbl(g)}</b> — ${receiver} 님에게 <b>재성(財星)</b>이에요. 남성 명식에선 <b>배우자(아내)를 뜻하는 별</b>이라, 돌보고 책임지고 싶은 깊은 인연이 됩니다.`,auth:`<b>${godLbl(g)}</b> — ${receiver} 님에게 <b>관성(官星)</b>이에요. 여성 명식에선 <b>배우자(남편)를 뜻하는 별</b>이라, 기대고 함께하고 싶은 깊은 인연이 됩니다.`,res:`<b>${godLbl(g)}</b> — ${receiver} 님을 <b>북돋아 주는 인성(印星)</b>이에요. 정서적으로 기대게 되는, 편안하고 지지받는 관계.`,out:`<b>${godLbl(g)}</b> — ${giver} 님이 ${receiver} 님을 <b>돌보고 표현하는 식상(食傷)</b> 관계 — 챙겨주고 베푸는 사랑이에요.`,peer:`<b>${godLbl(g)}</b> — <b>동료·형제 같은 비겁(比劫)</b>이에요. 편하고 잘 통하지만, 경쟁·거리 조절이 필요해요.`}[gr],
+      {wealth:`<b>${godLbl(g)}</b> — a <b>Wealth star (財)</b> for ${receiver}. In a man's chart this is the <b>spouse (wife) star</b> — a deep bond you want to care for and take responsibility for.`,auth:`<b>${godLbl(g)}</b> — an <b>Authority star (官)</b> for ${receiver}. In a woman's chart this is the <b>spouse (husband) star</b> — a deep bond you lean on and walk with.`,res:`<b>${godLbl(g)}</b> — a <b>Resource star (印)</b> that nurtures ${receiver}. An easy, supported bond you lean on emotionally.`,out:`<b>${godLbl(g)}</b> — an <b>Output (食傷)</b> bond: ${giver} cares for and expresses toward ${receiver} — a giving, nurturing love.`,peer:`<b>${godLbl(g)}</b> — a <b>Companion (比劫)</b> bond, like peers or siblings. Easy and in tune, but mind the rivalry and space.`}[gr],
+      {wealth:`<b>${godLbl(g)}</b> — ${receiver}さんにとって<b>財星</b>。男性の命式では<b>配偶者(妻)を表す星</b>で、世話し責任を持ちたい深い縁になります。`,auth:`<b>${godLbl(g)}</b> — ${receiver}さんにとって<b>官星</b>。女性の命式では<b>配偶者(夫)を表す星</b>で、寄り添い共に歩みたい深い縁になります。`,res:`<b>${godLbl(g)}</b> — ${receiver}さんを<b>育てる印星</b>。情緒的に頼れる、心地よく支えられる関係。`,out:`<b>${godLbl(g)}</b> — ${giver}さんが${receiver}さんを<b>世話し表現する食傷</b>の関係 — 尽くし、与える愛です。`,peer:`<b>${godLbl(g)}</b> — <b>仲間・兄弟のような比劫</b>。楽で通じ合う反面、競争と距離の調整が必要です。`}[gr],
+      {wealth:`<b>${godLbl(g)}</b> — 对${receiver}是<b>财星</b>。男命中是<b>配偶(妻)之星</b>，是想去呵护、担起责任的深缘。`,auth:`<b>${godLbl(g)}</b> — 对${receiver}是<b>官星</b>。女命中是<b>配偶(夫)之星</b>，是想去依靠、并肩同行的深缘。`,res:`<b>${godLbl(g)}</b> — <b>生养${receiver}的印星</b>。情感上可依靠、被支持的自在关系。`,out:`<b>${godLbl(g)}</b> — ${giver}对${receiver}<b>呵护、表达的食伤</b>关系——付出、给予的爱。`,peer:`<b>${godLbl(g)}</b> — <b>如同伴、手足的比劫</b>。自在相通，但要留意竞争与距离。`}[gr]);};
+  const spouseStar=(grp(bToA)==='wealth'||grp(bToA)==='auth'||grp(aToB)==='wealth'||grp(aToB)==='auth');
+  pages.push(pg(pdfHead('🎭 '+P4('십신 궁합 — 서로가 서로에게','Ten-God bond — what you are to each other','十神の相性 — 互いに何か','十神合婚 — 互为何'),null)+
+    pdfBiyu(P4('두 사람의 <b>일간(나)</b>이 상대에게 <b>어떤 십신</b>인지가 궁합의 핵심이에요. 특히 <b>재성·관성</b>이면 「배우자를 뜻하는 별」이라 인연이 깊습니다.','What <b>Ten-God</b> each Day Master is to the other is the heart of compatibility. A <b>Wealth or Authority</b> star means "the spouse star" — a deep bond.','二人の<b>日主</b>が相手にとって<b>どの十神</b>かが相性の核心。特に<b>財星・官星</b>なら「配偶者を表す星」で縁が深い。','两人的<b>日主</b>对对方是<b>何种十神</b>，是合婚的核心。尤其<b>财星·官星</b>是「配偶之星」，缘分深厚。'))+
+    pdfSub(P4(nmB+' → '+nmA,nmB+' → '+nmA,nmB+' → '+nmA,nmB+' → '+nmA),[sipLine(bToA,nmB,nmA)])+
+    pdfSub(P4(nmA+' → '+nmB,nmA+' → '+nmB,nmA+' → '+nmB,nmA+' → '+nmB),[sipLine(aToB,nmA,nmB)])+
+    pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),spouseStar?P4('둘 중 하나가 상대의 <b>배우자성(재성·관성)</b>이에요. 결혼까지 이어지기 좋은 인연입니다. ★','One of you is the other\'s <b>spouse star (Wealth/Authority)</b>. A bond well-suited to marriage. ★','どちらかが相手の<b>配偶者星(財・官)</b>です。結婚に向く縁。★','其中一方是对方的<b>配偶星(财·官)</b>，是宜婚的缘分。★'):P4('배우자성은 아니지만, 서로를 키우고 편하게 하는 좋은 결이에요. 관계를 어떻게 가꾸느냐가 더 중요해요.','Not a spouse star, but a bond that grows and eases you both — how you tend it matters more.','配偶者星ではありませんが、互いを育て和ませる良い縁。育て方が肝心です。','虽非配偶星，却能互相成长、彼此自在。如何经营更重要。'))));
+  // ── 배우자궁 (일지) 합충 ──
+  const BR={same:P4('같은 지지 — <b>비슷한 무의식</b>을 공유해 편하지만, 매너리즘엔 주의.','the same branch — a <b>shared undercurrent</b>, comfy but watch for a rut.','同じ地支 — <b>似た無意識</b>を共有し楽な反面、マンネリに注意。','同一地支 — <b>相似的潜意识</b>，自在但防止倦怠。'),yukhap:P4('<b>육합(六合)</b> — 배우자궁이 서로 <b>딱 붙는 강한 끌림</b>이에요. 자연스레 손이 가고 곁에 두고 싶은 사이.','a <b>Six Harmony (六合)</b> — your spouse palaces <b>lock together</b>, a strong natural pull to stay close.','<b>六合</b> — 配偶宮が<b>ぴたりと合う強い引力</b>。自然にそばに置きたくなる仲。','<b>六合</b> — 配偶宫<b>紧紧相合</b>，自然想靠近、想留在身边。'),samhap:P4('<b>삼합(三合)</b> — 큰 흐름에서 <b>잘 맞고 협력이 잘 되는</b> 궁합이에요.','a <b>Three Harmony (三合)</b> — you <b>flow and cooperate well</b> on the big scale.','<b>三合</b> — 大きな流れで<b>よく合い、協力しやすい</b>相性。','<b>三合</b> — 大势上<b>相合、易于协作</b>的缘分。'),chung:P4('<b>충(沖)</b> — 배우자궁이 <b>맞부딪는 역동</b>이에요. 강하게 끌리지만 <b>변화·이동·다툼</b>도 잦아, 존중이 관건.','a <b>Clash (沖)</b> — your spouse palaces <b>collide</b>: strong attraction but frequent <b>change and friction</b>. Respect is key.','<b>沖</b> — 配偶宮が<b>ぶつかる力動</b>。強く惹かれる分<b>変化・移動・衝突</b>も多く、敬意が鍵。','<b>冲</b> — 配偶宫<b>相冲的力动</b>：强烈吸引，却常有<b>变动·摩擦</b>，尊重是关键。'),none:P4('배우자궁이 <b>직접 합·충하지 않아</b> 담백해요. 서로의 공간을 지키는 편한 사이.','no direct harmony or clash — <b>easy and independent</b> spouse palaces, each keeping their space.','直接の合・沖はなく<b>あっさり独立</b>。互いの空間を守る楽な仲。','无直接合冲，<b>清爽独立</b>，各守空间的自在关系。')}[brKey];
+  pages.push(pg(pdfHead('💑 '+P4('배우자궁 궁합 (일지)','Spouse-palace match (day branch)','配偶宮の相性(日支)','配偶宫合婚(日支)'),null)+
+    `<div style="text-align:center;font-size:36px;margin:3mm 0 1mm;color:#2a2118">${boxit(brA)} <span style="color:#c9a961">↔</span> ${boxit(brB)}</div>`+
+    pdfBiyu(P4('<b>일지(日支)</b>는 사주에서 <b>배우자 자리(배우자궁)</b>예요. 두 사람 일지가 <b>합</b>이면 끌리고, <b>충</b>이면 역동적, 담백하면 독립적입니다.','The <b>day branch</b> is the <b>spouse palace</b> of a chart. If the two day branches <b>harmonize</b> you\'re drawn together; if they <b>clash</b>, it\'s dynamic; if neither, independent.','<b>日支</b>は命式の<b>配偶者の座(配偶宮)</b>。二人の日支が<b>合</b>なら惹かれ、<b>沖</b>なら力動的、無関係なら独立的。','<b>日支</b>是命式的<b>配偶之位(配偶宫)</b>。两人日支<b>相合</b>则相吸，<b>相冲</b>则力动，无关则独立。'))+
+    pdfSub(P4('두 배우자궁의 관계','Your spouse palaces','二つの配偶宮','两个配偶宫'),[BR])+
+    pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),(brKey==='yukhap'||brKey==='samhap')?P4('배우자궁이 좋게 어울려요 — 함께 살 때 특히 편안한 궁합이에요. ★','Your spouse palaces harmonize — an especially easy match to live together. ★','配偶宮が良く合います — 一緒に暮らすと特に楽な相性。★','配偶宫相合——同住时格外自在的缘分。★'):brKey==='chung'?P4('부딪히는 배우자궁이라 <b>거리와 변화</b>가 있어요. 그 역동을 알고 존중하면 오히려 강한 커플이 돼요.','Clashing spouse palaces bring <b>distance and change</b> — know the dynamic, respect it, and you become a strong couple.','ぶつかる配偶宮で<b>距離と変化</b>があります。その力動を知り敬えば、むしろ強いカップルに。','相冲的配偶宫带来<b>距离与变动</b>。懂它、敬它，反而成为坚强的一对。'):P4('담백한 배우자궁이라, 표현과 스킨십을 <b>먼저 챙기면</b> 더 가까워져요.','Independent spouse palaces — <b>initiate</b> expression and closeness to grow nearer.','あっさりした配偶宮。表現とスキンシップを<b>先に</b>すると近づきます。','清爽的配偶宫，<b>主动</b>表达与亲近会更靠近。'))));
+  // ── 각자 심화 프로필 ──
+  [[nmA,dmA,A],[nmB,dmB,B]].forEach(([who,dm,ch])=>{const o=OH5x[dm]||{};const cur=ch.현재대운||'';
+    pages.push(pg(pdfHead('🙋 '+who+P4(' 사주 깊이 보기',' — a deeper look',' 深掘り',' 深读'),null)+
+      `${dm?svgEl(dm,84):''}<div style="text-align:center;font-size:13px;color:#7a6f5c;margin-bottom:2px">${elLabel(dm)} · ${ch.명식?.일주||''}</div>`+
+      pdfBiyu(OHb[dm]||'')+
+      pdfSub(P4('타고난 성향','Temperament','生まれ持った性質','天生性情'),[o.성격||''])+
+      pdfSub(P4('살릴 강점','Strengths','活かす強み','可发挥的强项'),[o.강점||o.직업||''])+
+      pdfSub(P4('요즘 흐름 (현재 대운)','Now (current luck cycle)','いまの流れ(現在の大運)','近来流势(现行大运)'),[P4(`지금 <b>${GJ(cur)}</b> 대운을 지나고 있어요. 이 시기의 기운이 관계에도 스며들어요.`,`Currently in the <b>${GJ(cur)}</b> luck cycle — its energy colours the relationship too.`,`いま<b>${GJ(cur)}</b>の大運。その気が関係にも滲みます。`,`正行<b>${GJ(cur)}</b>大运，此气也渗入关系。`)])+
+      pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),o.조언||'')));
+  });
   // ── 오행 보완 ──
   const aMiss=A.없는오행||[],bMiss=B.없는오행||[];
   const aFillsB=(bMiss||[]).filter(e=>(A.오행분포?.[e]||0)>0),bFillsA=(aMiss||[]).filter(e=>(B.오행분포?.[e]||0)>0);
