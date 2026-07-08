@@ -1752,7 +1752,9 @@ const SIP_BIYU={
 function pdfP(L){return PDF_I18N[L]||PDF_I18N.ko;}
 function pg(inner){return `<section class="pg" style="padding:2mm 2mm 4mm;font-family:'Noto Serif KR',serif;color:#1a1a1a">${inner}</section>`;}
 let _pdfCh=0;
-function pdfHead(t,n,noNum){const num=noNum?'':(++_pdfCh);return `<div style="display:flex;align-items:baseline;gap:12px;border-bottom:2px solid #b08d57;padding-bottom:6px;margin-bottom:16px">${num?`<div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:#c9a961;font-weight:700;line-height:.9;flex:none">${num<10?'0'+num:num}</div>`:''}<div style="min-width:0"><div style="font-size:10px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:2px 0 0;font-size:20px;color:#2a2118">${t}</h2></div></div>`;}
+const EMO_MAP=[['명식','🗂️'],['일간','🧭'],['오행','🌿'],['십신','🎭'],['격국','🏛️'],['용신','🔑'],['신살','⭐'],['운성','🌗'],['공망','🕳️'],['대운','🍃'],['세운','📅'],['월운','🗓️'],['연애','❤️'],['인연','❤️'],['결혼','💍'],['배우자','💍'],['재물','💰'],['재정','💰'],['직업','💼'],['진로','💼'],['건강','🩺'],['대인','🤝'],['귀인','🤝'],['이름','✍️'],['물어','💬'],['상담','💬'],['AI','🔮'],['타이밍','⏰'],['목차','📖'],['Contents','📖'],['Love','❤️'],['Marriage','💍'],['Wealth','💰'],['Career','💼'],['Health','🩺'],['People','🤝'],['Five','🌿'],['Ten','🎭'],['Luck','🍃'],['Yearly','📅']];
+function emoFor(t){for(let i=0;i<EMO_MAP.length;i++){if(t.indexOf(EMO_MAP[i][0])>=0)return EMO_MAP[i][1];}return '✨';}
+function pdfHead(t,n,noNum){const num=noNum?'':(++_pdfCh);const emo=emoFor(t);return `<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #b08d57;padding-bottom:6px;margin-bottom:16px">${num?`<div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:#c9a961;font-weight:700;line-height:.9;flex:none">${num<10?'0'+num:num}</div>`:''}<div style="min-width:0;flex:1"><div style="font-size:10px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:2px 0 0;font-size:20px;color:#2a2118"><span style="font-size:21px">${emo}</span> ${t}</h2></div></div>`;}
 // 불릿 목록(줄글 대신 단락별) · 키-값 목록
 function bl(items){return `<ul style="list-style:none;padding:0;margin:6px 0 0">${items.filter(Boolean).map(x=>`<li style="display:flex;gap:9px;font-size:14px;line-height:1.65;color:#3a3226;margin:0 0 10px"><span style="color:#b08d57;flex:none;font-size:15px;line-height:1.5">▪</span><span>${x}</span></li>`).join('')}</ul>`;}
 function kv(rows){return `<table style="width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 0">${rows.filter(Boolean).map(r=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;width:110px;color:#7a6f5c;vertical-align:top">${r[0]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#2a2118">${r[1]}</td></tr>`).join('')}</table>`;}
@@ -1765,12 +1767,15 @@ function buildPdfDoc(){
   const th=(x)=>yearTheme?yearTheme(x):x, order=['木','火','土','金','水'];
   _pdfCh=0; // 챕터 넘버링 리셋
   // 1 표지
-  pages.push(pg(`<div style="text-align:center;padding-top:55mm">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:60px;color:#b08d57;font-weight:600">Wheny</div>
-    <div style="width:60px;height:2px;background:#b08d57;margin:14px auto"></div>
-    <h1 style="font-size:30px;margin:18px 0 6px;color:#2a2118">${P.title}</h1>
+  const coverAv=CTX.persona?`<img src="img/${CTX.persona}-${LANG}.jpg" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;object-position:50% 30%;border:3px solid #c9a961;display:block;margin:0 auto 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact" onerror="this.style.display='none'">`:'';
+  const tName=CTX.tname||'';
+  pages.push(pg(`<div style="text-align:center;padding-top:26mm">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:56px;color:#b08d57;font-weight:600">✦ Wheny ✦</div>
+    <div style="width:60px;height:2px;background:#b08d57;margin:12px auto"></div>
+    <h1 style="font-size:29px;margin:16px 0 6px;color:#2a2118">${P.title}</h1>
     <div style="font-size:13px;color:#7a6f5c">${P.sub}</div>
-    <div style="margin-top:44px;font-size:15px;line-height:2.1;color:#3a3226">
+    <div style="margin-top:26px">${coverAv}${tName?`<div style="font-size:13px;color:#b08d57;font-weight:700;letter-spacing:1px">🔮 ${LANG==='ko'?'당신의 사주 선생님':'Your reader'}</div><div style="font-size:18px;color:#2a2118;margin-top:2px">${tName}</div>`:''}</div>
+    <div style="margin-top:24px;font-size:15px;line-height:2.1;color:#3a3226">
       <div><b>${P.forWhom}</b> · ${nm}</div>
       <div><b>${P.birth}</b> · ${c.생년월일||''} (${c.성별==='여'||c.성별==='female'?(LANG==='ko'?'여':'F'):(LANG==='ko'?'남':'M')})</div>
       <div style="font-size:22px;letter-spacing:6px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].join('  '):''}</div>
@@ -1900,14 +1905,19 @@ function buildPdfDoc(){
     [P.health,['편관','상관'],'기운상 무리를 조심할 해',['건강은 편관(압박 · 과로)과 상관(소모 · 예민)이 강해지는 해에 특히 신경 써야 합니다. 위 연도에는 무리한 일정과 스트레스를 미리 덜어두세요.','타고난 약한 고리는 부족한 오행이 가리키는 장부입니다(앞의 오행 페이지 참고). 그 부위를 평소 관리하면 큰 탈을 예방할 수 있습니다.','기운이 쉬어야 하는 대운 · 세운(병 · 사 · 묘 · 절 자리)에는 확장보다 회복 · 정비에 무게를 두는 것이 오히려 다음을 위한 힘이 됩니다.']],
     [P.people,['정인','편인','비견'],'귀인 · 협력운이 좋은 해',['사람 복은 인성(정인 · 편인, 나를 돕는 윗사람 · 스승 · 문서)과 비겁(비견 · 겁재, 동료 · 형제 · 동업)에서 옵니다. 위 연도에 귀인과 협력의 인연이 두드러집니다.','특히 천을귀인이 명식에 있다면(앞의 신살 페이지 참고), 결정적 순간마다 도와줄 사람이 나타납니다. 어려울 때 혼자 삭이지 말고 손을 내미세요.','반대로 겁재가 과한 해에는 사람으로 인한 손실 · 배신 · 구설도 생길 수 있으니, 돈과 계약이 얽힌 관계는 문서로 분명히 하세요.']]
   ];
-  dom.forEach(([title,list,ko,bullets])=>{const ys=domYears(list);pages.push(pg(pdfHead(title,nm)+`<div style="text-align:center;margin:4mm 0 1mm"><div style="font-size:13px;color:#7a6f5c">${LANG==='ko'?ko:title}</div><div style="font-size:26px;color:#b08d57;font-weight:700;letter-spacing:2px;margin-top:4px">${ys.length?ys.join('  ')+(LANG==='ko'?'년':''):'—'}</div></div>`+
+  dom.forEach(([title,list,ko,bullets])=>{const ys=domYears(list);pages.push(pg(pdfHead(title,nm)+`<div style="text-align:center;margin:3mm 0 1mm"><div style="font-size:46px;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact">${emoFor(title)}</div><div style="font-size:13px;color:#7a6f5c;margin-top:6px">${LANG==='ko'?ko:title}</div><div style="font-size:26px;color:#b08d57;font-weight:700;letter-spacing:2px;margin-top:4px">${ys.length?ys.join('  ')+(LANG==='ko'?'년':''):'—'}</div></div>`+
     (LANG==='ko'?
       pdfSub('흐름 읽기',bullets)+pdfSub('실전 팁',['위 연도 = 세운에서 이 분야의 기운이 뚜렷해지는 해입니다. 큰 결정을 이 시기에 맞추면 흐름을 탑니다.','더 구체적이고 개인적인 조언은 뒤의 <b>AI 선생님 정밀 해석</b>과 상담에서 이어집니다.'])
     :
       bl(['These = years this area\'s energy stands out.','Timing big moves here rides the flow.','See the AI reading for deeper, personal advice.'])
     )));});
   // 이름
-  if(c.이름)pages.push(pg(pdfHead(P.name,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">${c.이름}</div>${bl(LANG==='ko'?[`입력하신 이름 <b>${c.이름}</b>을 <b>획수·오행·뜻</b>으로 풉니다.`,'특히 사주에 <b>부족한 오행을 이름이 보완</b>하는지 봅니다.','자세한 성명학 풀이는 AI 선생님 해석에 포함됩니다.']:[`Your name <b>${c.이름}</b> is read by <b>strokes, elements, meaning</b>.`,'Especially whether it fills your <b>missing element</b>.','Full analysis is in the AI reading.'])}`));
+  if(c.이름)pages.push(pg(pdfHead(P.name,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">✍️ ${c.이름}</div>${bl(LANG==='ko'?[`입력하신 이름 <b>${c.이름}</b>을 <b>획수·오행·뜻</b>으로 풉니다.`,'특히 사주에 <b>부족한 오행을 이름이 보완</b>하는지 봅니다.','자세한 성명학 풀이는 AI 선생님 해석에 포함됩니다.']:[`Your name <b>${c.이름}</b> is read by <b>strokes, elements, meaning</b>.`,'Especially whether it fills your <b>missing element</b>.','Full analysis is in the AI reading.'])}`));
+  // 무엇이든 물어보세요 (주제 카드)
+  if(LANG==='ko'){const topics=[['❤️','연애·궁합'],['💍','결혼 시기'],['💰','재물운'],['💼','직장·이직'],['📈','사업·경영'],['🤝','대인관계'],['🧭','이사·택일'],['🗓️','올해 월별'],['🩺','건강']];
+    pages.push(pg(pdfHead('무엇이든 물어보세요',nm)+`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-bottom:6px">이 명리서로 큰 그림을 잡으셨다면, 이제 <b>${CTX.tname||'선생님'}</b>에게 <b>내 상황을 콕 집어</b> 물어보세요. 아래 주제들을 채팅으로 이어서 상담할 수 있어요.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:12px 0">${topics.map(t=>`<div style="border:1px solid #e6dcc4;border-radius:12px;padding:14px 8px;text-align:center;background:#faf6ec;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:30px;line-height:1">${t[0]}</div><div style="font-size:12.5px;color:#3a3226;margin-top:5px;font-weight:600">${t[1]}</div></div>`).join('')}</div>
+    ${pdfBiyu('예를 들어 <b>"2027년에 이직해도 될까요?"</b> <b>"올해 연애운이 언제 좋아요?"</b>처럼 구체적으로 물으면, 선생님이 당신의 대운·세운을 짚어 <b>연·월 단위로</b> 답해드려요. 이 PDF는 그 대화를 위한 <b>지도</b>랍니다. 🗺️')}`));}
   // AI 해석 (DOM 텍스트를 소제목 단위로 페이지 분할)
   const ai=grabAiHtml();
   if(ai&&ai.replace(/<[^>]+>/g,'').trim().length>60){
@@ -1933,10 +1943,41 @@ function downloadPdf(){
   try{html=buildPdfDoc();}
   catch(e){console.error('PDF build error',e);alert(({ko:'PDF 생성 중 오류가 났어요: ',en:'PDF error: ',ja:'PDF生成エラー: ',zh:'PDF生成错误: '})[LANG]+e.message);return;}
   if(!html){alert(({ko:'PDF 내용을 만들 수 없어요. 리포트를 다시 생성해 주세요.',en:'Could not build the PDF. Please regenerate your reading.',ja:'PDFを作成できませんでした。鑑定を再生成してください。',zh:'无法生成PDF内容，请重新生成报告。'})[LANG]||'Could not build PDF.');return;}
-  const doc=document.getElementById('pdfDoc');if(!doc){alert('pdfDoc missing');return;}
-  doc.innerHTML=html;
-  document.body.classList.add('printing');
-  setTimeout(()=>{try{window.print();}catch(e){alert(({ko:'인쇄 창을 열 수 없어요: ',en:'Could not open print: '})[LANG]+e.message);}finally{setTimeout(()=>document.body.classList.remove('printing'),400);}},250);
+  const P=pdfP(LANG),who=(CTX.chart.이름||CTX.chart.생년월일||'');
+  // 깨끗한 흰 배경 전용 창에서 인쇄 → 브라우저 "PDF로 저장"이 안정적으로 유효한 파일 생성
+  const w=window.open('','_blank');
+  if(!w){ // 팝업 차단 시: 기존 in-page 방식으로 폴백
+    const doc=document.getElementById('pdfDoc');if(!doc)return;
+    doc.innerHTML=html;const clean=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',clean);};
+    window.addEventListener('afterprint',clean);document.body.classList.add('printing');
+    setTimeout(()=>{try{window.print();}catch(e){clean();}setTimeout(clean,60000);},400);
+    return;
+  }
+  w.document.open();
+  w.document.write(`<!doctype html><html lang="${LANG}"><head><meta charset="utf-8">
+<base href="${location.origin}/">
+<title>${P.title}${who?' · '+who:''}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+ *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
+ html,body{margin:0;background:#fff;color:#1a1a1a;font-family:'Noto Serif KR',serif}
+ @page{size:A4;margin:13mm 13mm 15mm}
+ .pg{position:relative;break-inside:avoid;page-break-inside:avoid;margin-bottom:9mm;padding:0 2mm}
+ .pg:nth-child(-n+2){min-height:255mm;page-break-after:always;break-after:page;margin-bottom:0}
+ .pg:last-child{page-break-after:auto}
+ img{max-width:100%}
+ @media screen{body{max-width:760px;margin:0 auto;padding:24px 16px}.pg{box-shadow:0 1px 8px rgba(0,0,0,.06);border-radius:6px;padding:20px;margin-bottom:20px}.pg:nth-child(-n+2){min-height:0}}
+ .print-hint{position:fixed;top:0;left:0;right:0;background:#b08d57;color:#fff;text-align:center;padding:9px;font-family:'Noto Sans KR',sans-serif;font-size:13px;z-index:9}
+ @media print{.print-hint,.scr-only{display:none!important}}
+</style></head>
+<body>
+<div class="print-hint">📄 인쇄창이 곧 뜹니다 — 대상을 <b>"PDF로 저장"</b>, 그리고 <b>"기타 설정 → 배경 그래픽"</b>을 꼭 켜주세요! (안 뜨면 Ctrl+P)</div>
+<div class="scr-only" style="height:40px"></div>
+${html}
+<scr`+`ipt>window.addEventListener('load',function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},800);});<\/scr`+`ipt>
+</body></html>`);
+  w.document.close();
 }
 </script>
 </body>
