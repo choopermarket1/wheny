@@ -12,7 +12,7 @@
     --ink:#0a0a0d; --ink2:#101015; --card:#15151c; --card2:#1c1c24; --line:#2b2933;
     --paper:#ece4d3; --paperdim:#b7ad97; --dim:#807869;
     /* 절제된 주얼 톤 (선생님 액센트) */
-    --hong:#c06a5f; --hwang:#c9a961; --cheong:#6aa89a; --nam:#7f95cf; --san:#b08d57;
+    --hong:#c06a5f; --hwang:#c9a961; --cheong:#6aa89a; --nam:#7f95cf; --san:#b08d57; --rok:#8fae7a;
     /* 샴페인 골드 시스템 */
     --gold:#c9a961; --gold2:#e7d3a1; --goldDeep:#9c7f42; --goldLine:rgba(201,169,97,.18);
   }
@@ -570,6 +570,7 @@ const TEACHERS={
   coach:{nm:"마담 로사",em:"🧭",ds:"시크·전략",cv:"--nam"},
   shin:{nm:"무월",em:"🔮",ds:"신끼·영험",cv:"--hwang"},
   dosa:{nm:"백운도사",em:"⛰",ds:"묵직·직언",cv:"--san"},
+  doryeong:{nm:"서하 도령",em:"🌸",ds:"설렘·응원",cv:"--rok"},
 };
 // 선생님 캐릭터 = 할머니 점쟁이 4인 초상 (자체 SVG, 외부 이미지 0장). 실사 이미지로 교체 예정.
 const AV={
@@ -579,7 +580,7 @@ const AV={
   shin:`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><defs><radialGradient id="av4" cx="50%" cy="28%" r="82%"><stop offset="0" stop-color="#8f72bd"/><stop offset="1" stop-color="#5d4488"/></radialGradient></defs><rect width="300" height="300" fill="url(#av4)"/><path d="M236 44a20 20 0 1 0 8 15 15 15 0 1 1-8-15z" fill="#f0e4b8"/><g fill="#f0e4b8"><circle cx="62" cy="66" r="3"/><circle cx="250" cy="120" r="2.5"/></g><path d="M150 58c-52 0-80 30-80 66 0 10 4 18 10 24h140c6-6 10-14 10-24 0-36-28-66-80-66z" fill="#6a4fa0"/><path d="M78 120q72 -34 144 0" fill="none" stroke="#a98fd0" stroke-width="7"/><path d="M150 78l7 10-7 10-7-10z" fill="#f0e4b8"/><ellipse cx="150" cy="176" rx="60" ry="66" fill="#e6bd98"/><path d="M116 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><path d="M160 168q12-10 24 0" fill="none" stroke="#3a2b44" stroke-width="5" stroke-linecap="round"/><circle cx="150" cy="150" r="4" fill="#e0483c"/><path d="M136 206q14 8 28 0" fill="none" stroke="#7a3a5c" stroke-width="6" stroke-linecap="round"/><g stroke="#f0e4b8" stroke-width="3" fill="#f0e4b8"><path d="M92 202v14"/><circle cx="92" cy="222" r="5"/><path d="M208 202v14"/><circle cx="208" cy="222" r="5"/></g><path d="M86 244c16 18 38 28 64 28s48-10 64-28v56H86z" fill="#4e3a76"/></svg>`,
 };
 // 나라별 캐릭터 초상 = 아키타입(눈·입=색/성격) + 나라 문화층(머리·장신구·옷깃) 합성
-const AV_BG={dokseol:'#d9531f',wiro:'#cf5d78',coach:'#125f92',shin:'#59417f',dosa:'#6f5b3e'};
+const AV_BG={dokseol:'#d9531f',wiro:'#cf5d78',coach:'#125f92',shin:'#59417f',dosa:'#6f5b3e',doryeong:'#3f7d5e'};
 // 백운도사(남·산도사)는 나라 공통 전용 초상: 상투+흰 수염+도포 (실사 이미지 오면 img/dosa-*.jpg가 우선)
 const DOSA_SVG=`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="#6f5b3e"/><path d="M60 84q28-20 44-10M240 84q-28-20-44-10" stroke="#8a744f" stroke-width="5" fill="none" opacity=".7"/><circle cx="150" cy="52" r="15" fill="#e9e4d8"/><rect x="143" y="60" width="14" height="10" fill="#4a3b28"/><path d="M150 66c-50 0-76 26-76 60 0 8 3 15 8 20h136c5-5 8-12 8-20 0-34-26-60-76-60z" fill="#e9e4d8"/><ellipse cx="150" cy="158" rx="58" ry="62" fill="#e6c39c"/><path d="M112 142q12-8 26-3M188 142q-12-8-26-3" stroke="#e9e4d8" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M120 158q9-6 18 0M162 158q9-6 18 0" fill="none" stroke="#4a3b28" stroke-width="5" stroke-linecap="round"/><path d="M150 214c-34 0-52-10-56-22-3 26 8 66 56 66s59-40 56-66c-4 12-22 22-56 22z" fill="#efe9dd"/><path d="M138 196q12 6 24 0" fill="none" stroke="#9c7a58" stroke-width="5" stroke-linecap="round"/><path d="M84 252c14 16 36 26 66 26s52-10 66-26v48H84z" fill="#57462e"/><path d="M150 252v46M128 258l14-6M172 258l-14-6" stroke="#3e3120" stroke-width="4" fill="none"/></svg>`;
 const AV_FACE={
@@ -598,7 +599,10 @@ const AV_CO={
  zh:{back:`<path d="M150 60c-58 0-86 34-86 94 0 30 12 56 30 74h112c18-18 30-44 30-74 0-60-28-94-86-94z" fill="#241a16"/><circle cx="110" cy="72" r="18" fill="#1c1310"/><circle cx="190" cy="72" r="18" fill="#1c1310"/><circle cx="110" cy="72" r="7" fill="#c0392b"/><circle cx="190" cy="72" r="7" fill="#c0392b"/><path d="M82 256c20 14 44 22 68 22s48-8 68-22v44H82z" fill="#b5352f"/>`,
      front:`<path d="M92 126q58 -42 116 0 -14 -32 -58 -32 -44 0 -58 32z" fill="#241a16"/><circle cx="150" cy="58" r="6" fill="#3aa17a"/><path d="M126 266h48v8q-24 12 -48 0z" fill="#d9b24a"/><path d="M150 264v18" stroke="#b5352f" stroke-width="4"/>`},
 };
+// 서하 도령(남·청년)도 나라 공통 전용 초상: 흑발 반묶음+옥색 포 (실사 이미지 오면 img/doryeong-*.jpg가 우선)
+const DORYEONG_SVG=`<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="#3f7d5e"/><g fill="#5c9678" opacity=".55"><circle cx="58" cy="80" r="4"/><circle cx="244" cy="64" r="5"/><circle cx="262" cy="130" r="3"/><path d="M46 130q10-14 22-8M256 190q12-10 20 0" stroke="#5c9678" stroke-width="4" fill="none"/></g><path d="M150 62c-46 0-70 24-70 58 0 7 2 13 6 18h128c4-5 6-11 6-18 0-34-24-58-70-58z" fill="#241d18"/><path d="M150 52c-8 0-13 5-13 12h26c0-7-5-12-13-12z" fill="#241d18"/><rect x="146" y="40" width="8" height="16" rx="4" fill="#1a1410"/><path d="M108 128q-6 34 4 58M192 128q6 34-4 58" stroke="#241d18" stroke-width="10" fill="none" stroke-linecap="round"/><ellipse cx="150" cy="162" rx="54" ry="60" fill="#eec9a4"/><path d="M122 152q10-7 20-2M158 150q10-5 20 2" fill="none" stroke="#241d18" stroke-width="5" stroke-linecap="round"/><path d="M136 200q14 10 28 0" fill="none" stroke="#b06a52" stroke-width="6" stroke-linecap="round"/><circle cx="116" cy="184" r="8" fill="#e08a72" opacity=".35"/><circle cx="184" cy="184" r="8" fill="#e08a72" opacity=".35"/><path d="M86 250c14 16 36 26 64 26s50-10 64-26v50H86z" fill="#7fae7a"/><path d="M150 250v50M126 258l16-8M174 258l-16-8" stroke="#f2efe6" stroke-width="5" fill="none"/><path d="M118 276q32 14 64 0" stroke="#5c8a58" stroke-width="4" fill="none"/></svg>`;
 function avatarSVG(k){if(k==='dosa')return DOSA_SVG; // 남성 도사는 전용 초상(할머니 문화층 미적용)
+  if(k==='doryeong')return DORYEONG_SVG; // 남성 청년 도령도 전용 초상
   const co=AV_CO[LANG]||AV_CO.ko;return `<svg viewBox="0 0 300 300" class="av" aria-hidden="true"><rect width="300" height="300" fill="${AV_BG[k]||'#888'}"/>${co.back}<ellipse cx="150" cy="166" rx="60" ry="68" fill="#e9bd97"/>${co.front}${AV_FACE[k]||''}</svg>`;}
 // 실사 초상(나라별) 우선, 없으면 SVG 폴백. 파일: img/{persona}-{lang}.jpg
 function avatar(k){return `<img class="avimg" src="img/${k}-${LANG}.jpg" alt="" loading="lazy" onerror="this.onerror=null;this.outerHTML=avatarSVG('${k}')">`;}
@@ -768,7 +772,8 @@ const CLOSER={
   wiro:["먼저 다가가도 괜찮아요.","너무 애쓰지 말아요.","스스로도 좀 챙겨요.","몸이 먼저예요.","천천히 가도 돼요."],
   coach:["선제적으로 접근하세요.","숫자로 관리하세요.","리스크부터 줄이세요.","루틴으로 관리하세요.","타이밍을 지키세요."],
   shin:["먼저 마음을 열게.","욕심을 덜게.","마음을 비우게.","기운을 아끼게.","때를 기다리게."],
-  dosa:["길게 말 안 하마.","그거면 된다.","산은 급히 오르는 게 아니다.","미루면 그때는 없다.","묵묵히 가라."]};
+  dosa:["길게 말 안 하마.","그거면 된다.","산은 급히 오르는 게 아니다.","미루면 그때는 없다.","묵묵히 가라."],
+  doryeong:["제가 응원할게요.","좋은 날 곧 와요.","오늘도 잘하고 있어요.","마음 가는 쪽이 답이에요.","그날엔 예쁜 옷 입고 나가요."]};
 function pastPivot(d,age){let best=null;for(const x of d.dw)if(x.age>=15&&x.age<=age-1)best=x;return best||d.dw.find(x=>x.age<=age)||d.dw[0];}
 function curDaewoon(d,age){let c=d.dw[0];for(const x of d.dw)if(age>=x.age)c=x;return c;}
 function nextDaewoon(d,age){for(const x of d.dw)if(x.age>age)return x;return null;}
@@ -811,6 +816,9 @@ function report(persona,d,w,age,gender){
     dosa:{head:`<b>${pastAge}살(${pastYear}년)</b>. 거기서 한 번 꺾였다. 길게 말 안 하마 — 그때부터가 지금 흐름이다.`,
       me:`${d.dm[1]}${dmEl} 일간. ${ELEM_TRAIT[dmEl]}이다. ${missing.length?`<b>${missTxt}</b>가 비었다. 거기서 새는 걸 본인도 알 거다. 알면 막아라.`:`오행은 갖췄다. 그릇 탓은 하지 마라.`}`,
       when:`지금은 <b>${cur.k}</b> 대운이다. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>에 판이 바뀐다. 그 전까지는 벌이지 말고 다져라. 그거면 된다.`:`이 안에서 결판난다. 한눈팔지 마라.`}`},
+    doryeong:{head:`<b>${pastAge}살(${pastYear}년)</b> 무렵에 흐름이 한 번 크게 바뀌었죠. 그 시간 지나오느라 애썼어요 — 그게 지금의 당신을 만들었어요.`,
+      me:`${d.dm[1]}${dmEl} 일간이에요. ${ELEM_TRAIT[dmEl]}이죠. ${missing.length?`<b>${missTxt}</b> 기운이 조금 비어 있는데, 그건 흠이 아니라 <b>미리 알면 챙길 수 있는 자리</b>예요. 제가 그때그때 짚어드릴게요.`:`오행이 고루 있어서 어디 가서도 제 몫 하는 사주예요. 와, 이거 예쁘게 잘 타고났어요.`}`,
+      when:`지금은 <b>${cur.k}</b> 대운이에요. ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>부터 새 문이 열려요. 그때까지 준비해두면 그 해가 진짜 당신 해가 돼요. 좋은 날 곧 와요.`:`이 흐름 안에서 당신 자리가 만들어져요. 제가 응원할게요.`}`},
   }[persona];
   return{P,pct,cur,missing,charDetail,love,loveTime,money,year,future3,strength,health,advice};
 }
@@ -1125,6 +1133,7 @@ function run(){
       <div id="more" class="chat-thread"></div>
       <div class="chat-in"><input id="chatText" placeholder="예) 올해 이직해도 될까요?" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
     <div class="actions">
+      <button class="aibtn" style="animation:none" onclick="downloadPdf()">${IC.file||''}📄 ${pdfP(LANG).save} (50p+)</button>
       <button class="share" onclick="shareCard()">${IC.cam}이 소름 이미지로 저장·공유</button>
       <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">↑ 다른 선생님으로 다시 보기</button>
     </div>`;
@@ -1159,6 +1168,7 @@ function renderForeign(t,d,w,noTime,conv){
       <div class="chat-cue">${IC.chat}<span>${F.chatCue}</span></div>
       <div id="more" class="chat-thread"></div>
       <div class="chat-in"><input id="chatText" placeholder="${F.phEx}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${F.send}</button></div></div>
+    <div class="actions"><button class="aibtn" style="animation:none" onclick="downloadPdf()">📄 ${pdfP(LANG).save} (50p+)</button></div>
     <div class="note">${F.note}</div>`;
   saveSession();
   renderTopics(t.cv); // 외국어에도 주제 버튼(한국어와 동일)
@@ -1515,10 +1525,10 @@ fillDob('pY','pM','pD','pdate');
 showRestoreBanner();
 // 폼 다국어 (입력 흐름) — 외국인도 입력 가능하게. 리포트 본문 전체 번역은 정식 다국어 단계.
 const TEACH_I18N={
-  ko:{dokseol:{nm:'불여사',ds:'욕쟁이·팩폭'},wiro:{nm:'금자 할머니',ds:'다정·위로'},coach:{nm:'마담 로사',ds:'시크·전략'},shin:{nm:'무월',ds:'신끼·영험'},dosa:{nm:'백운도사',ds:'묵직·직언'}},
-  en:{dokseol:{nm:'Miss Ruby',ds:'blunt & fiery'},wiro:{nm:'Grandma Pearl',ds:'warm & caring'},coach:{nm:'Madame Céline',ds:'chic & strategic'},shin:{nm:'Sister Luna',ds:'mystic seer'},dosa:{nm:'Old Silas',ds:'few words · solid'}},
-  ja:{dokseol:{nm:'緋炎ばば',ds:'毒舌・ズバリ'},wiro:{nm:'花乃おばあ',ds:'優しく慰め'},coach:{nm:'マダム蘭',ds:'冷静・戦略'},shin:{nm:'宵月',ds:'霊感・神秘'},dosa:{nm:'玄斎',ds:'寡黙・重み'}},
-  zh:{dokseol:{nm:'火婆婆',ds:'毒舌·直击'},wiro:{nm:'慈心奶奶',ds:'温暖·安慰'},coach:{nm:'兰夫人',ds:'冷静·策略'},shin:{nm:'玄月仙姑',ds:'通灵·神秘'},dosa:{nm:'白云道长',ds:'沉稳·直言'}}
+  ko:{dokseol:{nm:'불여사',ds:'욕쟁이·팩폭'},wiro:{nm:'금자 할머니',ds:'다정·위로'},coach:{nm:'마담 로사',ds:'시크·전략'},shin:{nm:'무월',ds:'신끼·영험'},dosa:{nm:'백운도사',ds:'묵직·직언'},doryeong:{nm:'서하 도령',ds:'설렘·응원'}},
+  en:{dokseol:{nm:'Miss Ruby',ds:'blunt & fiery'},wiro:{nm:'Grandma Pearl',ds:'warm & caring'},coach:{nm:'Madame Céline',ds:'chic & strategic'},shin:{nm:'Sister Luna',ds:'mystic seer'},dosa:{nm:'Old Silas',ds:'few words · solid'},doryeong:{nm:'Theo',ds:'charming & bright'}},
+  ja:{dokseol:{nm:'緋炎ばば',ds:'毒舌・ズバリ'},wiro:{nm:'花乃おばあ',ds:'優しく慰め'},coach:{nm:'マダム蘭',ds:'冷静・戦略'},shin:{nm:'宵月',ds:'霊感・神秘'},dosa:{nm:'玄斎',ds:'寡黙・重み'},doryeong:{nm:'晴仁',ds:'ときめき・応援'}},
+  zh:{dokseol:{nm:'火婆婆',ds:'毒舌·直击'},wiro:{nm:'慈心奶奶',ds:'温暖·安慰'},coach:{nm:'兰夫人',ds:'冷静·策略'},shin:{nm:'玄月仙姑',ds:'通灵·神秘'},dosa:{nm:'白云道长',ds:'沉稳·直言'},doryeong:{nm:'听风公子',ds:'暖心·鼓励'}}
 };
 function TT(k){const t=(TEACH_I18N[LANG]||TEACH_I18N.ko)[k]||TEACH_I18N.ko[k];return {nm:t.nm,ds:t.ds};}
 const I18N={
@@ -1613,6 +1623,153 @@ function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);
   if(changed&&CTX&&document.getElementById('result')&&document.getElementById('result').innerHTML.trim()){run();}
 }
 applyLang(LANG);
+</script>
+<style>
+  #pdfDoc{display:none}
+  @media print{
+    @page{size:A4;margin:14mm 14mm 16mm}
+    html,body{background:#fff!important}
+    body.printing>*:not(#pdfDoc){display:none!important}
+    body.printing #pdfDoc{display:block!important}
+    .pg{page-break-after:always;break-after:page}
+    .pg:last-child{page-break-after:auto}
+  }
+</style>
+<div id="pdfDoc" aria-hidden="true"></div>
+<script>
+/* ===== 정밀 사주 명리서 PDF (인쇄용 뷰 → 브라우저 'PDF로 저장'. 50p+) ===== */
+const PDF_I18N={
+  ko:{save:'전체 사주서 PDF 저장',title:'정밀 사주 명리서',sub:'사주 만세력 × 서양 점성술 정밀 분석',toc:'목차',issued:'발행',forWhom:'의뢰인',birth:'생년월일',gender:'성별',age:'나이',myeongsik:'명식(命式) 四柱',hour:'時주',day:'日주',month:'月주',year:'年주',daymaster:'일간(日干) — 나라는 사람',ohaeng:'오행(五行) 분포와 균형',sipsin:'십신(十神) 십성 해설',gyeok:'격국(格局)',yong:'용신(用神)',sinsal:'신살(神殺)',unseong:'십이운성(十二運星)',gongmang:'공망(空亡)',daewoon:'대운(大運) 흐름',daewoonN:'대운',seun:'세운(歲運) 연도별',worun:'월운(月運) 월별',love:'연애·인연',marry:'결혼·배우자',money:'재물·재정',career:'직업·진로',health:'건강',people:'대인관계·귀인',name:'이름 풀이',ai:'AI 선생님 정밀 해석',chatQA:'상담 문답 기록',timing:'나의 핵심 타이밍',outro:'맺음말',disc:'본 명리서의 해석은 참고·오락용이며, 만세력·천문 계산값(한국천문연구원 검증)에 기반합니다. 전문 의료·법률·투자 자문을 대체하지 않습니다.',none:'없음',strong:'신강',weak:'신약',count:'개',ageU:'세',yr:'년',you:'당신',present:'뚜렷이 나타남',absent:'비어 있음'},
+  en:{save:'Save full reading as PDF',title:'Full Saju Reading',sub:'Saju (Four Pillars) × Western astrology — detailed analysis',toc:'Contents',issued:'Issued',forWhom:'For',birth:'Date of birth',gender:'Gender',age:'Age',myeongsik:'Four Pillars (命式)',hour:'Hour',day:'Day',month:'Month',year:'Year',daymaster:'Day Master — Who You Are',ohaeng:'Five Elements — balance',sipsin:'Ten Gods (十神)',gyeok:'Structure (格局)',yong:'Useful God (用神)',sinsal:'Spirits (神殺)',unseong:'Twelve Stages (十二運星)',gongmang:'Void (空亡)',daewoon:'Luck Cycles (大運)',daewoonN:'Luck cycle',seun:'Yearly luck (歲運)',worun:'Monthly luck (月運)',love:'Love & connections',marry:'Marriage & partner',money:'Wealth',career:'Career',health:'Health',people:'People & benefactors',name:'Name reading',ai:'AI Reader — full interpretation',chatQA:'Consultation Q&A',timing:'Your key timing',outro:'Closing',disc:'This reading is for reference/entertainment, computed on a KASI-verified ephemeris. It does not replace professional medical, legal or financial advice.',none:'none',strong:'strong',weak:'weak',count:'',ageU:'',yr:'',you:'You',present:'clearly present',absent:'empty'},
+  ja:{save:'鑑定書をPDF保存',title:'精密 四柱推命 鑑定書',sub:'四柱推命 × 西洋占星術 精密分析',toc:'目次',issued:'発行',forWhom:'ご依頼者',birth:'生年月日',gender:'性別',age:'年齢',myeongsik:'命式 四柱',hour:'時柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — あなたという人',ohaeng:'五行の分布とバランス',sipsin:'十神の解説',gyeok:'格局',yong:'用神',sinsal:'神殺',unseong:'十二運星',gongmang:'空亡',daewoon:'大運の流れ',daewoonN:'大運',seun:'歳運（年ごと）',worun:'月運（月ごと）',love:'恋愛・縁',marry:'結婚・伴侶',money:'財運',career:'仕事・進路',health:'健康',people:'人間関係・貴人',name:'姓名判断',ai:'AI占い師 精密鑑定',chatQA:'相談の問答',timing:'あなたの重要なタイミング',outro:'結び',disc:'本鑑定は参考・娯楽用で、韓国天文研究院検証の万年暦に基づきます。専門的な医療・法律・投資助言に代わるものではありません。',none:'なし',strong:'身強',weak:'身弱',count:'',ageU:'歳',yr:'年',you:'あなた',present:'はっきり現れる',absent:'空'},
+  zh:{save:'保存完整命书PDF',title:'精密八字命书',sub:'八字命理 × 西洋占星 精密分析',toc:'目录',issued:'签发',forWhom:'委托人',birth:'出生日期',gender:'性别',age:'年龄',myeongsik:'命式 四柱',hour:'时柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — 你这个人',ohaeng:'五行分布与平衡',sipsin:'十神解读',gyeok:'格局',yong:'用神',sinsal:'神煞',unseong:'十二运星',gongmang:'空亡',daewoon:'大运走势',daewoonN:'大运',seun:'流年（岁运）',worun:'流月（月运）',love:'恋爱·缘分',marry:'婚姻·伴侣',money:'财运',career:'事业·前途',health:'健康',people:'人际·贵人',name:'姓名学',ai:'AI老师 精密解读',chatQA:'咨询问答',timing:'你的关键时机',outro:'结语',disc:'本命书仅供参考·娱乐，基于韩国天文研究院验证的万年历推算。不能替代专业医疗·法律·投资咨询。',none:'无',strong:'身强',weak:'身弱',count:'个',ageU:'岁',yr:'年',you:'你',present:'明显呈现',absent:'空缺'}
+};
+const SINSAL_DESC={천을귀인:'하늘이 내린 귀인. 위기의 순간 뜻밖의 도움과 사람 복이 따른다.',도화:'매력·인기·이성운. 사람을 끄는 힘이 강하되 구설도 조심.',역마:'이동·변화·해외·활동성. 한자리에 머물지 않는 기운.',화개:'예술·종교·학문·고독. 깊이 파고드는 재능, 때로 외로움.',양인:'강한 추진력과 칼 같은 결단. 과하면 사고·극단 주의.',문창귀인:'총명·문서·시험 유리. 배움과 글에서 빛난다.'};
+const UNSEONG_DESC={장생:'새로 태어나는 기운. 시작·성장',목욕:'다듬어지는 기운. 변동·기복',관대:'갖춰지는 기운. 준비·성장',건록:'자리 잡는 기운. 왕성·독립',제왕:'절정의 기운. 최고조·강함',쇠:'기우는 기운. 안정·성숙',병:'약해지는 기운. 휴식 필요',사:'멈추는 기운. 정리·마무리',묘:'갈무리 기운. 저장·잠복',절:'끊기는 기운. 전환·비움',태:'잉태되는 기운. 새 씨앗',양:'길러지는 기운. 준비·양육'};
+const SIPSIN_DESC={비견:'나와 같은 힘. 독립·경쟁·자존.',겁재:'나를 나누는 힘. 협업이자 지출·경쟁.',식신:'내가 낳는 힘. 표현·먹복·꾸준함.',상관:'내가 뽐내는 힘. 재능·비판·변화.',정재:'내가 다스리는 재물. 성실·안정·저축.',편재:'큰 흐름의 재물. 사업·기회·이성.',정관:'나를 다스리는 질서. 직장·명예·책임.',편관:'나를 치는 압박. 도전·권력·강단.',정인:'나를 돕는 문서. 공부·귀인·안정.',편인:'비껴 돕는 기운. 자격·전환·직관.'};
+const OHAENG_DESC={木:'뻗어나가는 나무의 기운 — 성장·기획·명분·인정.',火:'타오르는 불의 기운 — 열정·표현·인기·직관.',土:'품는 흙의 기운 — 신뢰·인내·중재·현실.',金:'단단한 쇠의 기운 — 결단·원칙·실행·정의.',水:'흐르는 물의 기운 — 지혜·유연·수완·융통.'};
+function pdfP(L){return PDF_I18N[L]||PDF_I18N.ko;}
+function pg(inner){return `<section class="pg" style="min-height:250mm;padding:4mm 2mm;font-family:'Noto Serif KR',serif;color:#1a1a1a">${inner}</section>`;}
+function pdfHead(t,n){return `<div style="border-bottom:2px solid #b08d57;padding-bottom:5px;margin-bottom:14px"><div style="font-size:11px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:3px 0 0;font-size:21px;color:#2a2118">${t}</h2></div>`;}
+function grabAiHtml(){const el=document.querySelector('#ai-box .ai-out')||document.getElementById('foreignReport')||document.querySelector('#result .ai-out');return el?el.innerHTML:'';}
+function buildPdfDoc(){
+  if(!CTX||!CTX.chart)return'';
+  const c=CTX.chart,P=pdfP(LANG),m=c.명리||{},el=c.오행분포||{},miss=c.없는오행||[];
+  const seun=c['세운(연도별)']||[],worun=c['월운(월별)']||[],dw=c.대운||[];
+  const nm=c.이름||'—',pages=[];
+  const th=(x)=>yearTheme?yearTheme(x):x, order=['木','火','土','金','水'];
+  // 1 표지
+  pages.push(pg(`<div style="text-align:center;padding-top:55mm">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:60px;color:#b08d57;font-weight:600">Wheny</div>
+    <div style="width:60px;height:2px;background:#b08d57;margin:14px auto"></div>
+    <h1 style="font-size:30px;margin:18px 0 6px;color:#2a2118">${P.title}</h1>
+    <div style="font-size:13px;color:#7a6f5c">${P.sub}</div>
+    <div style="margin-top:44px;font-size:15px;line-height:2.1;color:#3a3226">
+      <div><b>${P.forWhom}</b> · ${nm}</div>
+      <div><b>${P.birth}</b> · ${c.생년월일||''} (${c.성별==='여'||c.성별==='female'?(LANG==='ko'?'여':'F'):(LANG==='ko'?'남':'M')})</div>
+      <div style="font-size:22px;letter-spacing:6px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].join('  '):''}</div>
+    </div>
+    <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
+  // 2 목차
+  const toc=[P.myeongsik,P.daymaster,P.ohaeng,P.sipsin,P.gyeok,P.yong,P.sinsal,P.unseong,P.gongmang,P.daewoon,P.seun,P.worun,P.love,P.marry,P.money,P.career,P.health,P.people,P.name,P.ai,P.timing];
+  pages.push(pg(pdfHead(P.toc)+`<ol style="font-size:15px;line-height:2.3;color:#3a3226;padding-left:22px">${toc.map(t=>`<li>${t}</li>`).join('')}</ol>`));
+  // 3 명식
+  const cols=[[P.year,c.명식?.년주],[P.month,c.명식?.월주],[P.day,c.명식?.일주],[P.hour,c.명식?.시주]];
+  pages.push(pg(pdfHead(P.myeongsik,nm)+`<table style="width:100%;text-align:center;border-collapse:collapse;margin:10px 0 18px">
+    <tr>${cols.map(x=>`<th style="padding:8px;font-size:13px;color:#7a6f5c;font-weight:600;border-bottom:1px solid #ddd">${x[0]}</th>`).join('')}</tr>
+    <tr>${cols.map(x=>`<td style="padding:18px 8px;font-size:38px;color:#2a2118">${x[1]||'—'}</td>`).join('')}</tr></table>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226">${LANG==='ko'?`태어난 년·월·일·시를 각각 하나의 기둥(柱)으로 세운 것이 <b>명식(命式)</b>입니다. 그중 <b>일간(${c.일간||''})</b>이 곧 '나 자신'이며, 나머지 일곱 글자와의 관계로 성격·인연·재물·직업의 결이 읽힙니다.`:`Your <b>Four Pillars</b> are the year, month, day and hour of birth. The <b>Day Master (${c.일간||''})</b> is 'you'; the other seven characters, read against it, reveal personality, relationships, wealth and work.`}</p>
+    <p style="font-size:13px;color:#7a6f5c;margin-top:10px">${P.disc}</p>`));
+  // 4 일간
+  const dmEl=(c.일간||'').match(/[木火土金水]/)?.[0]||order.find(e=>el[e]);
+  pages.push(pg(pdfHead(P.daymaster,nm)+`<div style="font-size:52px;text-align:center;color:#2a2118;margin:6mm 0">${c.일간||''}</div>
+    <p style="font-size:15px;line-height:2;color:#3a3226">${OHAENG_DESC[dmEl]||''}</p>
+    <p style="font-size:14px;line-height:1.95;color:#3a3226;margin-top:12px">${miss.length?`${LANG==='ko'?`타고난 오행 중 <b>${miss.join('·')}</b>의 기운이 비어 있습니다. 이는 결핍이 아니라, 사람·환경·습관으로 채워가야 할 '과제'로 읽습니다.`:`Among the five elements, <b>${miss.join('·')}</b> is empty in your chart — not a flaw, but an area to fill through people, environment and habit.`}`:`${LANG==='ko'?'오행이 비교적 고르게 갖춰져, 어느 자리에 놓여도 균형을 잡는 편입니다.':'Your five elements are relatively balanced — you tend to steady yourself in any setting.'}`}</p>`));
+  // 5 오행 총론
+  const maxc=Math.max(1,...order.map(e=>el[e]||0));
+  pages.push(pg(pdfHead(P.ohaeng,nm)+`<div style="margin:8px 0 16px">${order.map(e=>`<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:30px;font-size:20px;color:#2a2118">${e}</span><span style="flex:1;height:16px;background:#eee;border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/maxc*100)}%;background:#b08d57"></span></span><span style="width:36px;text-align:right;font-size:14px">${el[e]||0}${P.count}</span></div>`).join('')}</div>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226">${LANG==='ko'?'오행의 많고 적음이 곧 성향과 강약을 만듭니다. 많은 기운은 타고난 재능이자 과하면 독이 되고, 없는 기운은 채워야 할 자리입니다. 다음 장부터 다섯 기운을 하나씩 풉니다.':'The balance of the five elements shapes your temperament. An abundant element is a gift that can turn excessive; a missing one is a gap to fill. The next pages read each element in turn.'}</p>`));
+  // 6-10 오행 5개
+  order.forEach(e=>{const cnt=el[e]||0;pages.push(pg(pdfHead(`${P.ohaeng} · ${e}`,nm)+`<div style="font-size:44px;text-align:center;color:#2a2118;margin:4mm 0">${e} <span style="font-size:20px;color:#b08d57">${cnt}${P.count}</span></div>
+    <p style="font-size:15px;line-height:2;color:#3a3226">${OHAENG_DESC[e]}</p>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${cnt>=3?(LANG==='ko'?`이 기운이 <b>강하게</b> 몰려 있어, 관련 재능이 도드라지는 대신 한쪽으로 치우치기 쉽습니다.`:`This element is <b>strong</b> — its talents stand out, but it can tip you off-balance.`):cnt===0?(LANG==='ko'?`이 기운이 <b>비어</b> 있어 ${MISSING_JAB[e]||''} 쪽이 약해지기 쉽습니다. 의식적으로 채우세요.`:`This element is <b>empty</b>, so ${e} qualities need conscious effort.`):(LANG==='ko'?'적당히 갖춰져 무난하게 쓰입니다.':'Present in moderation — used with ease.')}</p>
+    <p style="font-size:13px;color:#7a6f5c;margin-top:10px">${LANG==='ko'?'건강 연결':'Health'}: ${HEALTH[e]||''}</p>`));});
+  // 11 십신
+  pages.push(pg(pdfHead(P.sipsin,nm)+`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-bottom:12px">${LANG==='ko'?'일간(나)을 기준으로 다른 글자와의 관계를 열 가지로 나눈 것이 <b>십신</b>입니다. 재물·직업·인연·귀인이 모두 여기서 읽힙니다.':'The <b>Ten Gods</b> classify each character\'s relationship to your Day Master — the roots of wealth, career, love and helpers.'}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px">${Object.keys(SIPSIN_DESC).map(k=>`<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;width:70px;color:#2a2118;font-weight:600">${k}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;color:#3a3226">${SIPSIN_DESC[k]}</td></tr>`).join('')}</table>`));
+  // 11b 십신 10개 각 페이지 (세운에서 그 십신 오는 해로 개인화)
+  Object.keys(SIPSIN_DESC).forEach(k=>{const ys=seun.filter(s=>s.십신===k).map(s=>s.연도).slice(0,5);
+    pages.push(pg(pdfHead(`${P.sipsin.split(' ')[0]} · ${k}`,nm)+`<div style="font-size:38px;text-align:center;color:#2a2118;margin:5mm 0">${k}</div>
+    <p style="font-size:15px;line-height:2;color:#3a3226">${SIPSIN_DESC[k]}</p>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${LANG==='ko'?`이 기운의 주제는 <b>${th(k)}</b>입니다.`:`Theme: <b>${th(k)}</b>.`} ${ys.length?(LANG==='ko'?`앞으로 이 기운이 강해지는 해: <b style="color:#b08d57">${ys.join(', ')}년</b> — 관련된 일을 이 시기에 맞추면 흐름을 탑니다.`:`Years this energy rises: <b style="color:#b08d57">${ys.join(', ')}</b>.`):(LANG==='ko'?'향후 20년 세운에는 크게 두드러지지 않습니다.':'Not prominent in the next 20 years.')}</p>`));});
+  // 12 격국
+  if(m.격국)pages.push(pg(pdfHead(P.gyeok,nm)+`<div style="font-size:34px;text-align:center;color:#2a2118;margin:6mm 0">${m.격국}</div><p style="font-size:15px;line-height:2;color:#3a3226">${LANG==='ko'?`<b>격국</b>은 이 사주가 타고난 '틀·그릇'입니다. 월지(태어난 달)의 기운이 일간과 맺는 관계로 정해지며, 삶이 어떤 방향으로 짜여 있는지를 보여줍니다.`:`<b>Structure (格局)</b> is the innate 'frame' of your chart — set by the month branch's relationship to your Day Master, showing how your life is patterned.`}</p>`));
+  // 13 용신
+  if(m.용신)pages.push(pg(pdfHead(P.yong,nm)+`<div style="text-align:center;margin:5mm 0"><span style="font-size:26px;color:#2a2118">${m.용신.신강약||''}</span> · <span style="font-size:22px;color:#b08d57">${(m.용신.용신후보||[]).join(' · ')}</span></div>
+    <p style="font-size:15px;line-height:2;color:#3a3226">${LANG==='ko'?`<b>용신</b>은 이 사주에 가장 필요한 기운입니다. 용신에 해당하는 오행이 오는 <b>대운·세운·계절</b>이 곧 '풀리는 때'이고, 그 반대는 '조심할 때'입니다. (억부 기준 참고 — 조후 등 다른 관점도 있습니다.)`:`The <b>Useful God</b> is the element your chart most needs. Years and seasons that bring it are your 'unlocking' times; the opposite calls for care. (Strength-based reading; other schools differ.)`}</p>`));
+  // 14 신살
+  const sinsalNames=[...new Set((m.신살||[]).map(s=>s.replace(/\(.*\)/,'')))];
+  pages.push(pg(pdfHead(P.sinsal,nm)+`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-bottom:10px">${LANG==='ko'?`<b>신살</b>은 명식에 박힌 특별한 표식입니다. 당신에게 나타난 신살: <b>${(m.신살||[]).join(', ')||P.none}</b>`:`<b>Spirits (神殺)</b> are special markers in the chart. Yours: <b>${(m.신살||[]).join(', ')||P.none}</b>`}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">${Object.keys(SINSAL_DESC).map(k=>`<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;width:80px;color:${sinsalNames.includes(k)?'#b08d57':'#999'};font-weight:600">${k}${sinsalNames.includes(k)?' ●':''}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;color:#3a3226">${SINSAL_DESC[k]}</td></tr>`).join('')}</table>
+    <p style="font-size:12px;color:#999;margin-top:8px">● ${LANG==='ko'?'= 당신에게 나타난 신살':'= present in your chart'}</p>`));
+  // 14b 신살 6개 각 페이지
+  Object.keys(SINSAL_DESC).forEach(k=>{const has=(m.신살||[]).filter(s=>s.startsWith(k));
+    pages.push(pg(pdfHead(`${P.sinsal.split(' ')[0]} · ${k}`,nm)+`<div style="font-size:34px;text-align:center;color:${has.length?'#b08d57':'#888'};margin:5mm 0">${k} ${has.length?'●':'○'}</div>
+    <p style="font-size:15px;line-height:2;color:#3a3226">${SINSAL_DESC[k]}</p>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${has.length?(LANG==='ko'?`당신의 명식 <b>${has.join(', ')}</b> 자리에 이 신살이 있습니다. 위 특성이 삶에 뚜렷이 작용합니다.`:`Present at <b>${has.join(', ')}</b> in your chart — its traits act clearly in your life.`):(LANG==='ko'?'이 신살은 당신 명식에 나타나지 않습니다.':'This spirit is not present in your chart.')}</p>`));});
+  // 21 십이운성
+  if(m.십이운성)pages.push(pg(pdfHead(P.unseong,nm)+`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-bottom:12px">${LANG==='ko'?'각 기둥의 기운이 사람의 일생처럼 강해지고 약해지는 12단계입니다. 왕성한 자리(건록·제왕)와 쉬어야 할 자리(병·사·묘·절)를 봅니다.':'The twelve stages describe each pillar\'s vitality, like a human life — from vigorous (Prime, Peak) to resting (Illness, Death, Tomb).'}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">${Object.entries(m.십이운성).map(([k,v])=>`<tr><td style="padding:8px;border-bottom:1px solid #eee;width:60px;color:#7a6f5c">${k}${LANG==='ko'?'주':''}</td><td style="padding:8px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600;width:70px">${v}</td><td style="padding:8px;border-bottom:1px solid #eee;color:#3a3226;font-size:12.5px">${UNSEONG_DESC[v]||''}</td></tr>`).join('')}</table>`));
+  // 22 공망
+  if(m.공망)pages.push(pg(pdfHead(P.gongmang,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">${(m.공망||[]).join(' · ')}</div><p style="font-size:15px;line-height:2;color:#3a3226">${LANG==='ko'?`<b>공망</b>은 '비어 헛도는' 지지입니다. 이 자리에 걸린 영역은 아무리 공들여도 손에 잘 안 잡히는 느낌이 들 수 있으나, 대운·세운이 채워주는 때가 오면 오히려 크게 열립니다.`:`<b>Void (空亡)</b> branches feel 'empty-spinning' — areas that resist effort, yet open widely when a luck cycle fills them.`}</p>`));
+  // 대운 총론 + 8개
+  pages.push(pg(pdfHead(P.daewoon,nm)+`<p style="font-size:14px;line-height:1.95;color:#3a3226">${LANG==='ko'?'<b>대운</b>은 약 10년 단위로 바뀌는 인생의 큰 계절입니다. 아래 여덟 계절이 당신의 흐름이며, 각 대운의 십신이 그 10년의 주제를 정합니다.':'<b>Luck cycles</b> are ~10-year seasons of life. The eight below are your flow; each cycle\'s Ten God sets the theme of that decade.'}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.age}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">주제</th></tr>
+    ${dw.map(x=>`<tr><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${x.간지}</td><td style="padding:6px;border-bottom:1px solid #eee">${x.십신} · ${th(x.십신)}</td></tr>`).join('')}</table>`));
+  dw.forEach((x,i)=>{pages.push(pg(pdfHead(`${P.daewoonN} ${i+1} · ${x.간지}`,nm)+`<div style="font-size:46px;text-align:center;color:#2a2118;margin:4mm 0">${x.간지}</div>
+    <div style="text-align:center;font-size:15px;color:#7a6f5c;margin-bottom:14px">${Math.round(x.나이)}${P.ageU} ~ ${Math.round(x.나이)+9}${P.ageU} · ${x.시작연도} ~ ${x.시작연도+9}${P.yr}</div>
+    <p style="font-size:15px;line-height:2;color:#3a3226"><b>${x.십신}</b> — ${th(x.십신)}. ${SIPSIN_DESC[x.십신]||''}</p>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${LANG==='ko'?`이 십 년은 '${th(x.십신)}'이 흐름을 이끕니다. 관련된 일에 문이 열리고, 반대되는 무리한 시도는 조심하는 것이 좋습니다.`:`This decade is led by '${th(x.십신)}'. Doors open in that area; overreaching against it is best avoided.`}</p>`));});
+  // 세운 20년 (5년씩)
+  for(let i=0;i<seun.length;i+=5){const chunk=seun.slice(i,i+5);pages.push(pg(pdfHead(`${P.seun} (${chunk[0].연도}~${chunk[chunk.length-1].연도})`,nm)+
+    `<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr||'Year'}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.sipsin.split(' ')[0]}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${LANG==='ko'?'주제':'Theme'}</th></tr>
+    ${chunk.map(s=>`<tr><td style="padding:9px 7px;border-bottom:1px solid #eee;font-weight:600;color:#2a2118">${s.연도}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${s.간지}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${s.십신}</td><td style="padding:9px 7px;border-bottom:1px solid #eee;color:#3a3226">${s.테마||th(s.십신)}</td></tr>`).join('')}</table>
+    <p style="font-size:13px;color:#7a6f5c;margin-top:12px">${LANG==='ko'?'해마다 바뀌는 기운(세운)입니다. 대운이라는 계절 위에 얹히는 그날그날의 날씨로 보세요.':'Yearly luck layered on the decade-long season — the day-to-day weather of your life.'}</p>`));}
+  // 월운
+  if(worun.length)pages.push(pg(pdfHead(P.worun,nm)+`<table style="width:100%;border-collapse:collapse;font-size:13.5px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${LANG==='ko'?'연월':'Month'}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.sipsin.split(' ')[0]}</th></tr>
+    ${worun.map(w=>`<tr><td style="padding:7px 6px;border-bottom:1px solid #eee">${w.연월}</td><td style="padding:7px 6px;border-bottom:1px solid #eee;color:#2a2118">${w.간지}</td><td style="padding:7px 6px;border-bottom:1px solid #eee">${w.십신}</td></tr>`).join('')}</table>`));
+  // 도메인 6개 (세운에서 해당 십신 나오는 해 뽑아서)
+  const domYears=(list)=>seun.filter(s=>list.includes(s.십신)).map(s=>s.연도).slice(0,4);
+  const dom=[[P.love,['정관','편관','정재','편재'],'인연·연애운이 짙어지는 해'],[P.marry,['정관','편관','정재','편재'],'배우자·결혼운이 강해지는 해'],[P.money,['정재','편재'],'재물이 들어오는 해'],[P.career,['정관','편관','정인','편인'],'직업·승진·자격운이 열리는 해'],[P.health,['편관','상관'],'기운상 무리를 조심할 해'],[P.people,['정인','편인','비견'],'귀인·협력운이 좋은 해']];
+  dom.forEach(([title,list,ko])=>{const ys=domYears(list);pages.push(pg(pdfHead(title,nm)+`<p style="font-size:15px;line-height:2;color:#3a3226">${LANG==='ko'?ko:title}: <b style="color:#b08d57">${ys.length?ys.join(', ')+(LANG==='ko'?'년':''):'—'}</b></p>
+    <p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${LANG==='ko'?'위 연도는 세운에서 이 분야의 기운이 뚜렷해지는 해입니다. 큰 결정을 이 시기에 맞추면 흐름을 탈 수 있습니다. 구체적 조언은 AI 선생님 해석과 상담에서 더 깊게 이어집니다.':'These are years when this area\'s energy stands out. Timing big moves here rides the flow. See the AI reading for deeper, personal advice.'}</p>`));});
+  // 이름
+  if(c.이름)pages.push(pg(pdfHead(P.name,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">${c.이름}</div><p style="font-size:15px;line-height:2;color:#3a3226">${LANG==='ko'?`입력하신 이름 <b>${c.이름}</b>을 획수·오행·뜻으로 풀어, 특히 사주에 부족한 오행을 이름이 보완하는지를 봅니다. 자세한 성명학 풀이는 AI 선생님 해석에 포함됩니다.`:`Your name <b>${c.이름}</b> is read by strokes, elements and meaning — especially whether it fills your chart's missing element. Full analysis is in the AI reading.`}</p>`));
+  // AI 해석 (DOM 텍스트를 소제목 단위로 페이지 분할)
+  const ai=grabAiHtml();
+  if(ai&&ai.replace(/<[^>]+>/g,'').trim().length>60){
+    const parts=ai.split(/(?=<div class="ai-h")/);const chunks=[];let buf='';
+    parts.forEach(p=>{if((buf+p).replace(/<[^>]+>/g,'').length>900){if(buf)chunks.push(buf);buf=p;}else buf+=p;});if(buf)chunks.push(buf);
+    (chunks.length?chunks:[ai]).forEach((ch,i)=>pages.push(pg(pdfHead(P.ai+(chunks.length>1?` (${i+1}/${chunks.length})`:''),nm)+`<div style="font-size:14.5px;line-height:1.95;color:#2a2118" class="aidump">${ch}</div>`)));
+  }
+  // 상담 문답
+  if(CTX.chat&&CTX.chat.length){pages.push(pg(pdfHead(P.chatQA,nm)+CTX.chat.filter(x=>x.content&&!String(x.content).startsWith('__ERR__')).map(x=>`<div style="margin:0 0 14px"><div style="font-size:13px;font-weight:700;color:${x.role==='user'?'#b08d57':'#2a2118'}">${x.role==='user'?'Q':'A'}</div><div style="font-size:14px;line-height:1.85;color:#3a3226">${x.role==='user'?String(x.content):mdToHtml(String(x.content))}</div></div>`).join('')));}
+  // 타이밍 요약
+  const goodY=seun.filter(s=>['정재','편재','정관','정인','식신'].includes(s.십신)).slice(0,6).map(s=>s.연도);
+  const careY=seun.filter(s=>['겁재','상관','편관'].includes(s.십신)).slice(0,4).map(s=>s.연도);
+  pages.push(pg(pdfHead(P.timing,nm)+`<div style="margin:6mm 0"><div style="font-size:15px;color:#3a7a3a;font-weight:700;margin-bottom:6px">${LANG==='ko'?'기회의 해':'Opportunity years'}</div><div style="font-size:20px;color:#2a2118;letter-spacing:2px">${goodY.join('  ')||'—'}</div></div>
+    <div style="margin:8mm 0"><div style="font-size:15px;color:#b04a3a;font-weight:700;margin-bottom:6px">${LANG==='ko'?'조심할 해':'Years to guard'}</div><div style="font-size:20px;color:#2a2118;letter-spacing:2px">${careY.join('  ')||'—'}</div></div>
+    <p style="font-size:13px;color:#7a6f5c;margin-top:14px">${P.disc}</p>
+    <div style="text-align:center;margin-top:30mm;font-family:'Cormorant Garamond',serif;font-size:34px;color:#b08d57">Wheny</div>
+    <div style="text-align:center;font-size:12px;color:#a99">${P.sub}</div>`));
+  return pages.join('');
+}
+function downloadPdf(){
+  if(!CTX||!CTX.chart){alert(pdfP(LANG).save);return;}
+  const doc=document.getElementById('pdfDoc');doc.innerHTML=buildPdfDoc();
+  document.body.classList.add('printing');
+  setTimeout(()=>{try{window.print();}finally{setTimeout(()=>document.body.classList.remove('printing'),400);}},250);
+}
 </script>
 </body>
 </html>
