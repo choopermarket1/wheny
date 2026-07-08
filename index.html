@@ -6,7 +6,7 @@
 <title>Wheny · 언제인지까지 말해주는 사주</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0a0a0d; --ink2:#101015; --card:#15151c; --card2:#1c1c24; --line:#2b2933;
@@ -1694,6 +1694,16 @@ const UNSEONG2={장생:'갓 태어난 아기처럼 순수하고 성장 가능성
 function pdfSub(title,items){const f=(items||[]).filter(Boolean);if(!f.length)return'';return `<div style="margin:13px 0 0"><div style="font-size:12.5px;font-weight:700;color:#b08d57;letter-spacing:.5px;margin-bottom:1px">${title}</div>${bl(f)}</div>`;}
 // "쉽게 말하면" 비유 콜아웃
 function pdfBiyu(text){if(!text)return'';return `<div style="margin:13px 0 2px;padding:11px 14px;background:#faf6ec;border-left:3px solid #c9a961;border-radius:0 5px 5px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:11px;font-weight:700;color:#b08d57;letter-spacing:1px;margin-bottom:3px">💡 쉽게 말하면</div><div style="font-size:13.5px;line-height:1.72;color:#3a3226">${text}</div></div>`;}
+// ── 손글씨 · 형광펜 · 빨강펜 · 별표 · 도장 (수기 첨삭 느낌) ──
+function hl(t,c){c=c||'#fff09e';return `<span style="background:linear-gradient(104deg,transparent 0.4%,${c} 2.2%,${c} 97.8%,transparent 99.6%);padding:0 3px;margin:0 -1px;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</span>`;}
+function pen(t){return `<span style="font-family:'Nanum Pen Script','Gaegu',cursive;color:#d64545;font-size:1.32em;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</span>`;}
+function star(c){c=c||'#e0a92e';return `<span style="color:${c};font-size:1.15em;-webkit-print-color-adjust:exact;print-color-adjust:exact">★</span>`;}
+// 빨강펜 손글씨 메모(살짝 기울여 여백에 끄적인 느낌)
+function penNote(t,rot){return `<div style="font-family:'Nanum Pen Script','Gaegu',cursive;color:#d64545;font-size:20px;line-height:1.35;transform:rotate(${rot||-2}deg);margin:8px 0 2px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</div>`;}
+// 선생님 손글씨 조언 박스 (별표 + 형광 밑줄 느낌)
+function pdfPen(title,text){return `<div style="margin:14px 0 2px;padding:12px 15px 13px;background:#fffdf4;border:1.5px dashed #e3c27e;border-radius:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:17px;color:#c0392b">${star('#d64545')} ${title}</div><div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:20.5px;line-height:1.5;color:#2a2118;margin-top:1px">${text}</div></div>`;}
+// 빨강 도장(낙관) 느낌
+function seal(name){return `<div style="display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:76px;height:76px;border:3px solid #c0392b;border-radius:12px;color:#c0392b;transform:rotate(-8deg);font-family:'Noto Serif KR',serif;font-weight:800;font-size:15px;line-height:1.1;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact">${name}<div style="font-size:19px">鑑</div></div>`;}
 // ── 인쇄용 인라인 SVG 도표들 ──
 const ELCOLOR={木:'#5f9e6e',火:'#d1674f',土:'#c49a5a',金:'#8f9a97',水:'#4f7d9e'};
 function svgEl(e,s){s=s||108;const c=ELCOLOR[e];const body={
@@ -1781,6 +1791,26 @@ function buildPdfDoc(){
       <div style="font-size:22px;letter-spacing:6px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].join('  '):''}</div>
     </div>
     <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
+  // 1.5 선생님 손편지 (정성스러운 편지 느낌)
+  if(LANG==='ko'){
+    const dmL=(c.일간||'').match(/[木火土金水]/)?.[0]||order.find(e=>el[e])||'金';
+    const DM_LETTER={木:'봄에 돋는 새싹처럼, 늘 한 발 앞서 나아가려는 사람',火:'환하게 타오르는 불처럼, 곁을 밝히고 데우는 사람',土:'모든 걸 품는 대지처럼, 듬직하고 믿음직한 사람',金:'잘 벼려진 칼처럼, 단단하고 결단이 분명한 사람',水:'흐르는 강물처럼, 지혜롭고 어디에도 스며드는 사람'};
+    const dmName=(c.일간||'').replace(/\(.*$/,'');
+    const gy=seun.filter(s=>['정재','편재','정관','정인','식신'].includes(s.십신)).slice(0,3).map(s=>s.연도);
+    pages.push(pg(`<div style="max-width:150mm;margin:6mm auto 0;padding:8mm 9mm;background:#fffdf6;border:1px solid #ece0c4;border-radius:10px;box-shadow:0 1px 0 #f0e6cd;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+      <div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:21px;line-height:1.85;color:#2a2118">
+        <p style="margin:0 0 14px;font-size:24px">${nm} 님께,</p>
+        <p style="margin:0 0 12px">밤이 깊도록 당신의 명식을 가만히 들여다보았어요.<br>${hl(dmName+' 일간')} — ${DM_LETTER[dmL]}이더군요.<br>겉은 단단해 보여도 속엔 아직 못다 편 마음이 있지요. 다 압니다.</p>
+        <p style="margin:0 0 12px">지난 몇 해, 참 애 많이 썼어요.<br>그런데 이건 꼭 말해주고 싶어요 —<br>${gy.length?hl(gy.join('·')+'년','#b7efc5'):hl('앞으로 몇 해','#b7efc5')} 즈음, 당신의 문이 크게 열립니다.<br>그때가 오면 부디 망설이지 말아요. ${star('#d64545')}</p>
+        <p style="margin:0 0 12px">${miss.length?`가진 게 넘쳐서가 아니라, ${hl(miss.join('·')+' 기운','#ffd0dc')}이 조금 비어 있어 오히려 더 단단해질 사람이에요. 그 자리는 사람과 습관으로 채우면 돼요.`:'오행이 고루 갖춰져, 어디에 놓여도 스스로 중심을 잡는 사람이에요.'}</p>
+        <p style="margin:0 0 4px">이 책은 제가 당신을 위해 짚어둔 작은 지도예요.<br>빨간 별(${star('#d64545')}) 친 곳만이라도 마음에 담아두면,<br>길을 잃을 것 같을 때 다시 꺼내 보면 돼요.</p>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px">
+        <div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:22px;color:#2a2118">당신의 다음 계절을 응원하며,<br><span style="font-size:28px">— ${CTX.tname||'선생님'} 드림</span></div>
+        ${seal((CTX.tname||'선생님').slice(0,3))}
+      </div>
+    </div>`));
+  }
   // 2 목차
   const toc=[P.myeongsik,P.daymaster,P.ohaeng,P.sipsin,P.gyeok,P.yong,P.sinsal,P.unseong,P.gongmang,P.daewoon,P.seun,P.worun,P.love,P.marry,P.money,P.career,P.health,P.people,P.name,P.ai,P.timing];
   pages.push(pg(pdfHead(P.toc,null,true)+`<div style="font-size:15px;line-height:1;color:#3a3226">${toc.map((t,i)=>`<div style="display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dotted #ddd"><span style="font-family:'Cormorant Garamond',serif;font-size:19px;color:#c9a961;font-weight:700;width:30px">${i+1<10?'0'+(i+1):i+1}</span><span>${t}</span></div>`).join('')}</div>`));
@@ -1795,6 +1825,7 @@ function buildPdfDoc(){
   const dmEl=(c.일간||'').match(/[木火土金水]/)?.[0]||order.find(e=>el[e]);
   pages.push(pg(pdfHead(P.daymaster,nm)+`${LANG==='ko'&&dmEl?svgEl(dmEl,92):''}
     <div style="font-size:48px;text-align:center;color:#2a2118;margin:1mm 0 0">${c.일간||''}</div>
+    ${LANG==='ko'?`<div style="text-align:center;margin-top:2px">${pen("↑ 이게 바로 '나 자신'이에요!")}</div>`:''}
     ${LANG==='ko'?pdfBiyu(`사주 여덟 글자 중 <b>태어난 날의 첫 글자(일간)</b>가 바로 '<b>나 자신</b>'이에요. 나머지 일곱 글자는 모두 이 '나'를 둘러싼 환경·인연·재물로 읽습니다. 당신의 나는 <b>${dmEl}</b>의 기운 — ${(OH_BIYU[dmEl]||'').replace(/^.*?은 /,'').replace(/<b>/,'<b>')}`):''}
     ${bl([`<b>${LANG==='ko'?'타고난 기운':'Core energy'}</b> — ${OHAENG_DESC[dmEl]||''}`, miss.length?(LANG==='ko'?`<b>비어 있는 기운</b> — <b>${miss.join('·')}</b>. 결핍이 아니라 사람·환경·습관으로 채워가는 '과제'입니다.`:`<b>Missing</b> — <b>${miss.join('·')}</b>. Not a flaw, but an area to fill through people, environment, habit.`):(LANG==='ko'?'<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.':'<b>Balance</b> — your five elements are even; you steady yourself anywhere.')])}`));
   // 5 오행 총론
@@ -1815,7 +1846,7 @@ function buildPdfDoc(){
       pdfSub('잘 맞는 일',[o.직업])+
       pdfSub('관계에서',[o.관계])+
       pdfSub('건강',[o.건강])+
-      pdfSub('한 줄 조언',[`<b>${o.조언}</b>`])
+      pdfPen('선생님 한마디',o.조언)
     :
       bl([`<b>${LANG==='ko'?'뜻':'Meaning'}</b> — ${OHAENG_DESC[e]}`, `<b>${LANG==='ko'?'내 상태':'Yours'}</b> — ${cnt>=3?(LANG==='ko'?`<b>강함</b>(${cnt}${P.count})`:`<b>strong</b> (${cnt})`):cnt===0?(LANG==='ko'?`<b>비어 있음</b>. ${MISSING_JAB[e]||''}`:`<b>empty</b>`):(LANG==='ko'?`<b>적당</b>(${cnt}${P.count})`:`<b>moderate</b> (${cnt})`)}`, `<b>${LANG==='ko'?'건강':'Health'}</b> — ${HEALTH[e]||''}`])
     )));});
@@ -1833,7 +1864,7 @@ function buildPdfDoc(){
       pdfSub('조심할 그림자',[o.그림자])+
       pdfSub('연애 · 직업에서',[o.연애직업])+
       pdfSub('당신에게 오는 시기',[ys.length?`이 기운이 강해지는 해: <b style="color:#b08d57">${ys.join(', ')}년</b>. 관련된 결정을 이 시기에 맞추면 흐름을 탑니다.`:'향후 20년 세운에는 크게 두드러지지 않습니다. 대운에서 이 기운이 올 때가 당신에게 이 주제의 시기입니다.'])+
-      pdfSub('한 줄 조언',[`<b>${o.조언}</b>`])
+      pdfPen('선생님 한마디',o.조언)
     :
       `<p style="font-size:15px;line-height:2;color:#3a3226">${SIPSIN_DESC[k]||''}</p><p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">Theme: <b>${th(k)}</b>. ${ys.length?`Years this energy rises: <b style="color:#b08d57">${ys.join(', ')}</b>.`:'Not prominent in the next 20 years.'}</p>`
     )));});
@@ -1855,7 +1886,7 @@ function buildPdfDoc(){
       pdfSub('빛나는 면',[o.좋은면])+
       pdfSub('조심할 점',[o.주의])+
       pdfSub('당신의 명식에서',[has.length?`<b>${has.join(', ')}</b> 자리에 이 신살이 있어, 위 특성이 당신 삶에 뚜렷이 작용합니다.`:'이 신살은 당신 명식에 나타나지 않습니다. 참고로만 읽으세요.'])+
-      pdfSub('한 줄 조언',[`<b>${o.조언}</b>`])
+      pdfPen('선생님 한마디',o.조언)
     :
       `<p style="font-size:15px;line-height:2;color:#3a3226">${SINSAL_DESC[k]||''}</p><p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:12px">${has.length?`Present at <b>${has.join(', ')}</b> in your chart.`:'Not present in your chart.'}</p>`
     )));});
@@ -1873,14 +1904,15 @@ function buildPdfDoc(){
     ${dw.map((x,i)=>`<tr${i===nowDwIdx?' style="background:#faf6ec;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${x.간지}</td><td style="padding:6px;border-bottom:1px solid #eee">${x.십신} · ${th(x.십신)}${i===nowDwIdx?' <b style="color:#b08d57">◀ 지금</b>':''}</td></tr>`).join('')}</table>`));
   dw.forEach((x,i)=>{const o=SIP10[x.십신]||{};const isNow=(i===nowDwIdx);
     pages.push(pg(pdfHead(`${P.daewoonN} ${i+1} · ${x.간지}`,nm)+`<div style="font-size:48px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${x.간지}</div>
-    <div style="text-align:center;font-size:14px;color:#7a6f5c;margin-bottom:2px">${Math.round(x.나이)}${P.ageU} ~ ${Math.round(x.나이)+9}${P.ageU} · ${x.시작연도} ~ ${x.시작연도+9}${P.yr}${isNow?(LANG==='ko'?' · <b style="color:#b08d57">지금 지나는 대운</b>':' · <b style="color:#b08d57">current cycle</b>'):''}</div>`+
+    <div style="text-align:center;font-size:14px;color:#7a6f5c;margin-bottom:2px">${Math.round(x.나이)}${P.ageU} ~ ${Math.round(x.나이)+9}${P.ageU} · ${x.시작연도} ~ ${x.시작연도+9}${P.yr}${isNow?(LANG==='ko'?' · <b style="color:#b08d57">지금 지나는 대운</b>':' · <b style="color:#b08d57">current cycle</b>'):''}</div>
+    ${isNow&&LANG==='ko'?`<div style="text-align:center">${penNote(star('#d64545')+" 지금 여기! 요즘 삶에 제일 크게 작용해요",-2)}</div>`:''}`+
     (LANG==='ko'?
       pdfSub(`이 10년의 주제 — ${x.십신} · ${th(x.십신)}`,[o.뜻||`${th(x.십신)}의 흐름이 이 10년을 이끕니다.`])+
       pdfSub('무엇이 열리나',[o.성향||'',`이 시기에는 <b>${th(x.십신)}</b>과 관련된 일에 문이 열립니다. ${o.연애직업||''}`])+
       pdfSub('살릴 강점',[o.강점||''])+
       pdfSub('조심할 것',[o.그림자||''])+
       (isNow?pdfSub('지금 당신에게',['<b>바로 지금 지나고 있는 대운</b>입니다. 위 주제가 요즘 삶에 가장 크게 작용하고 있어요. 뒤의 세운(연도별) · 올해 흐름과 겹쳐 읽으면 구체적인 시기를 잡을 수 있습니다.']):'')+
-      pdfSub('한 줄 조언',[`<b>${o.조언||'흐름에 맞춰 한 걸음씩 나아가세요.'}</b>`])
+      pdfPen('선생님 한마디',o.조언||'흐름에 맞춰 한 걸음씩 나아가세요.')
     :
       bl([`<b>${x.십신}</b> — ${th(x.십신)}`, SIPSIN_DESC[x.십신]||'', `This decade is led by <b>${th(x.십신)}</b> — doors open there.${isNow?' (Your current cycle.)':''}`])
     )));});
@@ -1905,7 +1937,7 @@ function buildPdfDoc(){
     [P.health,['편관','상관'],'기운상 무리를 조심할 해',['건강은 편관(압박 · 과로)과 상관(소모 · 예민)이 강해지는 해에 특히 신경 써야 합니다. 위 연도에는 무리한 일정과 스트레스를 미리 덜어두세요.','타고난 약한 고리는 부족한 오행이 가리키는 장부입니다(앞의 오행 페이지 참고). 그 부위를 평소 관리하면 큰 탈을 예방할 수 있습니다.','기운이 쉬어야 하는 대운 · 세운(병 · 사 · 묘 · 절 자리)에는 확장보다 회복 · 정비에 무게를 두는 것이 오히려 다음을 위한 힘이 됩니다.']],
     [P.people,['정인','편인','비견'],'귀인 · 협력운이 좋은 해',['사람 복은 인성(정인 · 편인, 나를 돕는 윗사람 · 스승 · 문서)과 비겁(비견 · 겁재, 동료 · 형제 · 동업)에서 옵니다. 위 연도에 귀인과 협력의 인연이 두드러집니다.','특히 천을귀인이 명식에 있다면(앞의 신살 페이지 참고), 결정적 순간마다 도와줄 사람이 나타납니다. 어려울 때 혼자 삭이지 말고 손을 내미세요.','반대로 겁재가 과한 해에는 사람으로 인한 손실 · 배신 · 구설도 생길 수 있으니, 돈과 계약이 얽힌 관계는 문서로 분명히 하세요.']]
   ];
-  dom.forEach(([title,list,ko,bullets])=>{const ys=domYears(list);pages.push(pg(pdfHead(title,nm)+`<div style="text-align:center;margin:3mm 0 1mm"><div style="font-size:46px;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact">${emoFor(title)}</div><div style="font-size:13px;color:#7a6f5c;margin-top:6px">${LANG==='ko'?ko:title}</div><div style="font-size:26px;color:#b08d57;font-weight:700;letter-spacing:2px;margin-top:4px">${ys.length?ys.join('  ')+(LANG==='ko'?'년':''):'—'}</div></div>`+
+  dom.forEach(([title,list,ko,bullets])=>{const ys=domYears(list);pages.push(pg(pdfHead(title,nm)+`<div style="text-align:center;margin:3mm 0 1mm"><div style="font-size:46px;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact">${emoFor(title)}</div><div style="font-size:13px;color:#7a6f5c;margin-top:6px">${LANG==='ko'?ko:title}</div><div style="font-size:26px;color:#b08d57;font-weight:700;letter-spacing:2px;margin-top:4px">${ys.length?(LANG==='ko'?hl(ys.join('  ')+'년','#fff09e'):ys.join('  ')):'—'}</div>${LANG==='ko'&&ys.length?`<div style="font-family:'Nanum Pen Script','Gaegu',cursive;color:#d64545;font-size:19px;margin-top:6px;transform:rotate(-2deg);-webkit-print-color-adjust:exact;print-color-adjust:exact">${star('#d64545')} 이 해를 놓치지 마요!</div>`:''}</div>`+
     (LANG==='ko'?
       pdfSub('흐름 읽기',bullets)+pdfSub('실전 팁',['위 연도 = 세운에서 이 분야의 기운이 뚜렷해지는 해입니다. 큰 결정을 이 시기에 맞추면 흐름을 탑니다.','더 구체적이고 개인적인 조언은 뒤의 <b>AI 선생님 정밀 해석</b>과 상담에서 이어집니다.'])
     :
@@ -1930,10 +1962,11 @@ function buildPdfDoc(){
   // 타이밍 요약
   const goodY=seun.filter(s=>['정재','편재','정관','정인','식신'].includes(s.십신)).slice(0,6).map(s=>s.연도);
   const careY=seun.filter(s=>['겁재','상관','편관'].includes(s.십신)).slice(0,4).map(s=>s.연도);
-  pages.push(pg(pdfHead(P.timing,nm)+`<div style="margin:6mm 0"><div style="font-size:15px;color:#3a7a3a;font-weight:700;margin-bottom:6px">${LANG==='ko'?'기회의 해':'Opportunity years'}</div><div style="font-size:20px;color:#2a2118;letter-spacing:2px">${goodY.join('  ')||'—'}</div></div>
-    <div style="margin:8mm 0"><div style="font-size:15px;color:#b04a3a;font-weight:700;margin-bottom:6px">${LANG==='ko'?'조심할 해':'Years to guard'}</div><div style="font-size:20px;color:#2a2118;letter-spacing:2px">${careY.join('  ')||'—'}</div></div>
+  pages.push(pg(pdfHead(P.timing,nm)+`<div style="margin:6mm 0"><div style="font-size:15px;color:#3a7a3a;font-weight:700;margin-bottom:8px">${LANG==='ko'?'🍀 기회의 해':'Opportunity years'}</div><div style="font-size:21px;color:#2a2118;letter-spacing:2px">${goodY.length?(LANG==='ko'?hl(goodY.join('  '),'#b7efc5'):goodY.join('  ')):'—'}</div>${LANG==='ko'&&goodY.length?penNote(star('#2e8b57')+' 큰 결정은 이 해에 맞추세요',-2):''}</div>
+    <div style="margin:8mm 0"><div style="font-size:15px;color:#b04a3a;font-weight:700;margin-bottom:8px">${LANG==='ko'?'⚠️ 조심할 해':'Years to guard'}</div><div style="font-size:21px;color:#2a2118;letter-spacing:2px">${careY.length?(LANG==='ko'?hl(careY.join('  '),'#ffd0dc'):careY.join('  ')):'—'}</div>${LANG==='ko'&&careY.length?penNote(star('#c0392b')+' 이 해엔 벌이기보다 지키기!',-2):''}</div>
     <p style="font-size:13px;color:#7a6f5c;margin-top:14px">${P.disc}</p>
-    <div style="text-align:center;margin-top:30mm;font-family:'Cormorant Garamond',serif;font-size:34px;color:#b08d57">Wheny</div>
+    ${LANG==='ko'?`<div style="text-align:right;margin-top:14mm">${penNote('끝까지 읽어줘서 고마워요. 당신의 길, 응원할게요. '+star('#d64545'),-3)}<div style="display:flex;justify-content:flex-end;margin-top:4px">${seal((CTX.tname||'선생님').slice(0,3))}</div></div>`:''}
+    <div style="text-align:center;margin-top:12mm;font-family:'Cormorant Garamond',serif;font-size:34px;color:#b08d57">✦ Wheny ✦</div>
     <div style="text-align:center;font-size:12px;color:#a99">${P.sub}</div>`));
   return pages.join('');
 }
@@ -1958,7 +1991,7 @@ function downloadPdf(){
 <base href="${location.origin}/">
 <title>${P.title}${who?' · '+who:''}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@400;500;700&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <style>
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
  html,body{margin:0;background:#fff;color:#1a1a1a;font-family:'Noto Serif KR',serif}
