@@ -1641,6 +1641,7 @@ applyLang(LANG);
     html,body{background:#fff!important}
     body.printing>*:not(#pdfDoc){display:none!important}
     body.printing #pdfDoc{display:block!important}
+    #pdfDoc,#pdfDoc *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
     /* 챕터는 통째로 유지하되 페이지를 이어서 채움(빈 페이지 방지). 표지·목차만 전용 페이지 */
     .pg{position:relative;break-inside:avoid;page-break-inside:avoid;margin-bottom:9mm}
     #pdfDoc>.pg:nth-child(-n+2){min-height:262mm;page-break-after:always;break-after:page;margin-bottom:0}
@@ -1691,6 +1692,63 @@ const SINSAL2={
 const UNSEONG2={장생:'갓 태어난 아기처럼 순수하고 성장 가능성이 가득한 자리. 새 출발 · 배움 · 귀염받음의 기운.',목욕:'막 씻겨져 다듬어지는 단계. 변동과 기복이 있고 감정 · 이성 문제가 따르기 쉬움.',관대:'성인이 되어 옷을 갖춰 입는 단계. 자기주장이 강해지고 사회로 나아가는 준비.',건록:'벼슬을 얻어 자리 잡는 왕성한 단계. 독립 · 실력 · 안정된 활동력이 정점을 향함.',제왕:'인생의 절정. 힘과 자신감이 최고조. 리더의 자리이나 지나치면 독선을 조심.',쇠:'정점을 지나 기우는 단계. 노련함과 안정감이 생기고 한 발 물러설 줄 앎.',병:'기운이 약해져 쉬어야 하는 단계. 예민 · 섬세해지고 돌봄과 회복이 필요.',사:'멈추고 정리하는 단계. 마무리 · 성찰 · 전환. 무리한 확장은 삼갈 때.',묘:'창고에 갈무리하는 단계. 저장 · 잠복 · 내실. 드러내기보다 안으로 쌓음.',절:'끊어지고 비워지는 단계. 큰 전환과 새 씨앗을 위한 비움. 변화의 문턱.',태:'새로 잉태되는 단계. 아직 드러나지 않은 가능성과 계획이 자라남.',양:'뱃속에서 길러지는 단계. 준비 · 양육 · 기다림. 곧 태어날 힘을 기름.'};
 // PDF 소제목+불릿 블록
 function pdfSub(title,items){const f=(items||[]).filter(Boolean);if(!f.length)return'';return `<div style="margin:13px 0 0"><div style="font-size:12.5px;font-weight:700;color:#b08d57;letter-spacing:.5px;margin-bottom:1px">${title}</div>${bl(f)}</div>`;}
+// "쉽게 말하면" 비유 콜아웃
+function pdfBiyu(text){if(!text)return'';return `<div style="margin:13px 0 2px;padding:11px 14px;background:#faf6ec;border-left:3px solid #c9a961;border-radius:0 5px 5px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:11px;font-weight:700;color:#b08d57;letter-spacing:1px;margin-bottom:3px">💡 쉽게 말하면</div><div style="font-size:13.5px;line-height:1.72;color:#3a3226">${text}</div></div>`;}
+// ── 인쇄용 인라인 SVG 도표들 ──
+const ELCOLOR={木:'#5f9e6e',火:'#d1674f',土:'#c49a5a',金:'#8f9a97',水:'#4f7d9e'};
+function svgEl(e,s){s=s||108;const c=ELCOLOR[e];const body={
+ 木:`<rect x="${s*0.46}" y="${s*0.52}" width="${s*0.08}" height="${s*0.4}" rx="2" fill="#8a6b4a"/><circle cx="${s*0.5}" cy="${s*0.38}" r="${s*0.27}" fill="${c}"/><circle cx="${s*0.35}" cy="${s*0.45}" r="${s*0.15}" fill="${c}" opacity="0.85"/><circle cx="${s*0.65}" cy="${s*0.45}" r="${s*0.15}" fill="${c}" opacity="0.85"/>`,
+ 火:`<path d="M${s*0.5} ${s*0.1} C ${s*0.8} ${s*0.4}, ${s*0.72} ${s*0.72}, ${s*0.5} ${s*0.9} C ${s*0.28} ${s*0.72}, ${s*0.2} ${s*0.4}, ${s*0.5} ${s*0.1} Z" fill="${c}"/><path d="M${s*0.5} ${s*0.42} C ${s*0.64} ${s*0.56}, ${s*0.6} ${s*0.72}, ${s*0.5} ${s*0.84} C ${s*0.4} ${s*0.72}, ${s*0.36} ${s*0.56}, ${s*0.5} ${s*0.42} Z" fill="#f6dca6"/>`,
+ 土:`<path d="M${s*0.08} ${s*0.82} L ${s*0.36} ${s*0.38} L ${s*0.54} ${s*0.62} L ${s*0.7} ${s*0.34} L ${s*0.92} ${s*0.82} Z" fill="${c}"/><circle cx="${s*0.7}" cy="${s*0.27}" r="${s*0.06}" fill="#f2d59a"/>`,
+ 金:`<rect x="${s*0.22}" y="${s*0.56}" width="${s*0.56}" height="${s*0.26}" rx="4" fill="${c}"/><rect x="${s*0.32}" y="${s*0.42}" width="${s*0.36}" height="${s*0.16}" rx="3" fill="${c}" opacity="0.85"/><rect x="${s*0.4}" y="${s*0.3}" width="${s*0.2}" height="${s*0.14}" rx="2" fill="${c}" opacity="0.7"/>`,
+ 水:`<path d="M${s*0.5} ${s*0.12} C ${s*0.78} ${s*0.5}, ${s*0.72} ${s*0.86}, ${s*0.5} ${s*0.9} C ${s*0.28} ${s*0.86}, ${s*0.22} ${s*0.5}, ${s*0.5} ${s*0.12} Z" fill="${c}"/><ellipse cx="${s*0.42}" cy="${s*0.6}" rx="${s*0.08}" ry="${s*0.12}" fill="#cfe4ef" opacity="0.6"/>`
+}[e]||'';
+ return `<svg viewBox="0 0 ${s} ${s}" width="${s}" style="display:block;margin:2px auto;-webkit-print-color-adjust:exact;print-color-adjust:exact">${body}</svg>`;}
+// 오행 상생상극 오각형 (분포 크기 반영)
+function svgOhaeng(el){const S=340,cx=S/2,cy=S/2+4,R=S*0.33,order=['木','火','土','金','水'];
+ const maxc=Math.max(1,...order.map(e=>el[e]||0));
+ const pts=order.map((e,i)=>{const a=-Math.PI/2+i*2*Math.PI/5;return{e,x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)};});
+ let gen='';for(let i=0;i<5;i++){const p=pts[i],q=pts[(i+1)%5];gen+=`<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="#dcc9a0" stroke-width="2"/>`;}
+ let ov='';for(let i=0;i<5;i++){const p=pts[i],q=pts[(i+2)%5];ov+=`<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="#e7ddc8" stroke-width="1" stroke-dasharray="3 4"/>`;}
+ const nodes=pts.map(p=>{const cnt=el[p.e]||0,r=15+(cnt/maxc)*15;return `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${ELCOLOR[p.e]}"/><text x="${p.x}" y="${p.y+6}" text-anchor="middle" font-size="19" fill="#fff" font-family="Noto Serif KR">${p.e}</text><text x="${p.x}" y="${p.y+r+14}" text-anchor="middle" font-size="11" fill="#7a6f5c">${cnt}개</text>`;}).join('');
+ return `<svg viewBox="0 0 ${S} ${S}" width="${S}" style="max-width:100%;display:block;margin:6px auto;-webkit-print-color-adjust:exact;print-color-adjust:exact">${ov}${gen}${nodes}</svg>`;}
+// 십신 십성 수레바퀴 (나 중심)
+function svgSipsinWheel(){const W=360,cx=W/2,cy=W/2,R=118;
+ const items=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+ const nodes=items.map((k,i)=>{const a=(i*36-90)*Math.PI/180,x=cx+R*Math.cos(a),y=cy+R*Math.sin(a);
+  return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#eee5d2" stroke-width="1"/><circle cx="${x}" cy="${y}" r="21" fill="#f7f1e4" stroke="#d8c9a0"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" fill="#5a4f3c" font-family="Noto Serif KR">${k}</text>`;}).join('');
+ return `<svg viewBox="0 0 ${W} ${W}" width="${W}" style="max-width:100%;display:block;margin:6px auto;-webkit-print-color-adjust:exact;print-color-adjust:exact">${nodes}<circle cx="${cx}" cy="${cy}" r="30" fill="#b08d57"/><text x="${cx}" y="${cy+7}" text-anchor="middle" font-size="20" fill="#fff" font-family="Noto Serif KR">나</text></svg>`;}
+// 대운 인생계절 타임라인
+function svgDaewoon(dw,nowIdx){const W=640,H=118,pad=18,n=dw.length,seg=(W-2*pad)/Math.max(1,n);
+ const bars=dw.map((x,i)=>{const xx=pad+i*seg,col=i===nowIdx?'#c9a961':'#e3d8c0';
+  return `<rect x="${xx+2}" y="42" width="${seg-4}" height="32" rx="4" fill="${col}"/><text x="${xx+seg/2}" y="62" text-anchor="middle" font-size="13" fill="${i===nowIdx?'#3a2f18':'#6a5f4c'}" font-family="Noto Serif KR">${x.간지}</text><text x="${xx+seg/2}" y="90" text-anchor="middle" font-size="10" fill="#9a8f7c">${Math.round(x.나이)}세·${x.시작연도}</text>`+(i===nowIdx?`<text x="${xx+seg/2}" y="30" text-anchor="middle" font-size="11" fill="#b08d57" font-weight="700">지금</text><path d="M${xx+seg/2-5} 33 L${xx+seg/2+5} 33 L${xx+seg/2} 39 Z" fill="#b08d57"/>`:'');}).join('');
+ return `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;display:block;margin:8px auto;-webkit-print-color-adjust:exact;print-color-adjust:exact"><line x1="${pad}" y1="58" x2="${W-pad}" y2="58" stroke="#eee"/>${bars}</svg>`;}
+// 세운 20년 기세 막대
+function svgYearBars(seun){const good=['정재','편재','정관','정인','식신'],care=['겁재','상관','편관'];
+ const W=640,H=148,pad=22,n=Math.min(seun.length,20),seg=(W-2*pad)/n;
+ const bars=seun.slice(0,n).map((s,i)=>{const lvl=good.indexOf(s.십신)>=0?1:care.indexOf(s.십신)>=0?-1:0;
+  const col=lvl>0?'#7fa86a':lvl<0?'#cf7a5a':'#cbb98a',h=lvl>0?54:lvl<0?38:26,y=102-h,xx=pad+i*seg;
+  return `<rect x="${xx+1.5}" y="${y}" width="${seg-3}" height="${h}" rx="2" fill="${col}"/>`+(i%5===0?`<text x="${xx+seg/2}" y="120" text-anchor="middle" font-size="10" fill="#9a8f7c">${s.연도}</text>`:'');}).join('');
+ return `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;display:block;margin:8px auto;-webkit-print-color-adjust:exact;print-color-adjust:exact"><line x1="${pad}" y1="102" x2="${W-pad}" y2="102" stroke="#ddd"/>${bars}<rect x="${pad}" y="130" width="10" height="10" fill="#7fa86a"/><text x="${pad+14}" y="139" font-size="10.5" fill="#6a5f4c">기회의 해</text><rect x="${pad+92}" y="130" width="10" height="10" fill="#cf7a5a"/><text x="${pad+106}" y="139" font-size="10.5" fill="#6a5f4c">조심할 해</text><rect x="${pad+184}" y="130" width="10" height="10" fill="#cbb98a"/><text x="${pad+198}" y="139" font-size="10.5" fill="#6a5f4c">평이한 해</text></svg>`;}
+const OH_BIYU={
+ 木:'木은 <b>봄에 돋은 새싹</b>이에요. 위로만 쭉쭉 자라려 하죠. 그래서 늘 새로 시작하고 뻗어나가지만, 가지치기(마무리)를 해줘야 비로소 큰 나무가 됩니다.',
+ 火:'火는 <b>한낮의 태양이자 모닥불</b>이에요. 밝게 빛나 사람을 모으지만 땔감이 없으면 금세 꺼지죠. 당신의 열정도 그렇습니다 — 불씨만 꾸준히 관리하면 오래 빛나요.',
+ 土:'土는 <b>만물을 품은 대지</b>예요. 화려하진 않아도 모든 것이 그 위에 뿌리를 내리죠. 당신의 신뢰가 그렇습니다 — 느려 보여도 결국 사람들이 당신에게 기댑니다.',
+ 金:'金은 <b>잘 벼려진 칼이자 보석</b>이에요. 두드릴수록 단단해지고 빛나죠. 당신의 결단력도 그래요 — 다만 칼은 쓸 곳을 가려야 사람을 지키는 무기가 됩니다.',
+ 水:'水는 <b>흐르는 강물</b>이에요. 바위를 만나면 돌아가고, 그릇에 담기면 그 모양이 되죠. 당신의 유연함이 그렇습니다 — 고이지만 않으면 어디든 스며들어 길을 냅니다.'
+};
+const SIP_BIYU={
+ 비견:'나와 똑 닮은 <b>쌍둥이 형제</b>. 든든한 내 편이자, 같은 걸 두고 겨루는 라이벌이기도 해요.',
+ 겁재:'배짱 좋은 <b>승부사 친구</b>. 함께라면 큰일을 벌이지만, 지갑도 같이 열리게 만드는 친구죠.',
+ 식신:'느긋한 <b>동네 맛집 요리사</b>. 좋아하는 걸 꾸준히 만들어 사람을 먹이고 즐겁게 합니다.',
+ 상관:'번뜩이는 <b>무대 위 예술가</b>. 재능으로 사람을 사로잡지만, 정해진 틀은 못 견뎌 해요.',
+ 정재:'꼼꼼한 <b>알뜰 살림꾼·월급쟁이</b>. 착실히 모아 확실하게 쌓아 올립니다.',
+ 편재:'통 큰 <b>사업가</b>. 크게 벌고 크게 쓰며, 흐르는 기회를 낚아채는 감각이 있어요.',
+ 정관:'반듯한 <b>모범 상사·공직자</b>. 규칙과 명예를 지켜 자리를 얻는 정통파입니다.',
+ 편관:'엄격한 <b>장군</b>. 압박과 위기 속에서 오히려 빛나는 돌파의 리더예요.',
+ 정인:'따뜻한 <b>스승이자 어머니</b>. 배움과 보살핌으로 나를 키워주는 기운입니다.',
+ 편인:'독특한 <b>장인·도사</b>. 남다른 눈으로 한 우물을 깊이 파고드는 전문가예요.'
+};
 function pdfP(L){return PDF_I18N[L]||PDF_I18N.ko;}
 function pg(inner){return `<section class="pg" style="padding:2mm 2mm 4mm;font-family:'Noto Serif KR',serif;color:#1a1a1a">${inner}</section>`;}
 let _pdfCh=0;
@@ -1730,17 +1788,23 @@ function buildPdfDoc(){
     <p style="font-size:12px;color:#7a6f5c;margin-top:14px;border-top:1px solid #eee;padding-top:10px">${P.disc}</p>`));
   // 4 일간
   const dmEl=(c.일간||'').match(/[木火土金水]/)?.[0]||order.find(e=>el[e]);
-  pages.push(pg(pdfHead(P.daymaster,nm)+`<div style="font-size:52px;text-align:center;color:#2a2118;margin:6mm 0">${c.일간||''}</div>
-    ${bl([`<b>${LANG==='ko'?'타고난 기운':'Core energy'}</b> — ${OHAENG_DESC[dmEl]||''}`, miss.length?(LANG==='ko'?`<b>비어 있는 기운</b> — <b>${miss.join('·')}</b>. 결핍이 아니라 사람·환경·습관으로 채울 '과제'입니다.`:`<b>Missing</b> — <b>${miss.join('·')}</b>. Not a flaw, but an area to fill through people, environment, habit.`):(LANG==='ko'?'<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.':'<b>Balance</b> — your five elements are even; you steady yourself anywhere.')])}`));
+  pages.push(pg(pdfHead(P.daymaster,nm)+`${LANG==='ko'&&dmEl?svgEl(dmEl,92):''}
+    <div style="font-size:48px;text-align:center;color:#2a2118;margin:1mm 0 0">${c.일간||''}</div>
+    ${LANG==='ko'?pdfBiyu(`사주 여덟 글자 중 <b>태어난 날의 첫 글자(일간)</b>가 바로 '<b>나 자신</b>'이에요. 나머지 일곱 글자는 모두 이 '나'를 둘러싼 환경·인연·재물로 읽습니다. 당신의 나는 <b>${dmEl}</b>의 기운 — ${(OH_BIYU[dmEl]||'').replace(/^.*?은 /,'').replace(/<b>/,'<b>')}`):''}
+    ${bl([`<b>${LANG==='ko'?'타고난 기운':'Core energy'}</b> — ${OHAENG_DESC[dmEl]||''}`, miss.length?(LANG==='ko'?`<b>비어 있는 기운</b> — <b>${miss.join('·')}</b>. 결핍이 아니라 사람·환경·습관으로 채워가는 '과제'입니다.`:`<b>Missing</b> — <b>${miss.join('·')}</b>. Not a flaw, but an area to fill through people, environment, habit.`):(LANG==='ko'?'<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.':'<b>Balance</b> — your five elements are even; you steady yourself anywhere.')])}`));
   // 5 오행 총론
   const maxc=Math.max(1,...order.map(e=>el[e]||0));
-  pages.push(pg(pdfHead(P.ohaeng,nm)+`<div style="margin:8px 0 16px">${order.map(e=>`<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:30px;font-size:20px;color:#2a2118">${e}</span><span style="flex:1;height:16px;background:#eee;border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/maxc*100)}%;background:#b08d57"></span></span><span style="width:36px;text-align:right;font-size:14px">${el[e]||0}${P.count}</span></div>`).join('')}</div>
-    ${bl(LANG==='ko'?['오행의 <b>많고 적음</b>이 성향과 강약을 만듭니다.','많은 기운 = 타고난 재능(과하면 독).','없는 기운 = 채워야 할 자리.','다음 장부터 다섯 기운을 하나씩 풉니다.']:['The <b>balance</b> of elements shapes your temperament.','Abundant = a gift (excess can hurt).','Missing = a gap to fill.','Each element is read on the next pages.'])}`));
+  pages.push(pg(pdfHead(P.ohaeng,nm)+`${LANG==='ko'?svgOhaeng(el):''}
+    <div style="margin:8px 0 14px">${order.map(e=>`<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:30px;font-size:20px;color:${ELCOLOR[e]}">${e}</span><span style="flex:1;height:16px;background:#eee;border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/maxc*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:36px;text-align:right;font-size:14px">${el[e]||0}${P.count}</span></div>`).join('')}</div>
+    ${bl(LANG==='ko'?['오행(五行)은 세상을 이루는 <b>다섯 가지 기운</b> — 나무(木)·불(火)·흙(土)·쇠(金)·물(水)입니다.','오행의 <b>많고 적음</b>이 당신의 성향과 강약을 만듭니다. 많은 기운은 타고난 재능(과하면 독), 없는 기운은 채워야 할 자리예요.']:['The <b>balance</b> of elements shapes your temperament.','Abundant = a gift (excess can hurt). Missing = a gap to fill.'])}
+    ${LANG==='ko'?pdfBiyu('위 그림의 <b>바깥 화살표(→)는 상생</b>, 서로 살려주는 사이예요. 나무는 불을 지피고(木→火), 불은 재가 되어 흙이 되고(火→土), 흙은 쇠를 품고(土→金), 쇠는 물을 맺히게 하고(金→水), 물은 다시 나무를 키우죠(水→木). <b>안쪽 점선은 상극</b>, 서로 눌러주는 사이예요. 이 다섯이 밀고 당기며 균형을 잡는 것이 사주의 큰 그림입니다.'):''}`));
   // 6-10 오행 5개 (심화)
   order.forEach(e=>{const cnt=el[e]||0,o=OH5[e];const state=cnt>=3?`강함 (${cnt}${P.count})`:cnt===0?'비어 있음':`적당 (${cnt}${P.count})`;
-    pages.push(pg(pdfHead(`${P.ohaeng} · ${e}`,nm)+`<div style="font-size:46px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${e} <span style="font-size:19px;color:#b08d57">${cnt}${P.count}</span></div>
+    pages.push(pg(pdfHead(`${P.ohaeng} · ${e}`,nm)+`${LANG==='ko'?svgEl(e,96):''}
+    <div style="font-size:40px;text-align:center;color:${ELCOLOR[e]};margin:1mm 0 0">${e} <span style="font-size:18px;color:#b08d57">${cnt}${P.count}</span></div>
     <div style="text-align:center;font-size:12px;color:#7a6f5c;margin-bottom:2px">${o?o.el:''}</div>`+
     (LANG==='ko'&&o?
+      pdfBiyu(OH_BIYU[e])+
       pdfSub('타고난 성향',[o.성격])+
       pdfSub(`당신의 상태 — ${state}`,[cnt>=3?o.많으면:cnt===0?o.적으면:`${e}의 기운이 넘치지도 모자라지도 않게 자리 잡았습니다. 위 성향이 강점으로 무난하게 드러나되, 한쪽으로 치우치지 않아 어느 상황에서도 중심을 안정적으로 잡습니다.`])+
       pdfSub('잘 맞는 일',[o.직업])+
@@ -1751,13 +1815,14 @@ function buildPdfDoc(){
       bl([`<b>${LANG==='ko'?'뜻':'Meaning'}</b> — ${OHAENG_DESC[e]}`, `<b>${LANG==='ko'?'내 상태':'Yours'}</b> — ${cnt>=3?(LANG==='ko'?`<b>강함</b>(${cnt}${P.count})`:`<b>strong</b> (${cnt})`):cnt===0?(LANG==='ko'?`<b>비어 있음</b>. ${MISSING_JAB[e]||''}`:`<b>empty</b>`):(LANG==='ko'?`<b>적당</b>(${cnt}${P.count})`:`<b>moderate</b> (${cnt})`)}`, `<b>${LANG==='ko'?'건강':'Health'}</b> — ${HEALTH[e]||''}`])
     )));});
   // 11 십신
-  pages.push(pg(pdfHead(P.sipsin,nm)+`${bl([LANG==='ko'?'일간(나)을 기준으로 다른 글자와의 관계를 <b>열 가지</b>로 나눈 것이 <b>십신</b>입니다.':'The <b>Ten Gods</b> classify each character vs your Day Master.',LANG==='ko'?'<b>재물·직업·인연·귀인</b>이 모두 여기서 읽힙니다.':'They are the roots of <b>wealth, career, love and helpers</b>.'])}<div style="margin-top:12px"></div>
+  pages.push(pg(pdfHead(P.sipsin,nm)+`${LANG==='ko'?svgSipsinWheel():''}${bl([LANG==='ko'?'가운데 <b>나(일간)</b>를 기준으로, 사주의 다른 글자들이 나와 맺는 관계를 <b>열 가지 역할</b>로 나눈 것이 <b>십신(十神)</b>입니다.':'The <b>Ten Gods</b> classify each character vs your Day Master.',LANG==='ko'?'<b>재물·직업·인연·귀인</b>이 모두 이 열 가지 안에서 읽힙니다. 다음 장부터 하나씩 캐릭터로 풀어 드릴게요.':'They are the roots of <b>wealth, career, love and helpers</b>.'])}<div style="margin-top:10px"></div>
     <table style="width:100%;border-collapse:collapse;font-size:13.5px">${Object.keys(SIPSIN_DESC).map(k=>`<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;width:70px;color:#2a2118;font-weight:600">${k}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;color:#3a3226">${SIPSIN_DESC[k]}</td></tr>`).join('')}</table>`));
   // 11b 십신 10개 각 페이지 (심화 + 세운에서 그 십신 오는 해로 개인화)
   Object.keys(SIP10).forEach(k=>{const ys=seun.filter(s=>s.십신===k).map(s=>s.연도).slice(0,6);const o=SIP10[k];
     pages.push(pg(pdfHead(`${P.sipsin.split(' ')[0]} · ${k}`,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${k}</div>
     <div style="text-align:center;font-size:12.5px;color:#7a6f5c;margin-bottom:2px">${o.뜻}</div>`+
     (LANG==='ko'?
+      pdfBiyu(SIP_BIYU[k])+
       pdfSub('성향',[o.성향])+
       pdfSub('살릴 강점',[o.강점])+
       pdfSub('조심할 그림자',[o.그림자])+
@@ -1796,10 +1861,11 @@ function buildPdfDoc(){
   // 22 공망
   if(m.공망)pages.push(pg(pdfHead(P.gongmang,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">${(m.공망||[]).join(' · ')}</div>${bl(LANG==='ko'?['<b>공망</b> = 비어 헛도는 지지.','이 자리 영역은 공들여도 손에 잘 안 잡힐 수 있음.','대운·세운이 채워주는 때 오면 오히려 크게 열림.']:['<b>Void (空亡)</b> = empty-spinning branches.','These areas resist effort.','But open widely when a luck cycle fills them.'])}`));
   // 대운 총론 + 8개
-  pages.push(pg(pdfHead(P.daewoon,nm)+`${bl(LANG==='ko'?['<b>대운</b> = 약 10년 단위로 바뀌는 인생의 큰 계절.','아래 여덟 계절이 당신의 흐름입니다.','각 대운의 십신이 그 10년의 주제를 정합니다.']:['<b>Luck cycles</b> = ~10-year seasons of life.','The eight below are your flow.','Each cycle\'s Ten God sets the decade\'s theme.'])}
-    <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.age}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">주제</th></tr>
-    ${dw.map(x=>`<tr><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${x.간지}</td><td style="padding:6px;border-bottom:1px solid #eee">${x.십신} · ${th(x.십신)}</td></tr>`).join('')}</table>`));
   let nowDwIdx=0;dw.forEach((x,i)=>{if((c.나이||0)>=x.나이)nowDwIdx=i;});
+  pages.push(pg(pdfHead(P.daewoon,nm)+`${LANG==='ko'?svgDaewoon(dw,nowDwIdx):''}
+    ${LANG==='ko'?pdfBiyu('<b>대운(大運)</b>은 <b>약 10년마다 바뀌는 인생의 계절</b>이에요. 봄 · 여름 · 가을 · 겨울처럼, 각 10년마다 삶의 분위기와 주제가 통째로 달라집니다. 그리고 그 계절 위에 얹히는 <b>올해의 날씨</b>가 바로 뒤에 나올 <b>세운(연도별)</b>이죠. 위 타임라인에서 <b>金색 칸</b>이 당신이 지금 지나는 계절입니다.'):bl(['<b>Luck cycles</b> = ~10-year seasons of life.','Each cycle\'s Ten God sets the decade\'s theme.'])}
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.age}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">주제</th></tr>
+    ${dw.map((x,i)=>`<tr${i===nowDwIdx?' style="background:#faf6ec;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${x.간지}</td><td style="padding:6px;border-bottom:1px solid #eee">${x.십신} · ${th(x.십신)}${i===nowDwIdx?' <b style="color:#b08d57">◀ 지금</b>':''}</td></tr>`).join('')}</table>`));
   dw.forEach((x,i)=>{const o=SIP10[x.십신]||{};const isNow=(i===nowDwIdx);
     pages.push(pg(pdfHead(`${P.daewoonN} ${i+1} · ${x.간지}`,nm)+`<div style="font-size:48px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${x.간지}</div>
     <div style="text-align:center;font-size:14px;color:#7a6f5c;margin-bottom:2px">${Math.round(x.나이)}${P.ageU} ~ ${Math.round(x.나이)+9}${P.ageU} · ${x.시작연도} ~ ${x.시작연도+9}${P.yr}${isNow?(LANG==='ko'?' · <b style="color:#b08d57">지금 지나는 대운</b>':' · <b style="color:#b08d57">current cycle</b>'):''}</div>`+
@@ -1813,7 +1879,10 @@ function buildPdfDoc(){
     :
       bl([`<b>${x.십신}</b> — ${th(x.십신)}`, SIPSIN_DESC[x.십신]||'', `This decade is led by <b>${th(x.십신)}</b> — doors open there.${isNow?' (Your current cycle.)':''}`])
     )));});
-  // 세운 20년 (5년씩)
+  // 세운 20년 개요(그래프) + 5년씩 표
+  if(LANG==='ko'&&seun.length)pages.push(pg(pdfHead(P.seun,nm)+svgYearBars(seun)+
+    pdfBiyu('<b>세운(歲運)</b>은 <b>해마다 바뀌는 그 해의 기운</b>이에요. 대운(10년 계절) 위에 얹히는 <b>올해의 날씨</b>죠. 위 그래프에서 <b>초록 막대는 기회의 해</b>(재물 · 명예 · 귀인이 붙는 흐름), <b>주황 막대는 조심할 해</b>(무리 · 지출 · 다툼을 덜어야 할 흐름)입니다. 큰 결정은 초록 해에 맞추고, 주황 해엔 지키기에 무게를 두세요.')+
+    bl(['아래 표에서 20년치를 연도별로 하나씩 확인할 수 있어요. 간지 · 십신 · 그 해의 주제가 함께 적혀 있습니다.'])));
   for(let i=0;i<seun.length;i+=5){const chunk=seun.slice(i,i+5);pages.push(pg(pdfHead(`${P.seun} (${chunk[0].연도}~${chunk[chunk.length-1].연도})`,nm)+
     `<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr||'Year'}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">간지</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.sipsin.split(' ')[0]}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${LANG==='ko'?'주제':'Theme'}</th></tr>
     ${chunk.map(s=>`<tr><td style="padding:9px 7px;border-bottom:1px solid #eee;font-weight:600;color:#2a2118">${s.연도}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${s.간지}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${s.십신}</td><td style="padding:9px 7px;border-bottom:1px solid #eee;color:#3a3226">${s.테마||th(s.십신)}</td></tr>`).join('')}</table>
