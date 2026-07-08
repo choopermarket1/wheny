@@ -1051,7 +1051,7 @@ async function runCompat(){
       while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});const el=document.getElementById('compatStream');if(el)el.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}
     }else{const data=await res.json();acc=data.reading||'';}
     const cm=acc.match(/(\d{1,3})\s*(?:점|\/\s*100|点|分)/),cscore=cm?+cm[1]:78;
-    CTX={tname:tname,chart:A,chartB:B,persona:picked,chat:[]}; // 궁합 채팅 컨텍스트(상대 명식 포함)
+    CTX={tname:tname,chart:A,chartB:B,persona:picked,chat:[],cscore:cscore,compatText:acc}; // 궁합 채팅 컨텍스트(상대 명식 포함) + PDF용 점수·해석
     box.innerHTML=`
       <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}${L.title(A,B)}</h3>
         ${L.chips(A,B)}
@@ -1062,7 +1062,8 @@ async function runCompat(){
         <div class="followups" id="ctopics"></div>
         <div id="more" class="chat-thread"></div>
         <div class="chat-in"><input id="chatText" placeholder="${L.ph}" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">${L.send}</button></div></div>
-      <div class="actions"><button class="share" onclick="alert('${isK?'궁합 결과를 캡처해서 상대에게 보내보세요':'Screenshot your match and share it'}')">${IC.cam}${L.share}</button>
+      <div class="actions"><button class="aibtn" style="animation:none" onclick="downloadPdf()">📄 ${({ko:'궁합 명리서 PDF 저장',en:'Save compatibility PDF',ja:'相性の鑑定書をPDF保存',zh:'保存合婚命书PDF'})[LANG]||'Save compatibility PDF'}</button>
+        <button class="share" onclick="alert('${isK?'궁합 결과를 캡처해서 상대에게 보내보세요':'Screenshot your match and share it'}')">${IC.cam}${L.share}</button>
         <button class="redo" onclick="document.getElementById('form').scrollIntoView({behavior:'smooth'})">${L.redo}</button></div>`;
     breakResult();renderCompatTopics(t.cv);
   }catch(e){
@@ -2311,10 +2312,121 @@ function buildPdfDoc(){
     <div style="text-align:center;font-size:12px;color:#a99">${P.sub}</div>`));
   return pages.join('');
 }
+// ════ 궁합 명리서 PDF (두 사람) ════
+function buildCompatPdfDoc(){
+  if(!CTX||!CTX.chart||!CTX.chartB)return'';
+  const A=CTX.chart,B=CTX.chartB,P=pdfP(LANG),pages=[];
+  const KO=(LANG==='ko'),P4=(ko,en,ja,zh)=>LANG==='ja'?ja:LANG==='zh'?zh:LANG==='ko'?ko:en;
+  const th=(x)=>yearTheme?yearTheme(x):x;
+  _pdfCh=0;
+  const elOf=s=>((String(s||'').match(/[木火土金水]/)||[])[0])||'';
+  const ilA=KO?(A.일간||''):(A.일간||'').replace(/[가-힣]/g,''), ilB=KO?(B.일간||''):(B.일간||'').replace(/[가-힣]/g,'');
+  const dmA=elOf(A.일간),dmB=elOf(B.일간);
+  const nmA=A.이름||P4('나','You','あなた','你'),nmB=P4('상대','Partner','お相手','对方');
+  const score=CTX.cscore||78, tName=CTX.tname||P4('선생님','your reader','占い師','老师');
+  const dayA=A.명식?.일주||'',dayB=B.명식?.일주||'';
+  // ── 표지 ──
+  const av=CTX.persona?`<img src="img/${CTX.persona}-${LANG}.jpg" alt="" style="width:120px;height:120px;border-radius:50%;object-fit:cover;object-position:50% 30%;border:3px solid #c9a961;display:block;margin:0 auto 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact" onerror="this.style.display='none'">`:'';
+  const CTIT=P4('궁합 명리서','Compatibility Reading','相性の鑑定書','合婚命书');
+  pages.push(pg(`<div style="text-align:center;padding-top:22mm">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:52px;color:#b08d57;font-weight:600">✦ Wheny ✦</div>
+    <div style="width:60px;height:2px;background:#b08d57;margin:12px auto"></div>
+    <h1 style="font-size:28px;margin:14px 0 4px;color:#2a2118">💞 ${CTIT}</h1>
+    ${av}<div style="font-size:13px;color:#b08d57;font-weight:700">🔮 ${P4('당신의 사주 선생님','Your reader','あなたの占い師','你的命理老师')} · ${tName}</div>
+    <div style="margin-top:22px;font-size:15px;line-height:2;color:#3a3226">
+      <div style="font-size:26px;letter-spacing:3px;color:#2a2118">${dayA} <span style="color:#c9a961">×</span> ${dayB}</div>
+      <div style="font-size:13px;color:#7a6f5c;margin-top:2px">${nmA} · ${A.생년월일||A.명식?.일주||''} &nbsp;×&nbsp; ${nmB} · ${B.생년월일||B.명식?.일주||''}</div>
+    </div>
+    <div style="margin-top:20px">${circleAround(`<span style="font-family:'Cormorant Garamond',serif;font-size:52px;color:#c0392b;font-weight:700">${score}</span><span style="font-size:20px;color:#7a6f5c">/100</span>`,'#c0392b')}</div>
+    <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
+  // ── 손편지 ──
+  {const LT=P4(
+     {g:`${nmA} 님, ${nmB} 님께,`,l1:`두 분의 명식을 나란히 놓고 가만히 들여다보았어요.`,l2:`${nmA} 님은 <b>${ilA}</b>, ${nmB} 님은 <b>${ilB}</b> — ${'{rel}'}`,l3:`점수 하나에 너무 매이진 마세요. 궁합은 <b>맞춰가는 것</b>이니까요. 이 책의 별표(★) 친 곳만 마음에 담아두면 충분해요.`,c:`두 분의 다음 계절을 응원하며,`},
+     {g:`Dear ${nmA} & ${nmB},`,l1:`I laid your two charts side by side and looked at them quietly.`,l2:`${nmA} is <b>${ilA}</b>, ${nmB} is <b>${ilB}</b> — ${'{rel}'}`,l3:`Please don't cling to a single score. Compatibility is something you <b>build together</b>. Keeping just the starred (★) notes in mind is enough.`,c:`Cheering on your next season together,`},
+     {g:`${nmA}さん・${nmB}さんへ,`,l1:`お二人の命式を並べて、そっと見つめてみました。`,l2:`${nmA}さんは<b>${ilA}</b>、${nmB}さんは<b>${ilB}</b> — ${'{rel}'}`,l3:`点数ひとつに縛られないで。相性は<b>育てていくもの</b>です。星印(★)の所だけ心に留めれば十分です。`,c:`お二人の次の季節を応援して、`},
+     {g:`致 ${nmA} 与 ${nmB}：`,l1:`我把你们两张命式并排放好，静静地看了许久。`,l2:`${nmA}是<b>${ilA}</b>，${nmB}是<b>${ilB}</b> — ${'{rel}'}`,l3:`别太在意一个分数。缘分是<b>一起经营</b>出来的。把画了星(★)的地方放在心上就够了。`,c:`为你们的下一个季节加油，`});
+   const relShort=compatRelText(dmA,dmB,'short',P4);
+   pages.push(pg(`<div style="max-width:150mm;margin:6mm auto 0;padding:8mm 9mm;background:#fffdf6;border:1px solid #ece0c4;border-radius:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+     <div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:21px;line-height:1.9;color:#2a2118">
+       <p style="margin:0 0 12px;font-size:24px">${LT.g}</p>
+       <p style="margin:0 0 12px">${LT.l1}<br>${LT.l2.replace('{rel}',wave(relShort))} ${star('#d64545')}</p>
+       <p style="margin:0 0 4px">${LT.l3}</p></div>
+     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:14px">
+       <div style="font-family:'Nanum Pen Script','Gaegu',cursive;font-size:22px;color:#2a2118">${LT.c}<br><span style="font-size:28px">— ${tName}</span></div>${seal(tName.slice(0,3))}</div></div>`));
+  }
+  // ── 두 사람 요약 ──
+  const mini=(who,il,chart,dm)=>{const el=chart.오행분포||{},order=['木','火','土','金','水'],mx=Math.max(1,...order.map(e=>el[e]||0));
+    return `<div style="border:1px solid #eee;border-radius:10px;padding:12px 14px;flex:1">
+      <div style="font-size:13px;color:#b08d57;font-weight:700">${who}</div>
+      <div style="font-size:15px;color:#2a2118;margin:2px 0 6px">${chart.명식?.일주||''} · ${il}</div>
+      ${order.map(e=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="width:${KO?24:52}px;font-size:${KO?15:11}px;color:${ELCOLOR[e]}">${elLabel(e)}</span><span style="flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/mx*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:14px;text-align:right;font-size:11px">${el[e]||0}</span></div>`).join('')}</div>`;};
+  pages.push(pg(pdfHead(P4('두 사람 한눈에','The two of you','お二人ひと目で','两人一览'),null)+
+    `<div style="display:flex;gap:12px;margin-top:6px">${mini('🙋 '+nmA,ilA,A,dmA)}${mini('💗 '+nmB,ilB,B,dmB)}</div>`+
+    pdfBiyu(P4('왼쪽이 '+nmA+', 오른쪽이 '+nmB+'예요. 막대가 긴 오행이 그 사람의 <b>타고난 강한 기운</b>, 짧거나 빈 오행이 <b>채워야 할 자리</b>랍니다. 서로의 빈자리를 채워주는지가 궁합의 큰 열쇠예요.','Left is '+nmA+', right is '+nmB+'. A long bar is that person\'s <b>strong inborn energy</b>; a short or empty one is a <b>gap to fill</b>. Whether you fill each other\'s gaps is a big key to compatibility.','左が'+nmA+'さん、右が'+nmB+'さん。棒が長い五行はその人の<b>強い気</b>、短い・空の五行は<b>補うべき所</b>。互いの空きを補い合えるかが相性の大きな鍵です。','左边是'+nmA+'，右边是'+nmB+'。柱长的五行是那人<b>天生的强气</b>，短或空的是<b>要补的地方</b>。能否互补空缺，是缘分的大关键。'))));
+  // ── 궁합 핵심 (일간 관계) ──
+  pages.push(pg(pdfHead(P4('일간 궁합 — 두 기운의 관계','Day-Master match','日主の相性','日主合婚'),null)+
+    `<div style="text-align:center;font-size:34px;margin:3mm 0 1mm;color:#2a2118">${boxit(elLabel(dmA))} <span style="color:#c9a961">↔</span> ${boxit(elLabel(dmB))}</div>`+
+    compatRelText(dmA,dmB,'full',P4)));
+  // ── 오행 보완 ──
+  const aMiss=A.없는오행||[],bMiss=B.없는오행||[];
+  const aFillsB=(bMiss||[]).filter(e=>(A.오행분포?.[e]||0)>0),bFillsA=(aMiss||[]).filter(e=>(B.오행분포?.[e]||0)>0);
+  const gapTxt=(who,other,miss,fills)=>{
+    if(!miss.length)return P4(`${who} 님은 오행이 고루 갖춰져 스스로 중심이 단단해요.`,`${who} is well-balanced and self-steady.`,`${who}さんは五行が整い、自分で中心を保てます。`,`${who}五行齐备，自能稳住重心。`);
+    const ko=fills.length?`이 중 <b>${fills.map(elLabel).join('·')}</b>을(를) ${other} 님이 채워줘요. 좋은 신호!`:`${other} 님도 약해, 둘 다 바깥(사람·환경)에서 함께 채우면 좋아요.`;
+    const en=fills.length?`Of these, ${other} carries <b>${fills.map(elLabel).join(', ')}</b> — a good sign!`:`${other} is also light; fill it together from outside.`;
+    const ja=fills.length?`うち<b>${fills.map(elLabel).join('・')}</b>を${other}さんが補います。良い兆し!`:`${other}さんも弱め。二人で外から補って。`;
+    const zh=fills.length?`其中<b>${fills.map(elLabel).join('、')}</b>由${other}补足——好兆头!`:`${other}也弱，两人一起从外部补足。`;
+    return P4(`${who} 님에게 없는 기운: <b>${miss.map(elLabel).join('·')}</b>. ${ko}`,`Missing in ${who}: <b>${miss.map(elLabel).join(', ')}</b>. ${en}`,`${who}さんに無い気: <b>${miss.map(elLabel).join('・')}</b>。${ja}`,`${who}缺的气: <b>${miss.map(elLabel).join('、')}</b>。${zh}`);
+  };
+  const noteTxt=(aFillsB.length||bFillsA.length)?P4('서로의 빈자리를 채워주는 사이예요. 이런 궁합이 오래갑니다.','You fill each other\'s gaps — this kind of match lasts.','互いの空きを補い合える二人。こういう相性は長続きします。','你们能互补空缺——这样的缘分能长久。'):P4('닮은 점이 많아요. 비슷한 만큼 편하지만, 둘 다 약한 부분은 함께 채워야 해요.','You are alike — comfy, but shore up your shared weak spots together.','似た者同士。楽な分、共通の弱点は一緒に補って。','你们很相似——舒服，但共同的弱点要一起补。');
+  pages.push(pg(pdfHead(P4('오행 보완 — 빈자리를 채워주나요','Filling each other\'s gaps','五行の補い合い','五行互补'),null)+
+    pdfSub(P4(nmA+'의 빈 기운',nmA+'\'s gaps',nmA+'さんの空き',nmA+'的空缺'),[gapTxt(nmA,nmB,aMiss,bFillsA)])+
+    pdfSub(P4(nmB+'의 빈 기운',nmB+'\'s gaps',nmB+'さんの空き',nmB+'的空缺'),[gapTxt(nmB,nmA,bMiss,aFillsB)])+
+    pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),noteTxt)));
+  // ── AI 궁합 해석 ──
+  const ai=(CTX.compatText&&CTX.compatText.replace(/<[^>]+>/g,'').trim().length>60)?mdToHtml(CTX.compatText):grabAiHtml();
+  if(ai&&ai.replace(/<[^>]+>/g,'').trim().length>60){
+    const parts=ai.split(/(?=<div class="ai-h")/);const chunks=[];let buf='';
+    parts.forEach(p=>{if((buf+p).replace(/<[^>]+>/g,'').length>1000){if(buf)chunks.push(buf);buf=p;}else buf+=p;});if(buf)chunks.push(buf);
+    (chunks.length?chunks:[ai]).forEach((ch,i)=>pages.push(pg(pdfHead(P4('AI 선생님 궁합 정밀 해석','AI reader — full compatibility','AI占い師 相性精密鑑定','AI老师 合婚精密解读')+(chunks.length>1?` (${i+1}/${chunks.length})`:''),null)+`<div style="font-size:14.5px;line-height:1.95;color:#2a2118" class="aidump">${ch}</div>`)));
+  }
+  // ── 상담 문답 ──
+  if(CTX.chat&&CTX.chat.length)pages.push(pg(pdfHead(P4('궁합 상담 문답','Q&A','相談の問答','咨询问答'),null)+CTX.chat.filter(x=>x.content&&!String(x.content).startsWith('__ERR__')).map(x=>`<div style="margin:0 0 14px"><div style="font-size:13px;font-weight:700;color:${x.role==='user'?'#b08d57':'#2a2118'}">${x.role==='user'?'Q':'A'}</div><div style="font-size:14px;line-height:1.85;color:#3a3226">${x.role==='user'?String(x.content):mdToHtml(String(x.content))}</div></div>`).join('')));
+  // ── 맺음 ──
+  pages.push(pg(pdfHead(P4('맺음','Closing','結び','结语'),null,true)+
+    pdfBiyu(P4('궁합은 <b>점수가 아니라 방향</b>이에요. 잘 맞는 부분은 키우고, 부딪히는 부분은 미리 알고 조심하면 돼요. 이 책이 두 분의 대화를 여는 <b>지도</b >가 되길 바랍니다. 🗺️','Compatibility is a <b>direction, not a score</b>. Grow what fits, and know the friction points in advance. May this book be a <b>map</b> that opens your conversations. 🗺️','相性は<b>点数ではなく方向</b>。合う所は伸ばし、ぶつかる所は先に知って気をつければOK。この本がお二人の対話を開く<b>地図</b>になりますように。🗺️','缘分是<b>方向，不是分数</b>。合的地方去养，冲突的地方提前知道、留心即可。愿这本书成为开启你们对话的<b>地图</b>。🗺️'))+
+    `<div style="text-align:right;margin-top:16mm">${penNote(P4('두 분, 오래오래 행복하세요. ','Wishing you both lasting happiness. ','お二人、末永くお幸せに。','愿你们长长久久、幸福美满。')+star('#d64545'),-3)}<div style="display:flex;justify-content:flex-end">${seal(tName.slice(0,3))}</div></div>
+    <div style="text-align:center;margin-top:10mm;font-family:'Cormorant Garamond',serif;font-size:32px;color:#b08d57">✦ Wheny ✦</div>`));
+  return pages.join('');
+}
+// 일간 오행 관계 해설
+function compatRelText(a,b,mode,P4){
+  const GEN={木:'火',火:'土',土:'金',金:'水',水:'木'},CON={木:'土',土:'水',水:'火',火:'金',金:'木'};
+  let key='neutral';
+  if(a&&b){if(a===b)key='same';else if(GEN[a]===b)key='aGenB';else if(GEN[b]===a)key='bGenA';else if(CON[a]===b)key='aConB';else if(CON[b]===a)key='bConA';}
+  const S={
+    same:P4('같은 기운이라 말이 잘 통하고 편안한 사이','the same energy — you understand each other easily and feel at home','同じ気で、話が通じやすく心地よい間柄','同气相求，容易沟通、相处自在'),
+    aGenB:P4('앞사람이 뒷사람을 <b>북돋아 살려주는</b> 흐름 — 챙겨주는 사랑','the first nurtures the second — a caring, giving love','前者が後者を<b>育て生かす</b>流れ — 世話を焼く愛','前者<b>生养</b>后者的流势——呵护型的爱'),
+    bGenA:P4('뒷사람이 앞사람을 <b>북돋아 살려주는</b> 흐름 — 기대고 채워지는 사랑','the second nurtures the first — a supported, replenishing love','後者が前者を<b>育て生かす</b>流れ — 支えられ満たされる愛','后者<b>生养</b>前者的流势——被扶持、被充盈的爱'),
+    aConB:P4('앞사람이 뒷사람을 <b>이끌고 조이는</b> 관계 — 끌림과 긴장이 함께','the first leads and reins the second — attraction with tension','前者が後者を<b>導き締める</b>関係 — 惹かれ合いと緊張','前者<b>约束引导</b>后者——吸引与张力并存'),
+    bConA:P4('뒷사람이 앞사람을 <b>자극하고 조이는</b> 관계 — 끌림과 긴장이 함께','the second stirs and reins the first — attraction with tension','後者が前者を<b>刺激し締める</b>関係 — 惹かれ合いと緊張','后者<b>刺激约束</b>前者——吸引与张力并存'),
+    neutral:P4('서로 독립적이라 무난하고 담백한 사이','independent of each other — easy and uncomplicated','互いに独立し、無難であっさりした間柄','彼此独立，平顺而清爽')
+  };
+  if(mode==='short')return S[key];
+  const F={
+    same:P4(['같은 오행끼리라 <b>공감과 편안함</b>이 큽니다. 취향·리듬이 비슷해 금방 친해져요.','다만 둘 다 세면 부딪힐 때도 비슷하게 세니, 한 사람이 먼저 물러서는 지혜가 필요해요.','부족한 기운이 겹치면 함께 채우는 팀플레이가 답입니다.'],['Sharing an element brings <b>empathy and ease</b>. Similar tastes and rhythms make you click fast.','But when strong, you clash with equal force — the wiser one stepping back helps.','If you lack the same element, fill it as a team.'],['同じ五行同士で<b>共感と安らぎ</b>が大きい。好み・リズムが似て、すぐ親しくなれます。','ただ強いと衝突も同じ強さ。どちらかが先に引く知恵を。','欠けが重なるなら、二人で補うチームプレーを。'],['同五行相通，<b>共鸣与自在</b>很足。喜好、节奏相似，很快就熟。','但都强时冲突也一样强，需一方先退一步的智慧。','若同样缺某气，就以团队方式一起补。']),
+    aGenB:P4(['앞사람의 기운이 뒷사람을 <b>살려주는 상생</b>이에요. 챙겨주고 북돋는, 따뜻한 흐름.','주는 쪽이 지치지 않게, 받는 쪽이 <b>고마움을 표현</b>하면 오래갑니다.','일방적이 되지 않도록 가끔 역할을 바꿔보세요.'],['The first\'s energy <b>nurtures</b> the second — a warm, giving flow.','So the giver doesn\'t tire, the receiver should <b>show gratitude</b> — then it lasts.','Swap roles now and then so it isn\'t one-way.'],['前者の気が後者を<b>生かす相生</b>。世話を焼き、励ます温かい流れ。','与える側が疲れぬよう、受ける側が<b>感謝を表す</b>と長続き。','一方通行にならぬよう、時々役割を交代して。'],['前者之气<b>生养</b>后者，是相生。呵护、鼓舞的温暖流势。','为免付出方累，接受方要<b>表达感恩</b>，便能长久。','偶尔互换角色，别变成单向。']),
+    bGenA:P4(['뒷사람의 기운이 앞사람을 <b>살려주는 상생</b>이에요. 기대고 채워지는 관계.','받는 쪽이 <b>고마움을 표현</b>하고, 주는 쪽이 무리하지 않으면 균형이 좋아요.','서로 번갈아 힘이 되어주면 더 단단해집니다.'],['The second\'s energy <b>nurtures</b> the first — a supported, replenishing bond.','The receiver <b>showing gratitude</b> and the giver not overextending keeps balance.','Take turns being each other\'s strength.'],['後者の気が前者を<b>生かす相生</b>。支えられ満たされる関係。','受ける側が<b>感謝を表し</b>、与える側が無理しなければ均衡が良い。','交互に力になれば、より強く。'],['后者之气<b>生养</b>前者，是相生。被扶持、被充盈的关系。','接受方<b>表达感恩</b>、付出方不勉强，平衡就好。','轮流成为对方的力量，会更稳固。']),
+    aConB:P4(['앞사람이 뒷사람을 <b>다스리는 상극</b>이에요. 강한 끌림과 긴장이 함께 있어요.','상극은 <b>나쁜 게 아니라 자극</b>이에요. 서로를 성장시키지만, 통제로 흐르면 지쳐요.','리드할 땐 부드럽게, 존중을 얹으면 관계가 단단해집니다.'],['The first <b>governs</b> the second — strong attraction with tension.','A controlling cycle isn\'t bad — it\'s <b>stimulation</b>. It grows you both, but don\'t tip into control.','Lead gently, add respect, and it holds.'],['前者が後者を<b>剋する</b>関係。強い惹かれ合いと緊張が同居。','剋は<b>悪でなく刺激</b>。互いを成長させますが、支配に傾くと疲れます。','導く時はやわらかく、敬意を添えて。'],['前者<b>克</b>后者，是相克。强烈吸引与张力并存。','相克并非坏事，而是<b>刺激</b>。能互相成长，但别滑向控制。','引导时温柔些，加上尊重，关系就稳。']),
+    bConA:P4(['뒷사람이 앞사람을 <b>자극하는 상극</b>이에요. 끌림과 긴장이 함께 있어요.','상극은 <b>나쁜 게 아니라 자극</b>이에요. 서로 날을 세우기보다 존중으로 감싸세요.','부딪히는 지점을 미리 알아두면 오히려 강한 커플이 됩니다.'],['The second <b>stirs</b> the first — attraction with tension.','A controlling cycle isn\'t bad — it\'s <b>stimulation</b>. Wrap it in respect rather than sharpening edges.','Knowing your friction points makes you a strong couple.'],['後者が前者を<b>刺激し剋する</b>関係。惹かれ合いと緊張が同居。','剋は<b>悪でなく刺激</b>。刃を立て合うより敬意で包んで。','ぶつかる点を先に知れば、むしろ強いカップルに。'],['后者<b>刺激克制</b>前者，是相克。吸引与张力并存。','相克并非坏事，而是<b>刺激</b>。别互相较劲，用尊重去包容。','提前知道冲突点，反而成为坚强的一对。']),
+    neutral:P4(['두 기운이 <b>직접 생하거나 극하지 않아</b> 담백하고 독립적인 사이예요.','서로의 공간을 존중하는 편한 관계지만, 무심해지기도 쉬워요. <b>먼저 표현</b>이 답이에요.','공통의 관심사·목표를 하나 만들면 훨씬 가까워집니다.'],['Your elements <b>neither generate nor control</b> directly — easy and independent.','You respect each other\'s space, but can drift into indifference. <b>Speak up first</b>.','One shared goal or hobby brings you much closer.'],['二つの気が<b>直接生も剋もせず</b>、あっさり独立した間柄。','互いの空間を尊重できる反面、無関心にも傾きやすい。<b>先に表現</b>を。','共通の関心・目標を一つ作ると、ぐっと近づきます。'],['两气<b>既不相生也不相克</b>，清爽而独立。','彼此尊重空间，却也易变冷淡。<b>先开口表达</b>是关键。','建立一个共同的兴趣或目标，会亲近许多。'])
+  };
+  return bl(F[key])+pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),S[key]);
+}
 function downloadPdf(){
   if(!CTX||!CTX.chart){alert(({ko:'먼저 사주 리포트를 만든 뒤 PDF로 저장할 수 있어요.',en:'Please generate your reading first, then save it as PDF.',ja:'先に鑑定を生成してからPDF保存できます。',zh:'请先生成命理报告，再保存为PDF。'})[LANG]||'Please generate your reading first.');return;}
   let html;
-  try{html=buildPdfDoc();}
+  try{html=CTX.chartB?buildCompatPdfDoc():buildPdfDoc();}
   catch(e){console.error('PDF build error',e);alert(({ko:'PDF 생성 중 오류가 났어요: ',en:'PDF error: ',ja:'PDF生成エラー: ',zh:'PDF生成错误: '})[LANG]+e.message);return;}
   if(!html){alert(({ko:'PDF 내용을 만들 수 없어요. 리포트를 다시 생성해 주세요.',en:'Could not build the PDF. Please regenerate your reading.',ja:'PDFを作成できませんでした。鑑定を再生成してください。',zh:'无法生成PDF内容，请重新生成报告。'})[LANG]||'Could not build PDF.');return;}
   const P=pdfP(LANG),who=(CTX.chart.이름||CTX.chart.생년월일||'');
