@@ -66,6 +66,10 @@
   .langpick{display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 13px;border:1.6px solid var(--gold);border-radius:999px;
     background:color-mix(in srgb,var(--gold) 12%,var(--card));box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 45%,transparent);animation:langpulse 2.6s ease-out 3}
   .langpick .globe{color:var(--gold2);flex:none}
+  .langpick2 .flagbtn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1.6px solid color-mix(in srgb,var(--gold) 35%,transparent);border-radius:999px;background:var(--card);color:var(--gold2);font-weight:700;font-size:13px;cursor:pointer;transition:.15s}
+  .langpick2 .flagbtn svg{border-radius:2px;flex:none}
+  .langpick2 .flagbtn:hover{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--card))}
+  .langpick2 .flagbtn.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 22%,var(--card));color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 30%,transparent)}
   .langpick select{width:auto;border:0;background:transparent;color:var(--gold2);font-weight:800;font-size:14px;padding:7px 6px;cursor:pointer}
   @keyframes langpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 50%,transparent)}70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
   @media(prefers-reduced-motion:reduce){.langpick{animation:none}}
@@ -322,11 +326,18 @@
 if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choopermarket1-8270s-projects.vercel.app/");</script>
 <div class="saekdong"></div>
 <div class="wrap">
-  <div class="langbar langbar-top"><div class="langpick">
-    <svg class="globe" viewBox="0 0 16 16" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M1.7 8h12.6M8 1.7c1.9 2 1.9 10.6 0 12.6M8 1.7c-1.9 2-1.9 10.6 0 12.6"/></svg>
-    <select id="lang" onchange="setLang(this.value)" aria-label="language / 언어 / 言語 / 语言">
-    <option value="ko">🇰🇷 한국어</option><option value="ja">🇯🇵 日本語</option><option value="en">🇺🇸 English</option><option value="zh">🇨🇳 中文</option>
-  </select></div></div>
+  <div class="langbar langbar-top"><div class="langpick2" style="display:flex;flex-direction:column;align-items:center;gap:7px;width:100%">
+    <div style="display:flex;align-items:center;gap:7px;color:var(--gold2);font-size:12px;letter-spacing:3px;font-weight:700">
+      <svg class="globe" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M1.7 8h12.6M8 1.7c1.9 2 1.9 10.6 0 12.6M8 1.7c-1.9 2-1.9 10.6 0 12.6"/></svg>
+      <span>LANGUAGE · 언어 · 言語 · 语言</span></div>
+    <div id="flagRow" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button type="button" class="flagbtn" data-l="ko" onclick="setLang('ko');markLang('ko')"><svg width="22" height="15" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="5" fill="#cd2e3a"/><path d="M10 10a5 5 0 0 1 10 0 2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 0-5 0z" fill="#0047a0"/></svg><span>한국어</span></button>
+      <button type="button" class="flagbtn" data-l="ja" onclick="setLang('ja');markLang('ja')"><svg width="22" height="15" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="5.5" fill="#bc002d"/></svg><span>日本語</span></button>
+      <button type="button" class="flagbtn" data-l="en" onclick="setLang('en');markLang('en')"><svg width="22" height="15" viewBox="0 0 30 20"><rect width="30" height="20" fill="#fff"/><g fill="#b22234"><rect width="30" height="2.85"/><rect y="5.7" width="30" height="2.85"/><rect y="11.4" width="30" height="2.85"/><rect y="17.1" width="30" height="2.85"/></g><rect width="13" height="11.4" fill="#3c3b6e"/></svg><span>English</span></button>
+      <button type="button" class="flagbtn" data-l="zh" onclick="setLang('zh');markLang('zh')"><svg width="22" height="15" viewBox="0 0 30 20"><rect width="30" height="20" fill="#de2910"/><path d="M6 4 L7.2 7.4 L10.8 7.4 L7.9 9.6 L9 13 L6 10.9 L3 13 L4.1 9.6 L1.2 7.4 L4.8 7.4 Z" fill="#ffde00"/></svg><span>中文</span></button>
+    </div>
+    <select id="lang" onchange="setLang(this.value)" style="display:none"><option value="ko">한국어</option><option value="ja">日本語</option><option value="en">English</option><option value="zh">中文</option></select>
+  </div></div>
   <header>
     <svg class="mun" viewBox="0 0 100 100" aria-hidden="true">
       <defs>
@@ -1090,6 +1101,8 @@ function run(){
     "세운(연도별)":seun,"월운(월별)":worun,
     시각정보:noTime?"출생시각 미상 — 시주(時柱)는 신뢰도 낮으니 참고만, 년·월·일주와 대운 위주로 해석":"확정"};
   const nm=(document.getElementById('hanja')?.value||'').trim();if(nm)chart.이름=nm;
+  chart.달력=cal==='lun'?'lunar':'solar'; // 표지 표시용(양/음력)
+  if(!noTime){const HM={23:['자','子','23–01'],1:['축','丑','01–03'],3:['인','寅','03–05'],5:['묘','卯','05–07'],7:['진','辰','07–09'],9:['사','巳','09–11'],11:['오','午','11–13'],13:['미','未','13–15'],15:['신','申','15–17'],17:['유','酉','17–19'],19:['술','戌','19–21'],21:['해','亥','21–23']};const hm=HM[h];if(hm)chart.시정보={ko:hm[0]+'시',hanja:hm[1]+'時',range:hm[2]};}
   chart.명리=myeongni(d,noTime); // 신살·십이운성·공망·격국·용신(억부)
   chart.해석=interpret(d,w,age,gender); // 2층: 규칙엔진이 뽑은 '언제·무엇·등급' 타이밍 신호
   try{if(typeof MY2!=='undefined')MY2.enrich(chart);}catch(e){} // 심화 v2: 지장간·합충·신강약점수·조후 (실패해도 기존 흐름 유지)
@@ -1628,11 +1641,12 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   if(typeof renderTeachers==='function')renderTeachers();
   renderStatic();
 }
-function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);
+function markLang(v){const sel=document.getElementById('lang');if(sel)sel.value=v;document.querySelectorAll('#flagRow .flagbtn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-l')===v));}
+function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);markLang(v);
   // 이미 결과가 떠 있으면 새 언어로 자동 재생성(한글리포트+영어UI 뒤섞임 방지)
   if(changed&&CTX&&document.getElementById('result')&&document.getElementById('result').innerHTML.trim()){run();}
 }
-applyLang(LANG);
+applyLang(LANG);markLang(LANG);
 </script>
 <style>
   #pdfDoc{display:none}
@@ -1692,6 +1706,14 @@ const SINSAL2={
 const UNSEONG2={장생:'갓 태어난 아기처럼 순수하고 성장 가능성이 가득한 자리. 새 출발 · 배움 · 귀염받음의 기운.',목욕:'막 씻겨져 다듬어지는 단계. 변동과 기복이 있고 감정 · 이성 문제가 따르기 쉬움.',관대:'성인이 되어 옷을 갖춰 입는 단계. 자기주장이 강해지고 사회로 나아가는 준비.',건록:'벼슬을 얻어 자리 잡는 왕성한 단계. 독립 · 실력 · 안정된 활동력이 정점을 향함.',제왕:'인생의 절정. 힘과 자신감이 최고조. 리더의 자리이나 지나치면 독선을 조심.',쇠:'정점을 지나 기우는 단계. 노련함과 안정감이 생기고 한 발 물러설 줄 앎.',병:'기운이 약해져 쉬어야 하는 단계. 예민 · 섬세해지고 돌봄과 회복이 필요.',사:'멈추고 정리하는 단계. 마무리 · 성찰 · 전환. 무리한 확장은 삼갈 때.',묘:'창고에 갈무리하는 단계. 저장 · 잠복 · 내실. 드러내기보다 안으로 쌓음.',절:'끊어지고 비워지는 단계. 큰 전환과 새 씨앗을 위한 비움. 변화의 문턱.',태:'새로 잉태되는 단계. 아직 드러나지 않은 가능성과 계획이 자라남.',양:'뱃속에서 길러지는 단계. 준비 · 양육 · 기다림. 곧 태어날 힘을 기름.'};
 // PDF 소제목+불릿 블록
 function pdfSub(title,items){const f=(items||[]).filter(Boolean);if(!f.length)return'';return `<div style="margin:13px 0 0"><div style="font-size:12.5px;font-weight:700;color:#b08d57;letter-spacing:.5px;margin-bottom:1px">${title}</div>${bl(f)}</div>`;}
+// 각주(용어 설명) — 하단 점선 박스
+function pdfFoot(rows){const f=(rows||[]).filter(Boolean);if(!f.length)return'';return `<div style="margin-top:15px;padding-top:8px;border-top:1px dashed #dcd2bd;font-size:10.5px;line-height:1.62;color:#8a7f6c">${f.map(r=>`<div style="margin:2px 0"><b style="color:#b08d57">※</b> ${r}</div>`).join('')}</div>`;}
+// 자주 쓰는 용어 각주(언어별)
+function FN(key){const KOx=(LANG==='ko');const T={
+ ganji:KOx?'<b>간지(干支)</b> = 하늘 기운 <b>천간</b>(天干: 甲乙丙丁戊己庚辛壬癸) + 땅 기운 <b>지지</b>(地支: 子丑寅卯辰巳午未申酉戌亥)를 한 글자씩 짝지은 이름표. 예) 丁酉 = 천간 丁 + 지지 酉.':'<b>干支 (Ganji)</b> = one <b>Heavenly Stem</b> (天干: 甲乙丙丁…) + one <b>Earthly Branch</b> (地支: 子丑寅卯…) paired as a "name tag". e.g. 丁酉 = stem 丁 + branch 酉.',
+ sipsin:KOx?'<b>십신(十神)</b> = 일간(나)과 각 글자의 관계를 나눈 10가지 역할(비견·겁재·식신·상관·정재·편재·정관·편관·정인·편인). 뜻은 "십신" 페이지에 하나씩 풀어 두었어요.':'<b>Ten Gods (十神)</b> = the 10 relationship-roles between each character and your Day Master (Companion, Rival, Output, Expression, Steady/Windfall Wealth, Authority, Power, Support, Insight). Each is explained on its own page.',
+ daewoon:KOx?'<b>대운(大運)</b>=10년 단위 인생의 계절, <b>세운(歲運)</b>=해마다의 날씨.':'<b>Luck cycle (大運)</b> = a ~10-year season of life; <b>Annual luck (歲運)</b> = each year\'s weather.'
+}; return T[key]||'';}
 // "쉽게 말하면" 비유 콜아웃
 function pdfBiyu(text){if(!text)return'';const lbl=LANG==='ko'?'💡 쉽게 말하면':'💡 In plain words';return `<div style="margin:13px 0 2px;padding:11px 14px;background:#faf6ec;border-left:3px solid #c9a961;border-radius:0 5px 5px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:11px;font-weight:700;color:#b08d57;letter-spacing:1px;margin-bottom:3px">${lbl}</div><div style="font-size:13.5px;line-height:1.72;color:#3a3226">${text}</div></div>`;}
 // ── 손글씨 · 형광펜 · 빨강펜 · 별표 · 도장 (수기 첨삭 느낌) ──
@@ -1877,6 +1899,7 @@ function buildPdfDoc(){
     <div style="margin-top:24px;font-size:15px;line-height:2.1;color:#3a3226">
       <div><b>${P.forWhom}</b> · ${nm}</div>
       <div><b>${P.birth}</b> · ${c.생년월일||''} (${c.성별==='여'||c.성별==='female'?(LANG==='ko'?'여':'F'):(LANG==='ko'?'남':'M')})</div>
+      <div style="font-size:13px;color:#7a6f5c;margin-top:2px">${(function(){const CAL={ko:{solar:'양력',lunar:'음력'},en:{solar:'Solar calendar',lunar:'Lunar calendar'},ja:{solar:'新暦',lunar:'旧暦'},zh:{solar:'阳历',lunar:'农历'}};const HR={ko:'시(時)',en:'Birth hour',ja:'時刻',zh:'时辰'};const NOH={ko:'시간 모름',en:'hour unknown',ja:'時刻不明',zh:'时辰未知'};const cal=(CAL[LANG]||CAL.en)[c.달력==='lunar'?'lunar':'solar'];const hi=c.시정보?`${LANG==='ko'?c.시정보.ko:c.시정보.hanja} (${c.시정보.range})`:(NOH[LANG]||NOH.en);return `📅 ${cal} · 🕐 ${(HR[LANG]||HR.en)}: ${hi}`;})()}</div>
       <div style="font-size:22px;letter-spacing:6px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].join('  '):''}</div>
     </div>
     <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
@@ -1933,7 +1956,7 @@ function buildPdfDoc(){
     <div style="font-size:44px;text-align:center;color:#2a2118;margin:1mm 0 0">${boxit(ILGAN)}</div>
     <div style="text-align:center;margin-top:5px">${pen(KO?"↑ 이게 바로 '나 자신'이에요!":"↑ this character is YOU!")}</div>
     ${pdfBiyu(KO?`사주 여덟 글자 중 <b>태어난 날의 첫 글자(일간)</b>가 바로 '<b>나 자신</b>'이에요. 나머지 일곱 글자는 모두 이 '나'를 둘러싼 환경·인연·재물로 읽습니다. 당신의 나는 <b>${dmEl}</b>의 기운 — ${(OH_BIYU[dmEl]||'').replace(/^.*?은 /,'')}`:`Of your eight characters, the <b>first character of your birth-day — the Day Master</b> — is <b>you yourself</b>. The other seven are read as the world around this "you": people, luck and wealth. Your Day Master carries the energy of <b>${elLabel(dmEl)}</b> — ${(OHb[dmEl]||'').replace(/^(Wood|Fire|Earth|Metal|Water) is /,'It is ')}`)}
-    ${bl([`<b>${LB('coreEnergy')}</b> — ${OHd[dmEl]||''}`, miss.length?(KO?`<b>비어 있는 기운</b> — <b>${miss.join('·')}</b>. 결핍이 아니라 사람·환경·습관으로 채워가는 '과제'입니다.`:`<b>${LB('missing')}</b> — <b>${miss.map(elLabel).join(', ')}</b>. Not a flaw, but an area to fill through people, environment and habit.`):(KO?'<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.':`<b>${LB('balance')}</b> — your five elements are even; you steady yourself anywhere.`)])}`));
+    ${bl([`<b>${LB('coreEnergy')}</b> — ${hl(elLabel(dmEl))}: ${OHd[dmEl]||''}`, miss.length?(KO?`<b>비어 있는 기운</b> — ${hl(miss.join('·'),'#ffd0dc')}. 결핍이 아니라 사람·환경·습관으로 채워가는 '과제'입니다.`:`<b>${LB('missing')}</b> — ${hl(miss.map(elLabel).join(', '),'#ffd0dc')}. Not a flaw, but an area to fill through people, environment and habit.`):(KO?'<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.':`<b>${LB('balance')}</b> — your five elements are even; you steady yourself anywhere.`)])}`));
   // 5 오행 총론
   const maxc=Math.max(1,...order.map(e=>el[e]||0));
   pages.push(pg(pdfHead(P.ohaeng,nm)+`${svgOhaeng(el)}
@@ -2002,7 +2025,7 @@ function buildPdfDoc(){
   pages.push(pg(pdfHead(P.daewoon,nm)+`${svgDaewoon(dw,nowDwIdx)}
     ${pdfBiyu(KO?'<b>대운(大運)</b>은 <b>약 10년마다 바뀌는 인생의 계절</b>이에요. 봄 · 여름 · 가을 · 겨울처럼, 각 10년마다 삶의 분위기와 주제가 통째로 달라집니다. 그리고 그 계절 위에 얹히는 <b>올해의 날씨</b>가 바로 뒤에 나올 <b>세운(연도별)</b>이죠. 위 타임라인에서 <b>金색 칸</b>이 당신이 지금 지나는 계절입니다.':'<b>Luck cycles (大運)</b> are <b>the ~10-year seasons of your life</b>. Like spring, summer, autumn and winter, the mood and theme of your life shift wholesale every decade. The <b>weather of each year</b> laid on top of that season is the <b>annual luck (歲運)</b> that follows. The <b>gold cell</b> in the timeline above is the season you are passing through now.')}
     <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.age}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr||'Year'}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'간지':'Pillar'}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'주제':'Theme'}</th></tr>
-    ${dw.map((x,i)=>`<tr${i===nowDwIdx?' style="background:#faf6ec;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${GJ(x.간지)}</td><td style="padding:6px;border-bottom:1px solid #eee">${th(x.십신)}${i===nowDwIdx?` <b style="color:#b08d57">◀ ${KO?'지금':'now'}</b>`:''}</td></tr>`).join('')}</table>`));
+    ${dw.map((x,i)=>`<tr${i===nowDwIdx?' style="background:#faf6ec;-webkit-print-color-adjust:exact;print-color-adjust:exact"':''}><td style="padding:6px;border-bottom:1px solid #eee">${Math.round(x.나이)}${P.ageU}~</td><td style="padding:6px;border-bottom:1px solid #eee">${x.시작연도}~</td><td style="padding:6px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600">${GJ(x.간지)}</td><td style="padding:6px;border-bottom:1px solid #eee">${th(x.십신)}${i===nowDwIdx?` <b style="color:#b08d57">◀ ${KO?'지금':'now'}</b>`:''}</td></tr>`).join('')}</table>${pdfFoot([FN('ganji'),FN('sipsin')])}`));
   dw.forEach((x,i)=>{const o=SIP10x[x.십신]||{};const isNow=(i===nowDwIdx);
     pages.push(pg(pdfHead(`${P.daewoonN} ${i+1} · ${GJ(x.간지)}`,nm)+`<div style="font-size:46px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${isNow?boxit(GJ(x.간지)):GJ(x.간지)}</div>
     <div style="text-align:center;font-size:14px;color:#7a6f5c;margin-bottom:2px">${Math.round(x.나이)}${P.ageU} ~ ${Math.round(x.나이)+9}${P.ageU} · ${x.시작연도} ~ ${x.시작연도+9}${P.yr}${isNow?(KO?' · <b style="color:#b08d57">지금 지나는 대운</b>':' · <b style="color:#b08d57">current cycle</b>'):''}</div>
@@ -2021,11 +2044,11 @@ function buildPdfDoc(){
   for(let i=0;i<seun.length;i+=5){const chunk=seun.slice(i,i+5);pages.push(pg(pdfHead(`${P.seun} (${chunk[0].연도}~${chunk[chunk.length-1].연도})`,nm)+
     `<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${P.yr||'Year'}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'간지':'Pillar'}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?P.sipsin.split(' ')[0]:'Ten-God'}</th><th style="text-align:left;padding:7px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'주제':'Theme'}</th></tr>
     ${chunk.map(s=>`<tr><td style="padding:9px 7px;border-bottom:1px solid #eee;font-weight:600;color:#2a2118">${s.연도}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${GJ(s.간지)}</td><td style="padding:9px 7px;border-bottom:1px solid #eee">${godLabel(s.십신)}</td><td style="padding:9px 7px;border-bottom:1px solid #eee;color:#3a3226">${KO?(s.테마||th(s.십신)):th(s.십신)}</td></tr>`).join('')}</table>
-    <p style="font-size:13px;color:#7a6f5c;margin-top:12px">${LANG==='ko'?'해마다 바뀌는 기운(세운)입니다. 대운이라는 계절 위에 얹히는 그날그날의 날씨로 보세요.':'Yearly luck layered on the decade-long season — the day-to-day weather of your life.'}</p>`));}
+    <p style="font-size:13px;color:#7a6f5c;margin-top:12px">${LANG==='ko'?'해마다 바뀌는 기운(세운)입니다. 대운이라는 계절 위에 얹히는 그날그날의 날씨로 보세요.':'Yearly luck layered on the decade-long season — the day-to-day weather of your life.'}</p>${pdfFoot([FN('ganji'),FN('sipsin')])}`));}
   // 월운
   if(worun.length)pages.push(pg(pdfHead(P.worun,nm)+`${bl([KO?'<b>월운(月運)</b>은 <b>달마다 바뀌는 기운</b>이에요. 세운(연) 아래 한 단계 더 촘촘한 흐름으로, 이사·계약·중요한 약속의 <b>달</b>을 고를 때 봅니다.':'<b>Monthly luck (月運)</b> is <b>the energy that shifts each month</b> — one layer finer than the annual luck. Use it to pick the right <b>month</b> for a move, a contract or an important commitment.'])}
     <table style="width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px"><tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'연월':'Month'}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?'간지':'Pillar'}</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;color:#7a6f5c">${KO?P.sipsin.split(' ')[0]:'Ten-God'}</th></tr>
-    ${worun.map(w=>`<tr><td style="padding:7px 6px;border-bottom:1px solid #eee">${w.연월}</td><td style="padding:7px 6px;border-bottom:1px solid #eee;color:#2a2118">${GJ(w.간지)}</td><td style="padding:7px 6px;border-bottom:1px solid #eee">${godLabel(w.십신)}</td></tr>`).join('')}</table>`));
+    ${worun.map(w=>`<tr><td style="padding:7px 6px;border-bottom:1px solid #eee">${w.연월}</td><td style="padding:7px 6px;border-bottom:1px solid #eee;color:#2a2118">${GJ(w.간지)}</td><td style="padding:7px 6px;border-bottom:1px solid #eee">${godLabel(w.십신)}</td></tr>`).join('')}</table>${pdfFoot([FN('ganji'),FN('sipsin')])}`));
   // 도메인 6개 (세운에서 해당 십신 나오는 해 뽑아서)
   const domYears=(list)=>seun.filter(s=>list.includes(s.십신)).map(s=>s.연도).slice(0,4);
   const hasYeokma=(m.신살||[]).some(s=>s.indexOf('역마')===0);
