@@ -1056,7 +1056,8 @@ async function runCompat(){
       <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}${L.title(A,B)}</h3>
         ${L.chips(A,B)}
         ${compatDial(cscore)}
-        <div class="ai-out" style="margin-top:14px">${mdToHtml(acc)}${ttsBtn()}</div></div>
+        <div class="ai-out" style="margin-top:14px">${mdToHtml(acc)}${ttsBtn()}</div>
+        <button class="aibtn" style="animation:none;margin-top:14px" onclick="downloadPdf()">📄 ${({ko:'궁합 명리서 PDF 저장 (12p)',en:'Save compatibility reading (PDF)',ja:'相性の鑑定書をPDF保存',zh:'保存合婚命书PDF'})[LANG]||'Save compatibility PDF'}</button></div>
       <div class="block" style="--tc:var(${t.cv})"><h3>${L.askMore}</h3>
         <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${L.askDesc}</p>
         <div class="followups" id="ctopics"></div>
