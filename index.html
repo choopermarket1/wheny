@@ -2025,6 +2025,13 @@ const DOM_ZH=[
 const LETTER_ZH={sat:'夜深了，我静静地端详着你的命式。',dmIntro:'你的日主，{el}——一个{trait}。',solid:'外表看着坚硬，心里却还有一份没能完全舒展的心事吧。我都懂。',worked:'这些年，你真的很努力。可是有一句话我最想告诉你——',door:'一扇门将为你大大打开',after:'大约在',when:'那一刻到来时，请千万别犹豫。',missTxt:'不是因为你拥有得太多，而是因为{miss}稍稍空了一点，你反而是那种只会愈发坚强的人。那处空缺，用人和习惯去填满就好。',balTxt:'你的五行匀称齐整——无论人生把你放在哪里，你都能自己稳住重心。',map:'这本书，是我为你标注好的一张小小地图。哪怕只把画了红星的地方放在心上，当你觉得快要迷路时，再拿出来看看就好。',cheer:'为你的下一个季节加油，——'};
 const CONCEPT_ZH={intro:'如果「木」「阴阳」这类词对你还很陌生，请先读这一页。它是打开后面整本书的钥匙。',yinTitle:'阴阳（陰陽）',yin:'在这套体系里，万物都带着两种极性之一——<b>阳</b>（主动、向外、明亮）或<b>阴</b>（承受、向内、安静）。它们不是好与坏，而是彼此需要的两半，就像白天与黑夜。',fiveTitle:'五行（五行）',five:'在阴阳之上，一切能量又被归为五类——<b>木、火、土、金、水</b>。每一种都对应一个季节、一个方位和一组特质。你的性格，不过是你与生俱来的这五者的独特<b>配比</b>。',pillarTitle:'天干、地支与四柱',pillar:'你出生的<b>年、月、日、时</b>各自化作一「柱」，由两个字组成——上为<b>天干</b>，下为<b>地支</b>。合共八个字。每个字都是五行之一，且带阴或阳之形。',dmTitle:'日主 = 你',dm:'在这八个字中，你<b>日</b>柱的天干，就是<b>你自己</b>——即「日主」。整篇解读只问一个问题：其余七个字，以及往后的岁月，如何对待这个「你」？',noteTitle:'老师的一句话',note:'不必费心去背那些汉字。只要跟着图画、跟着高亮和我手写的批注走就好——我会一路带你把一切看明白。'};
 
+// 오행별 생활 처방(실천 루틴) — 색·방향·음식·활동·매일 습관
+const OHLIFE={
+ ko:{木:{c:'초록·청록',d:'동쪽',f:'신맛·채소·새싹·견과',a:'아침 산책, 새 계획 세우기, 식물 키우기',h:'매일 아침 오늘 새로 시작할 일 하나 정하기'},火:{c:'빨강·분홍',d:'남쪽',f:'쓴맛·따뜻한 차·붉은 음식',a:'햇볕 15분, 감정 표현(대화·글), 유산소 운동',h:'하루 한 번 크게 웃고 마음 한 줄 쓰기'},土:{c:'노랑·베이지',d:'중앙',f:'단맛·곡물·뿌리채소',a:'규칙적 식사, 방·책상 정리, 짧은 명상',h:'매일 같은 시간에 밥·잠, 잠들기 전 정리 5분'},金:{c:'흰색·금속색',d:'서쪽',f:'매운맛·흰 음식',a:'벌인 일 마무리, 근력 운동, 결단 연습',h:'매일 "여기까지" 하나 끝내고 체크하기'},水:{c:'검정·남색',d:'북쪽',f:'짠맛·물·해산물·콩',a:'충분한 수분·휴식, 독서, 새 사람·정보 만나기',h:'물 자주 마시고 자기 전 생각 비우기 3분'}},
+ en:{木:{c:'green / teal',d:'East',f:'sour foods, greens, sprouts, nuts',a:'a morning walk, planning something new, tending plants',h:'each morning, pick one new thing to start today'},火:{c:'red / pink',d:'South',f:'bitter foods, warm tea, red foods',a:'15 min of sun, expressing feelings (talk/writing), cardio',h:'laugh out loud once a day and write one line of how you feel'},土:{c:'yellow / beige',d:'Center',f:'sweet foods, grains, root vegetables',a:'regular meals, tidying your room/desk, short meditation',h:'eat and sleep at the same time daily; 5-min tidy before bed'},金:{c:'white / metallic',d:'West',f:'spicy foods, white foods',a:'finishing what you started, strength training, deciding',h:'close out one "this far" task each day and check it off'},水:{c:'black / navy',d:'North',f:'salty foods, water, seafood, beans',a:'plenty of hydration and rest, reading, meeting new people/info',h:'drink water often; clear your mind for 3 min before bed'}},
+ ja:{木:{c:'緑・青緑',d:'東',f:'酸味・野菜・新芽・ナッツ',a:'朝の散歩、新しい計画、植物を育てる',h:'毎朝、今日新しく始めることを一つ決める'},火:{c:'赤・ピンク',d:'南',f:'苦味・温かいお茶・赤い食べ物',a:'日光15分、感情の表現(会話・文)、有酸素運動',h:'一日一度大きく笑い、気持ちを一行書く'},土:{c:'黄・ベージュ',d:'中央',f:'甘味・穀物・根菜',a:'規則正しい食事、部屋・机の整理、短い瞑想',h:'毎日同じ時間に食・眠、寝る前5分片づけ'},金:{c:'白・金属色',d:'西',f:'辛味・白い食べ物',a:'やりかけを仕上げる、筋トレ、決断の練習',h:'毎日「ここまで」を一つ終えてチェック'},水:{c:'黒・紺',d:'北',f:'塩味・水・海産物・豆',a:'十分な水分と休息、読書、新しい人・情報に会う',h:'水をこまめに飲み、寝る前3分頭を空にする'}},
+ zh:{木:{c:'绿·青绿',d:'东方',f:'酸味·蔬菜·嫩芽·坚果',a:'晨间散步、制定新计划、养植物',h:'每天早晨定一件今天要新开始的事'},火:{c:'红·粉',d:'南方',f:'苦味·热茶·红色食物',a:'晒太阳15分钟、表达情绪(交谈·书写)、有氧运动',h:'每天大笑一次，写一行心情'},土:{c:'黄·米色',d:'中央',f:'甜味·谷物·根茎菜',a:'规律饮食、整理房间·书桌、短暂冥想',h:'每天定时吃睡，睡前整理5分钟'},金:{c:'白·金属色',d:'西方',f:'辛味·白色食物',a:'收尾未竟之事、力量训练、练习决断',h:'每天完成一件「到此为止」并打勾'},水:{c:'黑·藏青',d:'北方',f:'咸味·水·海产·豆类',a:'充足补水与休息、阅读、结识新人新知',h:'常喝水，睡前清空思绪3分钟'}}
+};
 function pdfP(L){return PDF_I18N[L]||PDF_I18N.ko;}
 function pg(inner){return `<section class="pg" style="padding:2mm 2mm 4mm;font-family:'Noto Serif KR',serif;color:#1a1a1a">${inner}</section>`;}
 let _pdfCh=0;
@@ -2145,21 +2152,27 @@ function buildPdfDoc(){
     <div style="text-align:center;margin-top:5px">${pen(P4("↑ 이게 바로 '나 자신'이에요!","↑ this character is YOU!","↑ これがまさに「あなた自身」!","↑ 这就是「你自己」!"))}</div>
     ${pdfBiyu(P4(`사주 여덟 글자 중 <b>태어난 날의 첫 글자(일간)</b>가 바로 '<b>나 자신</b>'이에요. 나머지 일곱 글자는 모두 이 '나'를 둘러싼 환경·인연·재물로 읽습니다. 당신의 나는 <b>${dmEl}</b>의 기운 — ${(OH_BIYU[dmEl]||'').replace(/^.*?은 /,'')}`,`Of your eight characters, the <b>first character of your birth-day — the Day Master</b> — is <b>you yourself</b>. The other seven are read as the world around this "you": people, luck and wealth. Your Day Master carries the energy of <b>${elLabel(dmEl)}</b> — ${(OHb[dmEl]||'').replace(/^(Wood|Fire|Earth|Metal|Water) is /,'It is ')}`,`八字のうち<b>生まれた日の最初の文字(日主)</b>が、まさに「<b>あなた自身</b>」です。残り七つの文字は、この「あなた」を取り巻く環境・縁・財として読みます。あなたは<b>${dmEl}</b>の気 — ${(OH_BIYU_JA[dmEl]||'').replace(/^.*?は/,'')}`,`八字之中，<b>出生那天的第一个字(日主)</b>，正是「<b>你自己</b>」。其余七个字，都作为围绕这个「你」的环境、缘分、财富来读。你是<b>${dmEl}</b>之气 — ${(OH_BIYU_ZH[dmEl]||'').replace(/^.*?是/,'')}`))}
     ${bl([`<b>${LB('coreEnergy')}</b> — ${hl(elLabel(dmEl))}: ${OHd[dmEl]||''}`, miss.length?P4(`<b>비어 있는 기운</b> — ${hl(miss.join('·'),'#ffd0dc')}. 결핍이 아니라 사람·환경·습관으로 채워가는 '과제'입니다.`,`<b>${LB('missing')}</b> — ${hl(miss.map(elLabel).join(', '),'#ffd0dc')}. Not a flaw, but an area to fill through people, environment and habit.`,`<b>${LB('missing')}</b> — ${hl(miss.map(elLabel).join('・'),'#ffd0dc')}。欠点ではなく、人・環境・習慣で満たしていく「課題」です。`,`<b>${LB('missing')}</b> — ${hl(miss.map(elLabel).join('、'),'#ffd0dc')}。这并非缺陷，而是通过人、环境、习惯去填补的「课题」。`):P4('<b>균형</b> — 오행이 고르게 갖춰져 어디에 놓여도 중심을 잡습니다.',`<b>${LB('balance')}</b> — your five elements are even; you steady yourself anywhere.`,`<b>${LB('balance')}</b> — 五行が均等に備わり、どこに置かれても中心を保てます。`,`<b>${LB('balance')}</b> — 五行匀称齐备，无论置身何处都能稳住重心。`)])}`));
-  // 4.5 같은 일간 유명인 (공개 생일 기반 · 사실 계산)
+  // 4.5 같은 일주(日柱) 유명인 — 공개 생일로 실제 계산. 일주 완전일치 우선, 없으면 같은 일간
   try{
-    const userStem=(c.일간||'').match(/[甲乙丙丁戊己庚辛壬癸]/)?.[0];
+    const userDay=(c.명식?.일주||'').replace(/[^甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/g,'');
+    const userStem=userDay[0]||(c.일간||'').match(/[甲乙丙丁戊己庚辛壬癸]/)?.[0];
     if(userStem&&typeof computeSaju==='function'){
-      const matches={KR:[],JP:[],US:[],CN:[]};
-      CELEBS.forEach(cb=>{try{const dm=computeSaju({year:cb.y,month:cb.m,day:cb.d,hour:12,minute:0,tz:9}).dm;if(dm&&dm[0]===userStem&&matches[cb.c])matches[cb.c].push(KO?cb.n:(cb.n.replace(/[가-힣]/g,'').trim()||cb.n));}catch(e){}});
+      const iljuM={KR:[],JP:[],US:[],CN:[]}, ilganM={KR:[],JP:[],US:[],CN:[]};
+      CELEBS.forEach(cb=>{try{const r=computeSaju({year:cb.y,month:cb.m,day:cb.d,hour:12,minute:0,tz:9});const cd=(r.P&&r.P.day&&r.P.day.h)||'';const cs=(r.dm&&r.dm[0])||cd[0]||'';const nm=KO?cb.n:(cb.n.replace(/[가-힣]/g,'').trim()||cb.n);
+        if(cd&&userDay&&cd===userDay){iljuM[cb.c]&&iljuM[cb.c].push(nm);}
+        else if(cs&&userStem&&cs===userStem){ilganM[cb.c]&&ilganM[cb.c].push(nm);}}catch(e){}});
       const CO={ko:{KR:'한국',JP:'일본',US:'미국',CN:'중국'},en:{KR:'Korea',JP:'Japan',US:'USA',CN:'China'},ja:{KR:'韓国',JP:'日本',US:'アメリカ',CN:'中国'},zh:{KR:'韩国',JP:'日本',US:'美国',CN:'中国'}};
-      const co=CO[LANG]||CO.en, orderC=['KR','JP','US','CN'], anyM=orderC.some(k=>matches[k].length);
-      const T={ko:{t:'나와 같은 일간(日干)의 유명인',lead:`당신의 일간은 <b>${ILGAN}</b>. 공개된 생년월일로 계산했을 때, <b>같은 일간(타고난 '나'의 핵심 기운)</b>을 가진 유명인이에요. 나라별로 골라봤어요.`,none:'검증된 명단 중엔 같은 일간이 없네요. 일간은 10개 중 하나라, 대략 열 명 중 한 명이 당신과 같은 기운을 타고납니다.',foot:'<b>사주 전체가 같다는 뜻이 아니라</b>, 여덟 글자 중 가장 중요한 <b>일간(나 자신)</b>이 같다는 의미예요. 널리 공개된 생년월일로 계산했습니다.'},
-        en:{t:'Famous people who share your Day Master',lead:`Your Day Master is <b>${ILGAN}</b>. Computed from public birth dates, these well-known figures share the <b>same Day Master</b> — the core "you" energy — grouped by country.`,none:'None of our verified list shares your exact Day Master. With 10 stems, about 1 in 10 people is born with your energy.',foot:'This does <b>not</b> mean the whole chart matches — only the <b>Day Master (the "you" pillar)</b>, the single most important of the eight characters. Computed from widely-public birth dates.'},
-        ja:{t:'あなたと同じ日主の著名人',lead:`あなたの日主は <b>${ILGAN}</b>。公開された生年月日から計算すると、<b>同じ日主(生まれ持った「自分」の核となる気)</b>を持つ著名人です。国別に選びました。`,none:'確認できた名簿の中には同じ日主の方はいませんでした。日主は10種のうち1つなので、およそ10人に1人があなたと同じ気を持って生まれます。',foot:'<b>四柱すべてが同じという意味ではなく</b>、八字のうち最も重要な<b>日主(自分自身)</b>が同じという意味です。広く公開された生年月日で計算しました。'},
-        zh:{t:'与你同日主的名人',lead:`你的日主是 <b>${ILGAN}</b>。根据公开的出生日期计算，这些名人与你拥有<b>相同的日主（与生俱来的「自我」核心之气）</b>，按国家分列。`,none:'已核实的名单中没有与你相同日主的人。日主为十者取一，约有一成的人与你天生同气。',foot:'这并<b>不代表整个八字相同</b>，而是八字中最重要的<b>日主（你自己）</b>相同。基于广泛公开的出生日期计算。'}};
-      const L=T[LANG]||T.en;
-      const body=anyM?orderC.filter(k=>matches[k].length).map(k=>`<div style="margin:11px 0"><div style="font-size:13px;color:#7a6f5c;font-weight:700;margin-bottom:4px">${co[k]}</div><div style="font-size:15px;color:#2a2118;line-height:1.9">${matches[k].map(n=>hl(n)).join(' &nbsp;·&nbsp; ')}</div></div>`).join(''):`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:10px">${L.none}</p>`;
-      pages.push(pg(pdfHead(L.t,nm)+`<div style="text-align:center;font-size:42px;margin:2mm 0;-webkit-print-color-adjust:exact;print-color-adjust:exact">🌟</div>${bl([L.lead])}<div style="margin-top:4px">${body}</div>${pdfFoot([L.foot])}`));
+      const co=CO[LANG]||CO.en, orderC=['KR','JP','US','CN'];
+      const anyIlju=orderC.some(k=>iljuM[k].length), anyIlgan=orderC.some(k=>ilganM[k].length);
+      const userDayDisp=userDay?(KO?`${(_H2K[userDay[0]]||'')+(_H2K[userDay[1]]||'')}(${userDay})`:userDay):ILGAN;
+      const sect=(title,mp,color)=>`<div style="margin:10px 0 2px;font-size:13px;font-weight:700;color:${color}">${title}</div>`+orderC.filter(k=>mp[k].length).map(k=>`<div style="display:flex;gap:8px;margin:5px 0"><span style="flex:none;width:${KO?34:60}px;font-size:12px;color:#7a6f5c;font-weight:700">${co[k]}</span><span style="font-size:14.5px;color:#2a2118;line-height:1.8">${mp[k].map(n=>hl(n)).join(' &nbsp;·&nbsp; ')}</span></div>`).join('');
+      const L=P4(
+        {t:'나와 같은 일주(日柱)의 유명인',lead:`당신의 일주는 <b>${userDayDisp}</b> — 사주에서 '나 자신'을 뜻하는 가장 핵심 기둥이에요. 공개된 생년월일로 계산해, <b>완전히 같은 일주</b>거나 같은 일간을 타고난 유명인만 골랐어요.`,il:'✨ 완전히 같은 일주 (60명 중 1명꼴 · 매우 드문 인연)',ig:'같은 일간 (태어난 날의 나 글자가 동일)',none:'검증된 공개 명단 중에는 같은 일주·일간이 없네요. 일주는 <b>60개 중 하나</b>라 아주 특별한 자리예요.',foot:'공개된 생년월일로 <b>실제 계산</b>한 결과예요. 일주(日柱)는 태어난 날의 두 글자로, 사주에서 나를 나타내는 핵심입니다.'},
+        {t:'Famous people with your Day Pillar',lead:`Your Day Pillar is <b>${userDayDisp}</b> — the core pillar that means "you" in the chart. Computed from public birth dates, only figures with the <b>exact same Day Pillar</b> or the same Day Master are shown.`,il:'✨ Exact same Day Pillar (~1 in 60 · a rare match)',ig:'Same Day Master (same birth-day self)',none:'None of our verified public list shares your Day Pillar or Master. The Day Pillar is <b>1 in 60</b> — a very special seat.',foot:'<b>Actually computed</b> from public birth dates. The Day Pillar (two characters of your birth day) is the core "you" of the chart.'},
+        {t:'あなたと同じ日柱の著名人',lead:`あなたの日柱は <b>${userDayDisp}</b> — 命式で「自分」を表す最も核となる柱です。公開された生年月日から計算し、<b>完全に同じ日柱</b>か同じ日主の方だけを選びました。`,il:'✨ 完全に同じ日柱 (60分の1・とても稀な縁)',ig:'同じ日主 (生まれた日の「自分」の字が同じ)',none:'確認できた公開名簿には同じ日柱・日主の方はいませんでした。日柱は<b>60分の1</b>の特別な座です。',foot:'公開された生年月日から<b>実際に計算</b>しました。日柱(生まれた日の二字)は命式で自分を表す核です。'},
+        {t:'与你同日柱的名人',lead:`你的日柱是 <b>${userDayDisp}</b> — 命式中代表「你自己」的核心之柱。根据公开出生日期计算，只列出<b>日柱完全相同</b>或同日主的人。`,il:'✨ 日柱完全相同 (六十分之一·极稀有的缘)',ig:'同日主 (出生那天的「自我」之字相同)',none:'已核实的公开名单中没有与你同日柱·同日主的人。日柱为<b>六十取一</b>，是极特别的位置。',foot:'依公开出生日期<b>实际计算</b>。日柱(出生日的两字)是命式中代表你自己的核心。'});
+      const body=(anyIlju?sect(L.il,iljuM,'#c0392b'):'')+(anyIlgan?sect(L.ig,ilganM,'#b08d57'):'')+((!anyIlju&&!anyIlgan)?`<p style="font-size:14px;line-height:1.9;color:#3a3226;margin-top:10px">${L.none}</p>`:'');
+      pages.push(pg(pdfHead('🌟 '+L.t,nm)+`${bl([L.lead])}<div style="margin-top:6px">${body}</div>${pdfFoot([L.foot])}`));
     }
   }catch(e){}
   // 5 오행 총론
@@ -2329,6 +2342,27 @@ function buildPdfDoc(){
   }
   // 상담 문답
   if(CTX.chat&&CTX.chat.length){pages.push(pg(pdfHead(P.chatQA,nm)+CTX.chat.filter(x=>x.content&&!String(x.content).startsWith('__ERR__')).map(x=>`<div style="margin:0 0 14px"><div style="font-size:13px;font-weight:700;color:${x.role==='user'?'#b08d57':'#2a2118'}">${x.role==='user'?'Q':'A'}</div><div style="font-size:14px;line-height:1.85;color:#3a3226">${x.role==='user'?String(x.content):mdToHtml(String(x.content))}</div></div>`).join('')));}
+  // 실천 루틴 · 행동강령 (차별화 — 아는 것을 '하는 것'으로)
+  {const boostEl=(m.용신&&m.용신.용신후보&&(m.용신.용신후보.find(x=>'木火土金水'.includes(x))))||miss[0]||dmEl||'木';
+   const drainEl=order.find(e=>(el[e]||0)>=3);
+   const LF=(OHLIFE[LANG]||OHLIFE.ko)[boostEl]||{}, LD=drainEl?(OHLIFE[LANG]||OHLIFE.ko)[drainEl]:null;
+   const chk=[P4(`<b>${LF.c}</b> 색을 옷·소품·배경에 자주`,`Wear/place <b>${LF.c}</b> often`,`<b>${LF.c}</b>の色を服・小物・背景に`,`常用<b>${LF.c}</b>色于衣物·小物·背景`),
+     P4(`중요한 일·잠자리 머리는 <b>${LF.d}</b> 방향으로`,`Face key work / your pillow <b>${LF.d}</b>`,`大事や枕元は<b>${LF.d}</b>向きに`,`重要之事·床头朝<b>${LF.d}</b>`),
+     P4(`<b>${LF.f}</b> 챙겨 먹기`,`Eat more <b>${LF.f}</b>`,`<b>${LF.f}</b>を取る`,`多吃<b>${LF.f}</b>`),
+     ...String(LF.a||'').split(/,\s*|、/).filter(Boolean).map(x=>P4(x,x,x,x)),
+     P4(`<b>매일 습관</b>: ${LF.h}`,`<b>Daily</b>: ${LF.h}`,`<b>毎日</b>: ${LF.h}`,`<b>每天</b>: ${LF.h}`)];
+   pages.push(pg(pdfHead('🌱 '+P4('나를 살리는 실천 루틴','Your daily routine','あなたを生かす習慣','旺你的日常习惯'),nm)+
+     pdfBiyu(P4(`사주는 <b>아는 것에서 끝나면 소용없어요</b>. 당신에게 지금 가장 필요한 기운은 <b>${elLabel(boostEl)}</b>이에요. 그 기운을 <b>색·방향·음식·습관</b>으로 매일 조금씩 당기면, 타고난 흐름을 내 편으로 바꿀 수 있어요.`,`A chart is <b>useless if it stays "knowing"</b>. The energy you most need now is <b>${elLabel(boostEl)}</b>. Pull it in daily through <b>colour, direction, food and habit</b>, and you bend your inborn flow in your favour.`,`命式は<b>「知る」で終わっては意味がない</b>。いま最も必要な気は<b>${elLabel(boostEl)}</b>。それを<b>色・方角・食・習慣</b>で毎日少しずつ引き寄せれば、生まれ持った流れを味方にできます。`,`命式<b>止于「知道」便无用</b>。你此刻最需要的气是<b>${elLabel(boostEl)}</b>。用<b>色·方位·饮食·习惯</b>每天一点点引它，就能把天生的流势变成你的助力。`))+
+     pdfSub(P4(`채워야 할 기운 — ${elLabel(boostEl)}`,`Fill this energy — ${elLabel(boostEl)}`,`補う気 — ${elLabel(boostEl)}`,`要补的气 — ${elLabel(boostEl)}`),[
+       P4(`<b>색</b>은 ${LF.c}. 옷·소품·폰 배경으로 곁에 두세요.`,`<b>Colour</b>: ${LF.c} — keep it near in clothes, items, phone wallpaper.`,`<b>色</b>は${LF.c}。服・小物・待受で身近に。`,`<b>颜色</b>为${LF.c}。放在衣物·小物·手机壁纸中。`),
+       P4(`<b>방향</b>은 ${LF.d}. 책상·잠자리 머리·중요한 일을 이쪽으로.`,`<b>Direction</b>: ${LF.d} — face your desk, pillow and key work this way.`,`<b>方角</b>は${LF.d}。机・枕元・大事はこちらへ。`,`<b>方位</b>为${LF.d}。书桌·床头·要事朝此。`),
+       P4(`<b>음식</b>은 ${LF.f}.`,`<b>Food</b>: ${LF.f}.`,`<b>食</b>は${LF.f}。`,`<b>饮食</b>为${LF.f}。`),
+       P4(`<b>활동</b>은 ${LF.a}.`,`<b>Activities</b>: ${LF.a}.`,`<b>活動</b>は${LF.a}。`,`<b>活动</b>为${LF.a}。`)])+
+     pdfPen(P4('매일 이것 하나','One habit, every day','毎日これ一つ','每天就这一件'),LF.h||'')+
+     (LD?pdfSub(P4(`덜어낼 기운 — ${elLabel(drainEl)}`,`Ease off — ${elLabel(drainEl)}`,`減らす気 — ${elLabel(drainEl)}`,`要减的气 — ${elLabel(drainEl)}`),[P4(`${elLabel(drainEl)} 기운이 넘쳐요. ${LD.a} 같은 건 조금 줄이고, 위 루틴으로 균형을 맞추면 몸도 마음도 편해져요.`,`Your ${elLabel(drainEl)} runs high. Ease off things like ${LD.a}, and balance with the routine above.`,`${elLabel(drainEl)}が過剰。${LD.a}などは控えめに、上の習慣で均衡を。`,`${elLabel(drainEl)}偏旺。像${LD.a}这类稍减，用上面的日常习惯取平衡，身心都更舒坦。`)]):'')+
+     `<div style="margin-top:14px;font-size:13px;font-weight:800;color:#7a5a1c;display:inline-block;background:linear-gradient(180deg,transparent 58%,#ffe27a 58%);padding:0 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${P4('이번 주 실천 체크','This week — check it off','今週の実践チェック','本周实践打勾')}</div>`+
+     `<div style="margin-top:8px">${chk.map(x=>`<div style="display:flex;gap:9px;font-size:13.5px;line-height:1.7;color:#3a3226;margin:0 0 7px"><span style="flex:none;color:#b08d57;font-size:15px">☐</span><span>${mkHi(x)}</span></div>`).join('')}</div>`+
+     pdfPen(P4('선생님 한마디','A note from me','先生から一言','老师一句话'),P4('작은 습관 하나가 3개월이면 흐름을 바꿔요. 완벽하게 말고, <b>매일 조금</b>이 답이에요. ★','One small habit over three months shifts the flow. Not perfectly — <b>a little every day</b> is the answer. ★','小さな習慣も三ヶ月で流れを変えます。完璧より<b>毎日少し</b>。★','一个小习惯，三个月就能改流势。别求完美，<b>每天一点</b>才是答案。★'))));}
   // 타이밍 요약
   const goodY=seun.filter(s=>['정재','편재','정관','정인','식신'].includes(s.십신)).slice(0,6).map(s=>s.연도);
   const careY=seun.filter(s=>['겁재','상관','편관'].includes(s.십신)).slice(0,4).map(s=>s.연도);
