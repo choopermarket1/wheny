@@ -1708,10 +1708,10 @@ const SINSAL2={
 const UNSEONG2={장생:'갓 태어난 아기처럼 순수하고 성장 가능성이 가득한 자리. 새 출발 · 배움 · 귀염받음의 기운.',목욕:'막 씻겨져 다듬어지는 단계. 변동과 기복이 있고 감정 · 이성 문제가 따르기 쉬움.',관대:'성인이 되어 옷을 갖춰 입는 단계. 자기주장이 강해지고 사회로 나아가는 준비.',건록:'벼슬을 얻어 자리 잡는 왕성한 단계. 독립 · 실력 · 안정된 활동력이 정점을 향함.',제왕:'인생의 절정. 힘과 자신감이 최고조. 리더의 자리이나 지나치면 독선을 조심.',쇠:'정점을 지나 기우는 단계. 노련함과 안정감이 생기고 한 발 물러설 줄 앎.',병:'기운이 약해져 쉬어야 하는 단계. 예민 · 섬세해지고 돌봄과 회복이 필요.',사:'멈추고 정리하는 단계. 마무리 · 성찰 · 전환. 무리한 확장은 삼갈 때.',묘:'창고에 갈무리하는 단계. 저장 · 잠복 · 내실. 드러내기보다 안으로 쌓음.',절:'끊어지고 비워지는 단계. 큰 전환과 새 씨앗을 위한 비움. 변화의 문턱.',태:'새로 잉태되는 단계. 아직 드러나지 않은 가능성과 계획이 자라남.',양:'뱃속에서 길러지는 단계. 준비 · 양육 · 기다림. 곧 태어날 힘을 기름.'};
 // PDF 소제목+불릿 블록
 function pdfSub(title,items){const f=(items||[]).filter(Boolean);if(!f.length)return'';
- const head=`<div style="display:inline-block;font-size:12.5px;font-weight:800;color:#7a5a1c;letter-spacing:.5px;margin-bottom:3px;background:linear-gradient(180deg,transparent 58%,#ffe27a 58%);padding:0 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${title}</div>`;
+ const head=`<div style="display:inline-block;font-size:14px;font-weight:800;color:#7a5a1c;letter-spacing:.5px;margin-bottom:5px;background:linear-gradient(180deg,transparent 56%,#ffe27a 56%);padding:1px 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${title}</div>`;
  // 첫 문장만 ✎ 물결 밑줄, 나머지 문장은 각각 다른 줄로(단락단락)
  const s0=splitSent(f[0]);
- const first=`<ul style="list-style:none;padding:0;margin:4px 0 0"><li style="display:flex;gap:9px;font-size:14px;line-height:1.85;color:#2f2820;margin:0 0 9px"><span style="color:#d64545;flex:none;font-size:15px">✎</span><span>${wave(mkHi(s0[0]||''))}</span></li></ul>`;
+ const first=`<ul style="list-style:none;padding:0;margin:5px 0 0"><li style="display:flex;gap:10px;font-size:15.5px;line-height:1.92;color:#2b241c;margin:0 0 11px;word-break:keep-all;overflow-wrap:anywhere"><span style="color:#d64545;flex:none;font-size:16px">✎</span><span>${wave(mkHi(s0[0]||''))}</span></li></ul>`;
  const restItems=[...s0.slice(1),...f.slice(1)];
  const rest=restItems.length?bl(restItems):'';
  return `<div style="margin:13px 0 0">${head}${first}${rest}</div>`;}
@@ -1724,7 +1724,7 @@ function FN(key){const P4L=(ko,en,ja,zh)=>LANG==='ja'?ja:LANG==='zh'?zh:LANG==='
  daewoon:P4L('<b>대운(大運)</b>=10년 단위 인생의 계절, <b>세운(歲運)</b>=해마다의 날씨.','<b>Luck cycle (大運)</b> = a ~10-year season of life; <b>Annual luck (歲運)</b> = each year\'s weather.','<b>大運</b>=10年単位の人生の季節、<b>歳運</b>=年ごとの天気。','<b>大运</b>=十年为一节的人生季节，<b>流年(岁运)</b>=每年的天气。')
 }; return T[key]||'';}
 // "쉽게 말하면" 비유 콜아웃
-function pdfBiyu(text){if(!text)return'';const lbl=LANG==='ko'?'💡 쉽게 말하면':LANG==='ja'?'💡 やさしく言うと':LANG==='zh'?'💡 说白了就是':'💡 In plain words';return `<div style="margin:13px 0 2px;padding:11px 14px;background:#faf6ec;border-left:3px solid #c9a961;border-radius:0 5px 5px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:11px;font-weight:700;color:#b08d57;letter-spacing:1px;margin-bottom:3px">${lbl}</div><div style="font-size:13.5px;line-height:1.72;color:#3a3226">${text}</div></div>`;}
+function pdfBiyu(text){if(!text)return'';const lbl=LANG==='ko'?'💡 쉽게 말하면':LANG==='ja'?'💡 やさしく言うと':LANG==='zh'?'💡 说白了就是':'💡 In plain words';return `<div style="margin:14px 0 2px;padding:13px 16px;background:#faf6ec;border-left:4px solid #c9a961;border-radius:0 6px 6px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact"><div style="font-size:11.5px;font-weight:700;color:#b08d57;letter-spacing:1px;margin-bottom:4px">${lbl}</div><div style="font-size:15px;line-height:1.9;color:#332c22;word-break:keep-all;overflow-wrap:anywhere">${text}</div></div>`;}
 // ── 손글씨 · 형광펜 · 빨강펜 · 별표 · 도장 (수기 첨삭 느낌) ──
 function hl(t,c){c=c||'#fff09e';return `<span style="background:linear-gradient(104deg,transparent 0.4%,${c} 2.2%,${c} 97.8%,transparent 99.6%);padding:0 3px;margin:0 -1px;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</span>`;}
 function pen(t){return `<span style="font-family:'Nanum Pen Script','Gaegu',cursive;color:#d64545;font-size:1.32em;line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</span>`;}
@@ -2038,11 +2038,11 @@ let _pdfCh=0;
 const EMO_MAP=[['명식','🗂️'],['일간','🧭'],['오행','🌿'],['십신','🎭'],['격국','🏛️'],['용신','🔑'],['신살','⭐'],['운성','🌗'],['공망','🕳️'],['대운','🍃'],['세운','📅'],['월운','🗓️'],['연애','❤️'],['인연','❤️'],['결혼','💍'],['배우자','💍'],['재물','💰'],['재정','💰'],['직업','💼'],['진로','💼'],['건강','🩺'],['대인','🤝'],['귀인','🤝'],['사업','📈'],['경영','📈'],['이사','🧭'],['택일','🧭'],['이름','✍️'],['물어','💬'],['상담','💬'],['AI','🔮'],['타이밍','⏰'],['목차','📖'],['Contents','📖'],['Love','❤️'],['Marriage','💍'],['Wealth','💰'],['Career','💼'],['Health','🩺'],['People','🤝'],['Business','📈'],['Relocation','🧭'],['Five','🌿'],['Ten','🎭'],['Structure','🏛️'],['Useful','🔑'],['Spirits','⭐'],['Twelve','🌗'],['Void','🕳️'],['Luck','🍃'],['Yearly','📅'],['Monthly','🗓️'],['Name','✍️'],['Ask','💬'],['Consultation','💬'],['Reader','🔮'],['timing','⏰'],['Closing','🌙'],
  ['命式','🗂️'],['日干','🧭'],['五行','🌿'],['十神','🎭'],['格局','🏛️'],['用神','🔑'],['神殺','⭐'],['神煞','⭐'],['運星','🌗'],['运星','🌗'],['空亡','🕳️'],['大運','🍃'],['大运','🍃'],['歳運','📅'],['岁运','📅'],['月運','🗓️'],['月运','🗓️'],['恋愛','❤️'],['恋爱','❤️'],['縁','❤️'],['缘','❤️'],['結婚','💍'],['婚姻','💍'],['伴侶','💍'],['伴侣','💍'],['財','💰'],['财','💰'],['仕事','💼'],['事业','💼'],['進路','💼'],['前途','💼'],['健康','🩺'],['人間関係','🤝'],['人际','🤝'],['貴人','🤝'],['贵人','🤝'],['事業','📈'],['生意','📈'],['引っ越','🧭'],['搬迁','🧭'],['姓名','✍️'],['相談','💬'],['问答','💬'],['占い','🔮'],['老师','🔮'],['タイミング','⏰'],['时机','⏰'],['目次','📖'],['目录','📖']];
 function emoFor(t){for(let i=0;i<EMO_MAP.length;i++){if(t.indexOf(EMO_MAP[i][0])>=0)return EMO_MAP[i][1];}return '✨';}
-function pdfHead(t,n,noNum){const num=noNum?'':(++_pdfCh);const emo=emoFor(t);return `<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #b08d57;padding-bottom:6px;margin-bottom:16px">${num?`<div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:#c9a961;font-weight:700;line-height:.9;flex:none">${num<10?'0'+num:num}</div>`:''}<div style="min-width:0;flex:1"><div style="font-size:10px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:2px 0 0;font-size:20px;color:#2a2118"><span style="font-size:21px">${emo}</span> ${t}</h2></div></div>`;}
+function pdfHead(t,n,noNum){const num=noNum?'':(++_pdfCh);const emo=emoFor(t);return `<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #b08d57;padding-bottom:6px;margin-bottom:16px">${num?`<div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:#c9a961;font-weight:700;line-height:.9;flex:none">${num<10?'0'+num:num}</div>`:''}<div style="min-width:0;flex:1"><div style="font-size:10px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:3px 0 0;font-size:22.5px;color:#2a2118;line-height:1.25;word-break:keep-all"><span style="font-size:23px">${emo}</span> ${t}</h2></div></div>`;}
 // 불릿 목록(줄글 대신 단락별) · 키-값 목록
 // 긴 문장을 문장 단위로 끊어 각각 다른 줄로(읽기 쉽게)
 function splitSent(s){return String(s||'').split(/(?<=[.。!?！？])\s+/).map(t=>t.trim()).filter(Boolean);}
-function bl(items){const lines=(items||[]).filter(Boolean).flatMap(splitSent);return `<ul style="list-style:none;padding:0;margin:6px 0 0">${lines.map(x=>`<li style="display:flex;gap:9px;font-size:14px;line-height:1.7;color:#3a3226;margin:0 0 9px"><span style="color:#b08d57;flex:none;font-size:15px;line-height:1.5">▪</span><span>${mkHi(x)}</span></li>`).join('')}</ul>`;}
+function bl(items){const lines=(items||[]).filter(Boolean).flatMap(splitSent);return `<ul style="list-style:none;padding:0;margin:7px 0 0">${lines.map(x=>`<li style="display:flex;gap:10px;font-size:15.5px;line-height:1.92;color:#332c22;margin:0 0 11px;word-break:keep-all;overflow-wrap:anywhere"><span style="color:#b08d57;flex:none;font-size:16px;line-height:1.6">▪</span><span>${mkHi(x)}</span></li>`).join('')}</ul>`;}
 function kv(rows){return `<table style="width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 0">${rows.filter(Boolean).map(r=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;width:110px;color:#7a6f5c;vertical-align:top">${r[0]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#2a2118">${r[1]}</td></tr>`).join('')}</table>`;}
 function grabAiHtml(){const el=document.querySelector('#ai-box .ai-out')||document.getElementById('foreignReport')||document.querySelector('#result .ai-out');return el?el.innerHTML:'';}
 function buildPdfDoc(){
@@ -2061,6 +2061,8 @@ function buildPdfDoc(){
   const _GSTEM={갑:'甲',을:'乙',병:'丙',정:'丁',무:'戊',기:'己',경:'庚',신:'辛',임:'壬',계:'癸'};
   const _GBR={자:'子',축:'丑',인:'寅',묘:'卯',진:'辰',사:'巳',오:'午',미:'未',신:'申',유:'酉',술:'戌',해:'亥'};
   const GJ=(g)=>ganjiDisp(g);
+  // 시간 미상 sentinel("미상(시간 모름)")은 표시 시점에만 현지화(내부 로직은 저장값 유지)
+  const mingCell=(g)=>/미상|모름/.test(String(g||''))?P4('시간 미상','Time unknown','時刻不明','时辰不明'):ganjiDisp(g);
   const ILGAN=KO?(c.일간||''):(c.일간||'').replace(/[가-힣]/g,'');
   const GYEOK_EN={식신격:'Output Structure',상관격:'Expression Structure',정재격:'Steady-Wealth Structure',편재격:'Windfall-Wealth Structure',정관격:'Authority Structure',편관격:'Power Structure',칠살격:'Seven-Killings Structure',정인격:'Support Structure',편인격:'Insight Structure',건록격:'Prime Structure',양인격:'Blade Structure',월겁격:'Rob-Wealth Structure',비견격:'Companion Structure',겁재격:'Rival Structure'};
   const GYEOK_HZ={식신격:'食神格',상관격:'傷官格',정재격:'正財格',편재격:'偏財格',정관격:'正官格',편관격:'偏官格',칠살격:'七殺格',정인격:'正印格',편인격:'偏印格',건록격:'建祿格',양인격:'羊刃格',월겁격:'月劫格',비견격:'比肩格',겁재격:'劫財格'};
@@ -2078,7 +2080,7 @@ function buildPdfDoc(){
       <div><b>${P.forWhom}</b> · ${nm}</div>
       <div><b>${P.birth}</b> · ${c.생년월일||''} (${c.성별==='여'||c.성별==='female'?(LANG==='ko'?'여':'F'):(LANG==='ko'?'남':'M')})</div>
       <div style="font-size:13px;color:#7a6f5c;margin-top:2px">${(function(){const CAL={ko:{solar:'양력',lunar:'음력'},en:{solar:'Solar calendar',lunar:'Lunar calendar'},ja:{solar:'新暦',lunar:'旧暦'},zh:{solar:'阳历',lunar:'农历'}};const HR={ko:'시(時)',en:'Birth hour',ja:'時刻',zh:'时辰'};const NOH={ko:'시간 모름',en:'hour unknown',ja:'時刻不明',zh:'时辰未知'};const cal=(CAL[LANG]||CAL.en)[c.달력==='lunar'?'lunar':'solar'];const hi=c.시정보?`${LANG==='ko'?c.시정보.ko:c.시정보.hanja} (${c.시정보.range})`:(NOH[LANG]||NOH.en);return `📅 ${cal} · 🕐 ${(HR[LANG]||HR.en)}: ${hi}`;})()}</div>
-      <div style="font-size:${KO?18:22}px;letter-spacing:${KO?2:6}px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].map(ganjiDisp).join('  '):''}</div>
+      <div style="font-size:${KO?18:22}px;letter-spacing:${KO?2:6}px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].map(mingCell).join('  '):''}</div>
     </div>
     <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
   // 1.5 선생님 손편지 (정성스러운 편지 느낌)
@@ -2136,7 +2138,7 @@ function buildPdfDoc(){
   const cols=[[P.year,c.명식?.년주],[P.month,c.명식?.월주],[P.day,c.명식?.일주],[P.hour,c.명식?.시주]];
   pages.push(pg(pdfHead(P.myeongsik,nm)+`<table style="width:100%;text-align:center;border-collapse:collapse;margin:10px 0 18px">
     <tr>${cols.map(x=>`<th style="padding:8px;font-size:13px;color:#7a6f5c;font-weight:600;border-bottom:1px solid #ddd">${x[0]}</th>`).join('')}</tr>
-    <tr>${cols.map(x=>`<td style="padding:16px 4px;font-size:${KO?24:34}px;color:#2a2118">${x[1]?ganjiDisp(x[1]):'—'}</td>`).join('')}</tr></table>
+    <tr>${cols.map(x=>`<td style="padding:16px 4px;font-size:${KO?24:34}px;color:#2a2118">${x[1]?mingCell(x[1]):'—'}</td>`).join('')}</tr></table>
     ${bl(P4([`태어난 <b>년·월·일·시</b>를 각각 하나의 기둥(柱)으로 세운 것이 <b>명식(命式)</b>입니다.`,`<b>일간(${ILGAN})</b>이 곧 '나 자신'입니다.`,`나머지 일곱 글자와의 관계로 <b>성격·인연·재물·직업</b>의 결을 읽습니다.`],[`Your <b>Four Pillars</b> are the year, month, day and hour of birth, each written as two characters.`,`The <b>Day Master (${ILGAN})</b> — the top character of the day pillar — is <b>you</b>.`,`The other seven characters, read against it, reveal <b>personality, relationships, wealth and work</b>.`],[`生まれた<b>年・月・日・時</b>を、それぞれ一つの柱として立てたものが<b>命式(四柱)</b>です。`,`<b>日主(${ILGAN})</b> — 日柱の上の文字 — が「あなた自身」です。`,`残り七つの文字との関係から、<b>性格・縁・財・仕事</b>の傾向を読みます。`],[`把出生的<b>年、月、日、时</b>各立为一柱，就是<b>命式(四柱)</b>。`,`<b>日主(${ILGAN})</b> — 日柱上方的字 — 就是「你自己」。`,`从与其余七个字的关系，读出<b>性格、缘分、财富、事业</b>的纹理。`]))}
     <p style="font-size:12px;color:#7a6f5c;margin-top:14px;border-top:1px solid #eee;padding-top:10px">${P.disc}</p>`));
   // 3.5 외국인용 기초 개념 (영어)
