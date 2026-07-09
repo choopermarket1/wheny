@@ -1709,9 +1709,11 @@ const UNSEONG2={장생:'갓 태어난 아기처럼 순수하고 성장 가능성
 // PDF 소제목+불릿 블록
 function pdfSub(title,items){const f=(items||[]).filter(Boolean);if(!f.length)return'';
  const head=`<div style="display:inline-block;font-size:12.5px;font-weight:800;color:#7a5a1c;letter-spacing:.5px;margin-bottom:3px;background:linear-gradient(180deg,transparent 58%,#ffe27a 58%);padding:0 5px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${title}</div>`;
- // 첫 문장: ✎ + 물결 밑줄로 강조(공부 흔적)
- const first=`<ul style="list-style:none;padding:0;margin:4px 0 0"><li style="display:flex;gap:9px;font-size:14px;line-height:1.85;color:#2f2820;margin:0 0 9px"><span style="color:#d64545;flex:none;font-size:15px">✎</span><span>${wave(mkHi(f[0]))}</span></li></ul>`;
- const rest=f.length>1?bl(f.slice(1)):'';
+ // 첫 문장만 ✎ 물결 밑줄, 나머지 문장은 각각 다른 줄로(단락단락)
+ const s0=splitSent(f[0]);
+ const first=`<ul style="list-style:none;padding:0;margin:4px 0 0"><li style="display:flex;gap:9px;font-size:14px;line-height:1.85;color:#2f2820;margin:0 0 9px"><span style="color:#d64545;flex:none;font-size:15px">✎</span><span>${wave(mkHi(s0[0]||''))}</span></li></ul>`;
+ const restItems=[...s0.slice(1),...f.slice(1)];
+ const rest=restItems.length?bl(restItems):'';
  return `<div style="margin:13px 0 0">${head}${first}${rest}</div>`;}
 // 각주(용어 설명) — 하단 점선 박스
 function pdfFoot(rows){const f=(rows||[]).filter(Boolean);if(!f.length)return'';return `<div style="margin-top:15px;padding-top:8px;border-top:1px dashed #dcd2bd;font-size:10.5px;line-height:1.62;color:#8a7f6c">${f.map(r=>`<div style="margin:2px 0"><b style="color:#b08d57">※</b> ${r}</div>`).join('')}</div>`;}
@@ -1747,6 +1749,14 @@ function circleAround(inner,c){c=c||'#6f4bd1';return `<span style="position:rela
 // 간지(한글발음)→한자. 영어판에서 大運/歲運 간지를 한자로.
 const _GJS={갑:'甲',을:'乙',병:'丙',정:'丁',무:'戊',기:'己',경:'庚',신:'辛',임:'壬',계:'癸'},_GJB={자:'子',축:'丑',인:'寅',묘:'卯',진:'辰',사:'巳',오:'午',미:'未',신:'申',유:'酉',술:'戌',해:'亥'};
 function ganjiHanja(g){if(!g)return g;const s=String(g);if(/^[가-힣]{2}$/.test(s)&&_GJS[s[0]]&&_GJB[s[1]])return _GJS[s[0]]+_GJB[s[1]];return s;}
+// 한자 간지 → 한글발음 (명식은 한자로 저장돼 있어 KO 표기에 한글 병기)
+const _H2K={甲:'갑',乙:'을',丙:'병',丁:'정',戊:'무',己:'기',庚:'경',辛:'신',壬:'임',癸:'계',子:'자',丑:'축',寅:'인',卯:'묘',辰:'진',巳:'사',午:'오',未:'미',申:'신',酉:'유',戌:'술',亥:'해'};
+function ganjiPair(g){const s=String(g||'');if(!s)return{kor:'',hz:''};
+  if(/[가-힣]/.test(s))return{kor:s,hz:(_GJS[s[0]]||'')+(_GJB[s[1]]||'')};
+  return{kor:(_H2K[s[0]]||'')+(_H2K[s[1]]||''),hz:s};}
+// 간지 일관 표기: KO=한글(한자), 그 외=한자
+function ganjiDisp(g){const p=ganjiPair(g);if(!p.kor&&!p.hz)return g||'';
+  return LANG==='ko'?(p.kor+(p.hz&&p.hz!==p.kor?`(${p.hz})`:'')):(p.hz||p.kor||g);}
 // ── 인쇄용 인라인 SVG 도표들 ──
 const ELCOLOR={木:'#5f9e6e',火:'#d1674f',土:'#c49a5a',金:'#8f9a97',水:'#4f7d9e'};
 function svgEl(e,s){s=s||108;const c=ELCOLOR[e];const body={
@@ -1814,14 +1824,15 @@ const PL={
 };
 function LB(k){const T=LANG==='ja'?PL_JA:LANG==='zh'?PL_ZH:LANG==='ko'?PL.ko:PL.en;return (T||PL.en)[k];}
 const ELNAME_EN={木:'Wood 木',火:'Fire 火',土:'Earth 土',金:'Metal 金',水:'Water 水'};
-function elLabel(e){return LANG==='ko'?e:LANG==='en'?(ELNAME_EN[e]||e):e;}
+const EL_KOR={木:'목',火:'화',土:'토',金:'금',水:'수'};
+function elLabel(e){return LANG==='ko'?`${EL_KOR[e]||''}(${e})`:LANG==='en'?(ELNAME_EN[e]||e).replace(/ (\S+)$/,' ($1)'):e;}
 const GOD_EN={비견:'Companion 比肩',겁재:'Rival 劫財',식신:'Output 食神',상관:'Expression 傷官',정재:'Steady Wealth 正財',편재:'Windfall Wealth 偏財',정관:'Authority 正官',편관:'Power 偏官',정인:'Support 正印',편인:'Insight 偏印'};
-function godLabel(k){return LANG==='ko'?k:LANG==='en'?(GOD_EN[k]||k):(GOD_EN[k]||k).split(' ').pop();}
+function godLabel(k){const e=GOD_EN[k]||k,hz=e.split(' ').pop();return LANG==='ko'?(hz&&hz!==k?`${k}(${hz})`:k):LANG==='en'?e.replace(/ (\S+)$/,' ($1)'):hz;}
 const SPIRIT_EN={천을귀인:'Nobleman 天乙貴人',도화:'Peach Blossom 桃花',역마:'Traveling Horse 驛馬',화개:'Canopy 華蓋',양인:'Blade 羊刃',문창귀인:'Scholar 文昌'};
-function spiritLabel(k){return LANG==='ko'?k:LANG==='en'?(SPIRIT_EN[k]||k):(SPIRIT_EN[k]||k).split(' ').pop();}
+function spiritLabel(k){const e=SPIRIT_EN[k]||k,hz=e.split(' ').pop();return LANG==='ko'?(hz&&hz!==k?`${k}(${hz})`:k):LANG==='en'?e.replace(/ (\S+)$/,' ($1)'):hz;}
 const STAGE_EN={장생:'Birth',목욕:'Bath',관대:'Coming-of-Age',건록:'Prime',제왕:'Peak',쇠:'Decline',병:'Illness',사:'Rest',묘:'Storage',절:'Void',태:'Conception',양:'Nurture'};
 const STAGE_HANJA={장생:'長生',목욕:'沐浴',관대:'冠帶',건록:'建祿',제왕:'帝旺',쇠:'衰',병:'病',사:'死',묘:'墓',절:'絕',태:'胎',양:'養'};
-function stageLabel(v){return LANG==='ko'?v:LANG==='en'?(STAGE_EN[v]||v):(STAGE_HANJA[v]||v);}
+function stageLabel(v){const hz=STAGE_HANJA[v]||'';return LANG==='ko'?(hz?`${v}(${hz})`:v):LANG==='en'?((STAGE_EN[v]||v)+(hz?` (${hz})`:'')):(hz||v);}
 const OHAENG_DESC_EN={木:'The rising energy of a tree — growth, planning, principle, recognition.',火:'The blazing energy of fire — passion, expression, popularity, intuition.',土:'The holding energy of earth — trust, patience, mediation, realism.',金:'The firm energy of metal — decision, principle, execution, justice.',水:'The flowing energy of water — wisdom, flexibility, resourcefulness, adaptability.'};
 const HEALTH_EN={木:'Liver, gallbladder, eyes, muscles & tendons. Stress lands in the liver — needs regular release.',火:'Heart, blood pressure, small intestine, eyes. Over-excitement strains the heart — mind your sleep.',土:'Stomach, spleen, digestion, skin. Overthinking hits digestion — keep regular meals.',金:'Lungs, large intestine, bronchi, bones, teeth. Watch dryness & breathing; exercise to circulate.',水:'Kidneys, bladder, reproductive & hormones, ears. Guard against cold & fatigue; rest and hydrate.'};
 const OH5_EN={
@@ -2022,7 +2033,9 @@ const EMO_MAP=[['명식','🗂️'],['일간','🧭'],['오행','🌿'],['십신
 function emoFor(t){for(let i=0;i<EMO_MAP.length;i++){if(t.indexOf(EMO_MAP[i][0])>=0)return EMO_MAP[i][1];}return '✨';}
 function pdfHead(t,n,noNum){const num=noNum?'':(++_pdfCh);const emo=emoFor(t);return `<div style="display:flex;align-items:center;gap:12px;border-bottom:2px solid #b08d57;padding-bottom:6px;margin-bottom:16px">${num?`<div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:#c9a961;font-weight:700;line-height:.9;flex:none">${num<10?'0'+num:num}</div>`:''}<div style="min-width:0;flex:1"><div style="font-size:10px;letter-spacing:2px;color:#b08d57;font-weight:700">WHENY${n?' · '+n:''}</div><h2 style="margin:2px 0 0;font-size:20px;color:#2a2118"><span style="font-size:21px">${emo}</span> ${t}</h2></div></div>`;}
 // 불릿 목록(줄글 대신 단락별) · 키-값 목록
-function bl(items){return `<ul style="list-style:none;padding:0;margin:6px 0 0">${items.filter(Boolean).map(x=>`<li style="display:flex;gap:9px;font-size:14px;line-height:1.7;color:#3a3226;margin:0 0 10px"><span style="color:#b08d57;flex:none;font-size:15px;line-height:1.5">▪</span><span>${mkHi(x)}</span></li>`).join('')}</ul>`;}
+// 긴 문장을 문장 단위로 끊어 각각 다른 줄로(읽기 쉽게)
+function splitSent(s){return String(s||'').split(/(?<=[.。!?！？])\s+/).map(t=>t.trim()).filter(Boolean);}
+function bl(items){const lines=(items||[]).filter(Boolean).flatMap(splitSent);return `<ul style="list-style:none;padding:0;margin:6px 0 0">${lines.map(x=>`<li style="display:flex;gap:9px;font-size:14px;line-height:1.7;color:#3a3226;margin:0 0 9px"><span style="color:#b08d57;flex:none;font-size:15px;line-height:1.5">▪</span><span>${mkHi(x)}</span></li>`).join('')}</ul>`;}
 function kv(rows){return `<table style="width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 0">${rows.filter(Boolean).map(r=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;width:110px;color:#7a6f5c;vertical-align:top">${r[0]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#2a2118">${r[1]}</td></tr>`).join('')}</table>`;}
 function grabAiHtml(){const el=document.querySelector('#ai-box .ai-out')||document.getElementById('foreignReport')||document.querySelector('#result .ai-out');return el?el.innerHTML:'';}
 function buildPdfDoc(){
@@ -2040,11 +2053,11 @@ function buildPdfDoc(){
   // 계산값 현지화 헬퍼 (영어는 한글 발음 제거 / 간지→한자 / 격국 영문)
   const _GSTEM={갑:'甲',을:'乙',병:'丙',정:'丁',무:'戊',기:'己',경:'庚',신:'辛',임:'壬',계:'癸'};
   const _GBR={자:'子',축:'丑',인:'寅',묘:'卯',진:'辰',사:'巳',오:'午',미:'未',신:'申',유:'酉',술:'戌',해:'亥'};
-  const GJ=(g)=>KO?g:ganjiHanja(g);
+  const GJ=(g)=>ganjiDisp(g);
   const ILGAN=KO?(c.일간||''):(c.일간||'').replace(/[가-힣]/g,'');
   const GYEOK_EN={식신격:'Output Structure',상관격:'Expression Structure',정재격:'Steady-Wealth Structure',편재격:'Windfall-Wealth Structure',정관격:'Authority Structure',편관격:'Power Structure',칠살격:'Seven-Killings Structure',정인격:'Support Structure',편인격:'Insight Structure',건록격:'Prime Structure',양인격:'Blade Structure',월겁격:'Rob-Wealth Structure',비견격:'Companion Structure',겁재격:'Rival Structure'};
   const GYEOK_HZ={식신격:'食神格',상관격:'傷官格',정재격:'正財格',편재격:'偏財格',정관격:'正官格',편관격:'偏官格',칠살격:'七殺格',정인격:'正印格',편인격:'偏印格',건록격:'建祿格',양인격:'羊刃格',월겁격:'月劫格',비견격:'比肩格',겁재격:'劫財格'};
-  const gyeokX=(g)=>KO?g:LANG==='en'?(GYEOK_EN[g]||(g||'').replace(/[가-힣]/g,'')||'Structure'):(GYEOK_HZ[g]||(g||'').replace(/[가-힣]/g,'')||'格局');
+  const gyeokX=(g)=>{const hz=GYEOK_HZ[g]||'';return KO?(hz?`${g}(${hz})`:g):LANG==='en'?((GYEOK_EN[g]||'Structure')+(hz?` (${hz})`:'')):(hz||(g||'').replace(/[가-힣]/g,'')||'格局');};
   // 1 표지
   const coverAv=CTX.persona?`<img src="img/${CTX.persona}-${LANG}.jpg" alt="" style="width:150px;height:150px;border-radius:50%;object-fit:cover;object-position:50% 30%;border:3px solid #c9a961;display:block;margin:0 auto 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact" onerror="this.style.display='none'">`:'';
   const tName=CTX.tname||'';
@@ -2058,7 +2071,7 @@ function buildPdfDoc(){
       <div><b>${P.forWhom}</b> · ${nm}</div>
       <div><b>${P.birth}</b> · ${c.생년월일||''} (${c.성별==='여'||c.성별==='female'?(LANG==='ko'?'여':'F'):(LANG==='ko'?'남':'M')})</div>
       <div style="font-size:13px;color:#7a6f5c;margin-top:2px">${(function(){const CAL={ko:{solar:'양력',lunar:'음력'},en:{solar:'Solar calendar',lunar:'Lunar calendar'},ja:{solar:'新暦',lunar:'旧暦'},zh:{solar:'阳历',lunar:'农历'}};const HR={ko:'시(時)',en:'Birth hour',ja:'時刻',zh:'时辰'};const NOH={ko:'시간 모름',en:'hour unknown',ja:'時刻不明',zh:'时辰未知'};const cal=(CAL[LANG]||CAL.en)[c.달력==='lunar'?'lunar':'solar'];const hi=c.시정보?`${LANG==='ko'?c.시정보.ko:c.시정보.hanja} (${c.시정보.range})`:(NOH[LANG]||NOH.en);return `📅 ${cal} · 🕐 ${(HR[LANG]||HR.en)}: ${hi}`;})()}</div>
-      <div style="font-size:22px;letter-spacing:6px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].join('  '):''}</div>
+      <div style="font-size:${KO?18:22}px;letter-spacing:${KO?2:6}px;margin-top:14px;color:#2a2118">${c.명식?[c.명식.년주,c.명식.월주,c.명식.일주,c.명식.시주].map(ganjiDisp).join('  '):''}</div>
     </div>
     <div style="position:absolute;bottom:14mm;left:0;right:0;text-align:center;font-size:11px;color:#a99">${P.issued} 2026 · Wheny</div></div>`));
   // 1.5 선생님 손편지 (정성스러운 편지 느낌)
@@ -2116,7 +2129,7 @@ function buildPdfDoc(){
   const cols=[[P.year,c.명식?.년주],[P.month,c.명식?.월주],[P.day,c.명식?.일주],[P.hour,c.명식?.시주]];
   pages.push(pg(pdfHead(P.myeongsik,nm)+`<table style="width:100%;text-align:center;border-collapse:collapse;margin:10px 0 18px">
     <tr>${cols.map(x=>`<th style="padding:8px;font-size:13px;color:#7a6f5c;font-weight:600;border-bottom:1px solid #ddd">${x[0]}</th>`).join('')}</tr>
-    <tr>${cols.map(x=>`<td style="padding:18px 8px;font-size:38px;color:#2a2118">${x[1]||'—'}</td>`).join('')}</tr></table>
+    <tr>${cols.map(x=>`<td style="padding:16px 4px;font-size:${KO?24:34}px;color:#2a2118">${x[1]?ganjiDisp(x[1]):'—'}</td>`).join('')}</tr></table>
     ${bl(P4([`태어난 <b>년·월·일·시</b>를 각각 하나의 기둥(柱)으로 세운 것이 <b>명식(命式)</b>입니다.`,`<b>일간(${ILGAN})</b>이 곧 '나 자신'입니다.`,`나머지 일곱 글자와의 관계로 <b>성격·인연·재물·직업</b>의 결을 읽습니다.`],[`Your <b>Four Pillars</b> are the year, month, day and hour of birth, each written as two characters.`,`The <b>Day Master (${ILGAN})</b> — the top character of the day pillar — is <b>you</b>.`,`The other seven characters, read against it, reveal <b>personality, relationships, wealth and work</b>.`],[`生まれた<b>年・月・日・時</b>を、それぞれ一つの柱として立てたものが<b>命式(四柱)</b>です。`,`<b>日主(${ILGAN})</b> — 日柱の上の文字 — が「あなた自身」です。`,`残り七つの文字との関係から、<b>性格・縁・財・仕事</b>の傾向を読みます。`],[`把出生的<b>年、月、日、时</b>各立为一柱，就是<b>命式(四柱)</b>。`,`<b>日主(${ILGAN})</b> — 日柱上方的字 — 就是「你自己」。`,`从与其余七个字的关系，读出<b>性格、缘分、财富、事业</b>的纹理。`]))}
     <p style="font-size:12px;color:#7a6f5c;margin-top:14px;border-top:1px solid #eee;padding-top:10px">${P.disc}</p>`));
   // 3.5 외국인용 기초 개념 (영어)
@@ -2152,7 +2165,7 @@ function buildPdfDoc(){
   // 5 오행 총론
   const maxc=Math.max(1,...order.map(e=>el[e]||0));
   pages.push(pg(pdfHead(P.ohaeng,nm)+`${svgOhaeng(el)}
-    <div style="margin:8px 0 14px">${order.map(e=>`<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:${KO?30:66}px;font-size:${KO?20:13}px;color:${ELCOLOR[e]};font-weight:600">${elLabel(e)}</span><span style="flex:1;height:16px;background:#eee;border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/maxc*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:36px;text-align:right;font-size:14px">${el[e]||0}${P.count}</span></div>`).join('')}</div>
+    <div style="margin:8px 0 14px">${order.map(e=>`<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:${KO?48:66}px;font-size:${KO?14:13}px;color:${ELCOLOR[e]};font-weight:600">${elLabel(e)}</span><span style="flex:1;height:16px;background:#eee;border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/maxc*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:36px;text-align:right;font-size:14px">${el[e]||0}${P.count}</span></div>`).join('')}</div>
     ${bl(P4(['오행(五行)은 세상을 이루는 <b>다섯 가지 기운</b> — 나무(木)·불(火)·흙(土)·쇠(金)·물(水)입니다.','오행의 <b>많고 적음</b>이 당신의 성향과 강약을 만듭니다. 많은 기운은 타고난 재능(과하면 독), 없는 기운은 채워야 할 자리예요.'],['The <b>Five Elements (五行)</b> are the five energies that make up the world — <b>Wood 木, Fire 火, Earth 土, Metal 金, Water 水</b>. Everything, including you, is a blend of these five.','How much or little of each you carry shapes your temperament and your strengths. An abundant element is an inborn gift (a poison in excess); a missing one is a gap to fill.'],['五行(五行)は世界を形づくる<b>五つの気</b> — 木・火・土・金・水です。あなたを含むすべてが、この五つの配合でできています。','五行の<b>多い少ない</b>があなたの性質と強弱をつくります。多い気は生まれ持った才能(過ぎると毒)、無い気は補うべき場所です。'],['<b>五行</b>是构成世界的<b>五种气</b> — 木、火、土、金、水。包括你在内的万物，都是这五者的配比。','五行的<b>多与少</b>塑造你的性情与强弱。多的气是天赋(过则为毒)，缺的气是要补的地方。']))}
     ${pdfBiyu(P4('위 그림의 <b>바깥 화살표(→)는 상생</b>, 서로 살려주는 사이예요. 나무는 불을 지피고(木→火), 불은 재가 되어 흙이 되고(火→土), 흙은 쇠를 품고(土→金), 쇠는 물을 맺히게 하고(金→水), 물은 다시 나무를 키우죠(水→木). <b>안쪽 점선은 상극</b>, 서로 눌러주는 사이예요. 이 다섯이 밀고 당기며 균형을 잡는 것이 사주의 큰 그림입니다.','In the diagram, the <b>outer arrows (→) are the "generating" cycle</b> — each element feeds the next: Wood feeds Fire (木→火), Fire makes Earth as ash (火→土), Earth holds Metal (土→金), Metal condenses Water (金→水), and Water grows Wood again (水→木). The <b>inner dashed lines are the "controlling" cycle</b>, where each element restrains another. The whole art of a reading is how these five push and pull into balance.','図の<b>外側の矢印(→)は相生</b>、互いを生かし合う関係です。木は火を生み(木→火)、火は灰となり土に(火→土)、土は金を含み(土→金)、金は水を結び(金→水)、水はまた木を育てます(水→木)。<b>内側の点線は相剋</b>、互いを抑える関係です。この五つが押し引きしてバランスを取る — それが命式の全体像です。','图中<b>外圈的箭头(→)是相生</b>，互相滋养的关系。木生火(木→火)，火化为灰生土(火→土)，土蕴金(土→金)，金凝水(金→水)，水又养木(水→木)。<b>内圈的虚线是相克</b>，互相制约的关系。这五者推拉之间取得平衡 — 便是八字的全局。'))}`));
   // 6-10 오행 5개 (심화)
@@ -2335,7 +2348,7 @@ function buildCompatPdfDoc(){
   const KO=(LANG==='ko'),P4=(ko,en,ja,zh)=>LANG==='ja'?ja:LANG==='zh'?zh:LANG==='ko'?ko:en;
   const th=(x)=>yearTheme?yearTheme(x):x;
   const OH5x=P4(OH5,OH5_EN,OH5_JA,OH5_ZH),OHb=P4(OH_BIYU,OH_BIYU_EN,OH_BIYU_JA,OH_BIYU_ZH);
-  const GJ=(g)=>KO?g:(typeof ganjiHanja==='function'?ganjiHanja(g):g);
+  const GJ=(g)=>ganjiDisp(g);
   _pdfCh=0;
   const elOf=s=>((String(s||'').match(/[木火土金水]/)||[])[0])||'';
   const ilA=KO?(A.일간||''):(A.일간||'').replace(/[가-힣]/g,''), ilB=KO?(B.일간||''):(B.일간||'').replace(/[가-힣]/g,'');
@@ -2387,7 +2400,7 @@ function buildCompatPdfDoc(){
     return `<div style="border:1px solid #eee;border-radius:10px;padding:12px 14px;flex:1">
       <div style="font-size:13px;color:#b08d57;font-weight:700">${who}</div>
       <div style="font-size:15px;color:#2a2118;margin:2px 0 6px">${chart.명식?.일주||''} · ${il}</div>
-      ${order.map(e=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="width:${KO?24:52}px;font-size:${KO?15:11}px;color:${ELCOLOR[e]}">${elLabel(e)}</span><span style="flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/mx*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:14px;text-align:right;font-size:11px">${el[e]||0}</span></div>`).join('')}</div>`;};
+      ${order.map(e=>`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><span style="width:${KO?44:52}px;font-size:${KO?12:11}px;color:${ELCOLOR[e]}">${elLabel(e)}</span><span style="flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((el[e]||0)/mx*100)}%;background:${ELCOLOR[e]};-webkit-print-color-adjust:exact;print-color-adjust:exact"></span></span><span style="width:14px;text-align:right;font-size:11px">${el[e]||0}</span></div>`).join('')}</div>`;};
   pages.push(pg(pdfHead(P4('두 사람 한눈에','The two of you','お二人ひと目で','两人一览'),null)+
     `<div style="display:flex;gap:12px;margin-top:6px">${mini('🙋 '+nmA,ilA,A,dmA)}${mini('💗 '+nmB,ilB,B,dmB)}</div>`+
     pdfBiyu(P4('왼쪽이 '+nmA+', 오른쪽이 '+nmB+'예요. 막대가 긴 오행이 그 사람의 <b>타고난 강한 기운</b>, 짧거나 빈 오행이 <b>채워야 할 자리</b>랍니다. 서로의 빈자리를 채워주는지가 궁합의 큰 열쇠예요.','Left is '+nmA+', right is '+nmB+'. A long bar is that person\'s <b>strong inborn energy</b>; a short or empty one is a <b>gap to fill</b>. Whether you fill each other\'s gaps is a big key to compatibility.','左が'+nmA+'さん、右が'+nmB+'さん。棒が長い五行はその人の<b>強い気</b>、短い・空の五行は<b>補うべき所</b>。互いの空きを補い合えるかが相性の大きな鍵です。','左边是'+nmA+'，右边是'+nmB+'。柱长的五行是那人<b>天生的强气</b>，短或空的是<b>要补的地方</b>。能否互补空缺，是缘分的大关键。'))));
