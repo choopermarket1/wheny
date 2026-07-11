@@ -1268,6 +1268,8 @@ function koreanName(d,chart,해석){
     const roman=`${sur.r} ${c1.r}${c2.r.toLowerCase()}`;
     const src=chart&&chart.이름?`<span class="knm-from">${chart.이름} →</span>`:'';
     const els=[...new Set([e1,e2])].map(L.elword).join(ko?'·':' & ');
+    window._KN={sur,c1,c2,gh,gk,roman,els,ko};
+    const shareL={ko:'이 이름 이미지로 저장·공유',en:'Save & share this name',ja:'この名前を画像で保存',zh:'保存并分享此名字'}[LANG]||'Save & share';
     const charHtml=[c1,c2].map(c=>{
       const el=Object.keys(KNAME_HANJA).find(k=>KNAME_HANJA[k].some(x=>x.h===c.h));
       return `<div class="knm-c"><b>${c.h}</b><div><span>${c.k} · ${c.r}</span><em>${ko?c.m:c.e}</em><i>${L.elword(el)}</i></div></div>`;
@@ -1276,7 +1278,8 @@ function koreanName(d,chart,해석){
       <p class="knm-sub">${src}${L.sub}</p>
       <div class="knm-name"><div class="knm-hanja">${sur.h}${gh}</div><div class="knm-hangul">${sur.k}${gk}</div><div class="knm-roman">${roman}</div></div>
       <div class="knm-chars">${charHtml}</div>
-      <p class="knm-why"><b>${L.why}</b> ${L.fillA} <b style="color:var(--gold2)">${els}</b> ${L.fillB}</p></div>`;
+      <p class="knm-why"><b>${L.why}</b> ${L.fillA} <b style="color:var(--gold2)">${els}</b> ${L.fillB}</p>
+      <button class="share" style="margin-top:16px" onclick="shareKoreanName()">${IC.cam}${shareL}</button></div>`;
   }catch(_){return '';}
 }
 // ── 인생 타이밍 지도: 앞으로 ~13년 핵심 연도를 세로 로드맵으로 ──
@@ -1731,6 +1734,34 @@ function shareCard(){if(!CTX)return;
   c.toBlob(async(blob)=>{const file=new File([blob],'wheny.png',{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Wheny 소름 리포트'});return;}}catch(e){}
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wheny_소름리포트.png';a.click();},'image/png');}
+// 한국 이름 공유 이미지(1080×1350, 명품 골드) — K-네임 바이럴
+function shareKoreanName(){
+  const k=window._KN; if(!k)return;
+  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle='#0c0d12';x.fillRect(0,0,W,H);
+  const hl=x.createLinearGradient(120,0,960,0);hl.addColorStop(0,'rgba(201,169,97,0)');hl.addColorStop(.5,'#c9a961');hl.addColorStop(1,'rgba(201,169,97,0)');
+  x.fillStyle=hl;x.fillRect(120,84,840,2);
+  x.textAlign='center';
+  x.fillStyle='#c9a961';x.font='600 32px sans-serif';x.fillText(k.ko?'당신의 한국 이름':'YOUR KOREAN NAME',540,178);
+  const gg=x.createLinearGradient(0,250,0,470);gg.addColorStop(0,'#e7d3a1');gg.addColorStop(1,'#c1a253');
+  x.fillStyle=gg;x.font='700 190px "Noto Serif KR",serif';x.fillText(k.sur.h+k.gh,540,470);
+  x.fillStyle='#ece4d3';x.font='500 76px "Noto Serif KR",serif';x.fillText(k.sur.k+k.gk,540,578);
+  x.fillStyle='#c9a961';x.font='500 48px Georgia,serif';x.fillText(k.roman,540,650);
+  x.fillStyle='rgba(201,169,97,.25)';x.fillRect(270,712,540,1);
+  let cy=808;
+  [k.c1,k.c2].forEach(ch=>{
+    const el=Object.keys(KNAME_HANJA).find(kk=>KNAME_HANJA[kk].some(z=>z.h===ch.h));
+    x.fillStyle='#e7d3a1';x.font='700 60px "Noto Serif KR",serif';x.fillText(`${ch.h}    ${ch.k} · ${ch.r}`,540,cy);
+    x.fillStyle='#b7ad97';x.font='400 36px sans-serif';x.fillText(`${k.ko?ch.m:ch.e}  ·  ${KNAME_EL[el][k.ko?'ko':'en']}`,540,cy+52);
+    cy+=155;
+  });
+  x.fillStyle='#9a927e';x.font='400 34px sans-serif';
+  x.fillText(k.ko?`사주에 부족한 ${k.els} 기운을 채운 이름`:`Fills the ${k.els} energy your chart lacks`,540,cy+12);
+  x.fillStyle='#e7d3a1';x.font='700 62px "Noto Serif KR",serif';x.fillText('Wheny',540,1255);
+  x.fillStyle='#867f6e';x.font='400 28px sans-serif';x.fillText(k.ko?'언제인지까지 말해주는 사주 · wheny.vercel.app':'The saju that tells you when · wheny.vercel.app',540,1300);
+  c.toBlob(async(blob)=>{const file=new File([blob],'wheny_korean_name.png',{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:k.ko?'내 한국 이름 · Wheny':'My Korean Name · Wheny'});return;}}catch(e){}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wheny_korean_name.png';a.click();},'image/png');}
 function mdToHtml(md){return (md||"").split("\n").map(raw=>{
   let l=raw.trim();if(!l)return "";
   l=l.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
