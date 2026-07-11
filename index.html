@@ -1266,7 +1266,13 @@ const KNAME_HANJA={ // g: m=남성 f=여성 n=중성
   金:[{h:'鎭',k:'진',r:'Jin',m:'진중함',e:'calm, steadfast',g:'m'},{h:'錦',k:'금',r:'Geum',m:'비단·화려함',e:'brocade, splendid',g:'n'},{h:'鐘',k:'종',r:'Jong',m:'종·울림',e:'bell, resonance',g:'m'},{h:'銀',k:'은',r:'Eun',m:'은·귀함',e:'silver, precious',g:'n'},{h:'珠',k:'주',r:'Ju',m:'진주',e:'pearl',g:'f'},{h:'瑞',k:'서',r:'Seo',m:'상서로움',e:'auspicious',g:'f'}],
   水:[{h:'潤',k:'윤',r:'Yun',m:'윤택·불림',e:'to enrich, moisten',g:'n'},{h:'澈',k:'철',r:'Cheol',m:'맑음',e:'clear, pure',g:'m'},{h:'河',k:'하',r:'Ha',m:'강·큰 흐름',e:'river, great flow',g:'m'},{h:'泉',k:'천',r:'Cheon',m:'샘',e:'spring, fountain',g:'n'},{h:'淑',k:'숙',r:'Suk',m:'정숙·맑음',e:'graceful, pure',g:'f'},{h:'汀',k:'정',r:'Jeong',m:'물가',e:'waterside',g:'f'}],
 };
-const KNAME_SUR=[{h:'金',k:'김',r:'Kim'},{h:'李',k:'이',r:'Lee'},{h:'朴',k:'박',r:'Park'},{h:'崔',k:'최',r:'Choi'},{h:'鄭',k:'정',r:'Jung'}];
+const KNAME_SUR=[ // 성씨 자원오행별
+  {h:'金',k:'김',r:'Kim',el:'金'},{h:'白',k:'백',r:'Baek',el:'金'},{h:'申',k:'신',r:'Shin',el:'金'},
+  {h:'李',k:'이',r:'Lee',el:'木'},{h:'朴',k:'박',r:'Park',el:'木'},{h:'林',k:'임',r:'Lim',el:'木'},{h:'柳',k:'유',r:'Yoo',el:'木'},{h:'權',k:'권',r:'Kwon',el:'木'},
+  {h:'崔',k:'최',r:'Choi',el:'土'},{h:'黃',k:'황',r:'Hwang',el:'土'},{h:'安',k:'안',r:'Ahn',el:'土'},
+  {h:'洪',k:'홍',r:'Hong',el:'水'},{h:'沈',k:'심',r:'Shim',el:'水'},{h:'河',k:'하',r:'Ha',el:'水'},
+  {h:'南',k:'남',r:'Nam',el:'火'},{h:'丁',k:'정',r:'Jeong',el:'火'},
+];
 const KNAME_EL={木:{ko:'목(木)',en:'Wood (木)'},火:{ko:'화(火)',en:'Fire (火)'},土:{ko:'토(土)',en:'Earth (土)'},金:{ko:'금(金)',en:'Metal (金)'},水:{ko:'수(水)',en:'Water (水)'}};
 const KNAME_L={
   ko:{title:'당신의 한국 이름',sub:'사주에 부족한 기운을 채워 지은 한자 이름',why:'왜 이 이름?',fillA:'사주에 부족한',fillB:'기운을 채워 균형을 맞춘 이름이에요.',elword:e=>KNAME_EL[e].ko},
@@ -1283,12 +1289,13 @@ function koreanName(d,chart,해석){
     let need=missing.length?missing.slice():yong.slice();
     if(!need.length) need=Object.entries(d.el).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>x[0]);
     const e1=need[0], e2=need[1]||need[0];
-    const seed=((d.dStem||0)+((d.P&&d.P.day&&d.P.day.b)||0))||3;
     const isF=(chart&&chart.성별)==='여';
+    const age=(chart&&chart.나이)||30;
+    const seed=((d.dStem||0)+((d.P&&d.P.day&&d.P.day.b)||0)+Math.floor(age/9))||3; // 나이대 반영
     const pool=(el)=>{const a=KNAME_HANJA[el];const w=isF?['f','n']:['m','n'];const f=a.filter(z=>w.includes(z.g));return f.length?f:a;};
     const pick=(el,off)=>{const a=pool(el);return a[(seed+off)%a.length];};
     const c1=pick(e1,0); let c2=pick(e2, e2===e1?2:0); if(c2.h===c1.h) c2=pick(e2,3);
-    const sur=KNAME_SUR[seed%KNAME_SUR.length];
+    const surP=KNAME_SUR.filter(z=>z.el===e1); const surList=surP.length?surP:KNAME_SUR; const sur=surList[seed%surList.length]; // 성씨도 사주(부족 오행)에 맞춰
     const gh=c1.h+c2.h, gk=c1.k+c2.k;
     const roman=`${sur.r} ${c1.r}${c2.r.toLowerCase()}`;
     const src=chart&&chart.이름?`<span class="knm-from">${chart.이름} →</span>`:'';
