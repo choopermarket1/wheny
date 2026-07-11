@@ -384,6 +384,22 @@
   .tm-cau .tm-badge{background:rgba(192,112,95,.15);color:#d9917f}
   .tm-star .tm-badge{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408}
   .tm-note{font-size:12.5px;color:var(--paperdim);line-height:1.5}
+  /* 사주 한국 이름 */
+  .knm-sub{margin:0 0 16px;font-size:12.5px;color:var(--paperdim);line-height:1.6}
+  .knm-from{color:var(--gold2);font-weight:600;margin-right:4px}
+  .knm-name{text-align:center;padding:16px 0 18px;border-top:1px solid var(--goldLine);border-bottom:1px solid var(--goldLine)}
+  .knm-hanja{font-family:"Noto Serif KR",serif;font-size:44px;font-weight:700;letter-spacing:6px;
+    background:linear-gradient(180deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;line-height:1.15}
+  .knm-hangul{margin-top:4px;font-family:"Noto Serif KR",serif;font-size:21px;color:var(--paper);letter-spacing:2px}
+  .knm-roman{margin-top:5px;font-family:"Cormorant Garamond",serif;font-size:16px;letter-spacing:1.5px;color:var(--gold)}
+  .knm-chars{display:flex;flex-direction:column;gap:11px;margin:16px 0 4px}
+  .knm-c{display:flex;align-items:center;gap:13px}
+  .knm-c>b{font-family:"Noto Serif KR",serif;font-size:30px;color:var(--gold2);flex:none;width:40px;text-align:center;line-height:1}
+  .knm-c>div{display:flex;flex-direction:column;gap:1px}
+  .knm-c span{font-size:13px;color:var(--paper);font-weight:600}
+  .knm-c em{font-size:12px;color:var(--paperdim);font-style:normal}
+  .knm-c i{font-size:10.5px;color:var(--gold);font-style:normal;letter-spacing:.3px}
+  .knm-why{margin:16px 0 0;padding:12px 14px;border-radius:11px;background:rgba(201,169,97,.07);border:1px solid var(--goldLine);font-size:12.5px;line-height:1.6;color:var(--paperdim)}
 </style>
 </head>
 <body>
@@ -1219,6 +1235,50 @@ function summaryCard(d,r,w,t,chart,age){
     </div>`;
   }catch(_){return '';}
 }
+// ── 사주 기반 한국 이름 짓기(외국인용) : 부족한 오행을 채우는 한자 이름 ──
+const KNAME_HANJA={
+  木:[{h:'榮',k:'영',r:'Yeong',m:'번영·영광',e:'glory, flourish'},{h:'柱',k:'주',r:'Ju',m:'기둥·중심',e:'pillar, support'},{h:'桐',k:'동',r:'Dong',m:'오동나무',e:'paulownia tree'},{h:'松',k:'송',r:'Song',m:'소나무·지조',e:'pine, integrity'},{h:'楨',k:'정',r:'Jeong',m:'단단한 나무',e:'sturdy tree'}],
+  火:[{h:'炫',k:'현',r:'Hyeon',m:'빛나다',e:'to shine'},{h:'熙',k:'희',r:'Hui',m:'빛나고 화목함',e:'bright, harmonious'},{h:'燦',k:'찬',r:'Chan',m:'찬란함',e:'brilliant'},{h:'煜',k:'욱',r:'Uk',m:'밝게 빛남',e:'radiant'},{h:'旻',k:'민',r:'Min',m:'가을 하늘',e:'autumn sky'}],
+  土:[{h:'均',k:'균',r:'Gyun',m:'고름·균형',e:'balance, even'},{h:'基',k:'기',r:'Gi',m:'터·바탕',e:'foundation'},{h:'城',k:'성',r:'Seong',m:'성·굳건함',e:'fortress, steadfast'},{h:'圭',k:'규',r:'Gyu',m:'옥·귀함',e:'jade tablet, noble'},{h:'培',k:'배',r:'Bae',m:'북돋움',e:'to nurture'}],
+  金:[{h:'鎭',k:'진',r:'Jin',m:'진중함',e:'calm, steadfast'},{h:'錦',k:'금',r:'Geum',m:'비단·화려함',e:'brocade, splendid'},{h:'鐘',k:'종',r:'Jong',m:'종·울림',e:'bell, resonance'},{h:'鈞',k:'균',r:'Gyun',m:'고름·무게',e:'balanced'},{h:'銀',k:'은',r:'Eun',m:'은·귀함',e:'silver, precious'}],
+  水:[{h:'潤',k:'윤',r:'Yun',m:'윤택·불림',e:'to enrich, moisten'},{h:'澈',k:'철',r:'Cheol',m:'맑음',e:'clear, pure'},{h:'河',k:'하',r:'Ha',m:'강·큰 흐름',e:'river, great flow'},{h:'泉',k:'천',r:'Cheon',m:'샘',e:'spring, fountain'},{h:'潭',k:'담',r:'Dam',m:'깊은 못',e:'deep pool'}],
+};
+const KNAME_SUR=[{h:'金',k:'김',r:'Kim'},{h:'李',k:'이',r:'Lee'},{h:'朴',k:'박',r:'Park'},{h:'崔',k:'최',r:'Choi'},{h:'鄭',k:'정',r:'Jung'}];
+const KNAME_EL={木:{ko:'목(木)',en:'Wood (木)'},火:{ko:'화(火)',en:'Fire (火)'},土:{ko:'토(土)',en:'Earth (土)'},金:{ko:'금(金)',en:'Metal (金)'},水:{ko:'수(水)',en:'Water (水)'}};
+const KNAME_L={
+  ko:{title:'당신의 한국 이름',sub:'사주에 부족한 기운을 채워 지은 한자 이름',why:'왜 이 이름?',fillA:'사주에 부족한',fillB:'기운을 채워 균형을 맞춘 이름이에요.',elword:e=>KNAME_EL[e].ko},
+  en:{title:'Your Korean Name',sub:'A hanja name chosen to balance your Four Pillars',why:'Why this name?',fillA:'It adds the',fillB:'energy your chart lacks, bringing it into balance.',elword:e=>KNAME_EL[e].en},
+  ja:{title:'あなたの韓国名',sub:'四柱に足りない気を補う漢字の名前',why:'この名前の理由',fillA:'四柱に足りない',fillB:'の気を補い、バランスを整えた名前です。',elword:e=>KNAME_EL[e].ko},
+  zh:{title:'你的韩国名字',sub:'补足命盘所缺之气的汉字名',why:'为何取此名',fillA:'补足命盘所缺的',fillB:'之气，令其归于平衡。',elword:e=>KNAME_EL[e].ko},
+};
+function koreanName(d,chart,해석){
+  try{
+    if(!d||!d.el) return '';
+    const L=KNAME_L[LANG]||KNAME_L.ko, ko=LANG==='ko';
+    const missing=Object.keys(d.el).filter(k=>d.el[k]===0);
+    const yong=(해석&&해석.용신)||[];
+    let need=missing.length?missing.slice():yong.slice();
+    if(!need.length) need=Object.entries(d.el).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>x[0]);
+    const e1=need[0], e2=need[1]||need[0];
+    const seed=((d.dStem||0)+((d.P&&d.P.day&&d.P.day.b)||0))||3;
+    const pick=(el,off)=>{const a=KNAME_HANJA[el];return a[(seed+off)%a.length];};
+    const c1=pick(e1,0); let c2=pick(e2, e2===e1?2:0); if(c2.h===c1.h) c2=pick(e2,3);
+    const sur=KNAME_SUR[seed%KNAME_SUR.length];
+    const gh=c1.h+c2.h, gk=c1.k+c2.k;
+    const roman=`${sur.r} ${c1.r}${c2.r.toLowerCase()}`;
+    const src=chart&&chart.이름?`<span class="knm-from">${chart.이름} →</span>`:'';
+    const els=[...new Set([e1,e2])].map(L.elword).join(ko?'·':' & ');
+    const charHtml=[c1,c2].map(c=>{
+      const el=Object.keys(KNAME_HANJA).find(k=>KNAME_HANJA[k].some(x=>x.h===c.h));
+      return `<div class="knm-c"><b>${c.h}</b><div><span>${c.k} · ${c.r}</span><em>${ko?c.m:c.e}</em><i>${L.elword(el)}</i></div></div>`;
+    }).join('');
+    return `<div class="block knm" style="--tc:var(--gold)"><h3>${L.title}</h3>
+      <p class="knm-sub">${src}${L.sub}</p>
+      <div class="knm-name"><div class="knm-hanja">${sur.h}${gh}</div><div class="knm-hangul">${sur.k}${gk}</div><div class="knm-roman">${roman}</div></div>
+      <div class="knm-chars">${charHtml}</div>
+      <p class="knm-why"><b>${L.why}</b> ${L.fillA} <b style="color:var(--gold2)">${els}</b> ${L.fillB}</p></div>`;
+  }catch(_){return '';}
+}
 // ── 인생 타이밍 지도: 앞으로 ~13년 핵심 연도를 세로 로드맵으로 ──
 function timingMap(해석){
   try{
@@ -1299,6 +1359,7 @@ function run(){
       ${ohaengRadar(d.el)}
       <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
     ${chart.이름?`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}이름 풀이</h3><p>입력하신 이름 <b>${chart.이름}</b> — 이 이름이 사주의 ${missing.length?`부족한 <b style="color:#e0655a">${missing.join('·')}</b> 기운을 보완하는지`:'오행 균형에 어떻게 작용하는지'}, <b>${t.nm}</b>이 <b>획수·오행·뜻</b>으로 풀어드려요.</p><p style="margin:8px 0 0;font-size:12px;color:var(--dim)">정밀 해석·대화에서 이름까지 깊게 봐드려요.</p></div>`:''}
+    ${koreanName(d,chart,chart.해석)}
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${isLocked()?'lockblur':''}">${r.loveTime}</p></div>
@@ -1366,6 +1427,7 @@ function renderForeign(t,d,w,noTime,conv){
       <table style="text-align:center"><tr><th>時</th><th>日</th><th>月</th><th>年</th></tr>
       <tr><td class="hanja">${noTime?'—':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr></table>
       <p style="margin:8px 0 0;text-align:center;font-size:12px;color:var(--dim)">${d.dm[0]} · ${w.sun[0]} ☉ · ${w.moon[0]} ☾</p></div>
+    ${koreanName(d,CTX.chart,CTX.chart&&CTX.chart.해석)}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chat}${TT(picked).nm} · ${F.ask}</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--paperdim)">${F.askDesc}</p>
       <div class="followups" id="topics"></div>
