@@ -556,6 +556,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
 </div>
 
 <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script src="https://assets.lemonsqueezy.com/lemon.js" defer></script><!-- Lemonsqueezy 오버레이 결제 -->
 <script src="msr.js"></script><!-- manseryeok: KASI 분단위 절기·공식음력·대운 (로드 실패시 자체엔진 폴백) -->
 <script src="myeongni2.js"></script><!-- 명리 심화 v2: 지장간·합충형파해·신강약 점수·조후 (chart 보강) -->
 <script>
@@ -767,6 +768,7 @@ const TZLABEL=[[9,{ko:'한국·일본 (UTC+9)',ja:'韓国·日本 (UTC+9)',en:'K
 //   정식 유료화 때 false로 바꾸고 배포하면 끝. (백엔드는 PORTONE_API_SECRET 유무로 별도 제어)
 const FREE_LAUNCH=true;
 const APP_VER='v2-conv'; // 전환강화 테스트 버전(골든타임·초개인화·긴급성) — 미러링26 인사이트
+const LS_CHECKOUT='https://whenysaju.lemonsqueezy.com/checkout/buy/c5c428f1-6883-428d-9bd0-faa3f57ae3b7'; // Lemonsqueezy 정밀리포트 결제(오버레이). 비우면 PortOne 폴백.
 let PAY={on:false,price:3900,storeId:"",channelKey:""},PAID_ID=null;
 (async function initPay(){
   try{const r=await fetch('/api/reading');if(!r.ok)return;const h=await r.json();
@@ -786,8 +788,29 @@ const PRICE_DISP={
 function priceMain(){return (PRICE_DISP[LANG]||PRICE_DISP.ko).main;}
 function priceRef(){return (PRICE_DISP[LANG]||PRICE_DISP.ko).ref;}
 // 결제창 띄우고 성공하면 PAID_ID 세팅. 이미 냈으면 통과. 페이월 꺼져있으면 그냥 통과.
+// ── Lemonsqueezy 오버레이 결제 ──
+let _lsReady=false,_lsResolve=null;
+function lsInit(){
+  if(_lsReady)return true;
+  if(typeof window.createLemonSqueezy!=='function')return false;
+  window.createLemonSqueezy();
+  window.LemonSqueezy.Setup({eventHandler:(e)=>{
+    if(e&&e.event&&/Checkout\.Success/i.test(e.event)){
+      PAID_ID='ls-'+(e.data&&e.data.order&&e.data.order.data&&e.data.order.data.id||Date.now()); // ⚠️ 실매출 전 서버 웹훅 검증 필요(클라 이벤트는 우회 가능)
+      if(_lsResolve){_lsResolve(true);_lsResolve=null;}
+      try{window.LemonSqueezy.Url.Close();}catch(_){}
+    }
+  }});
+  _lsReady=true;return true;
+}
 async function ensurePaid(){
   if(FREE_LAUNCH)return true; // 무료 공개 기간: 결제창 절대 안 띄움
+  if(PAID_ID)return true;
+  if(LS_CHECKOUT){ // Lemonsqueezy 오버레이 우선
+    if(!lsInit()){alert('결제 준비 중이에요. 잠시 후 다시 시도해주세요.');return false;}
+    return await new Promise((resolve)=>{ _lsResolve=resolve;
+      try{window.LemonSqueezy.Url.Open(LS_CHECKOUT+(LS_CHECKOUT.includes('?')?'&':'?')+'embed=1');}catch(e){resolve(false);} });
+  }
   if(!PAY.on||PAID_ID)return true;
   if(!window.PortOne||!PAY.storeId||!PAY.channelKey){alert('결제 준비 중이에요. 잠시 후 다시 시도해주세요.');return false;}
   try{
