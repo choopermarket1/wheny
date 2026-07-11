@@ -327,18 +327,23 @@
     #result>*:nth-child(4){animation-delay:.15s}#result>*:nth-child(5){animation-delay:.2s}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @media(max-width:400px){.brand{font-size:40px}.teachers{grid-template-columns:1fr}}
-  /* 전환 v2: 골든타임 카드 */
-  .golden{margin:14px 0;padding:18px 18px 15px;border-radius:15px;border:1px solid var(--gold);
-    background:linear-gradient(160deg,rgba(201,169,97,.14),rgba(201,169,97,.04));position:relative;overflow:hidden}
-  .golden::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0,rgba(231,211,161,.18),transparent 60%);pointer-events:none}
-  .golden .gt-top{font-size:15.5px;color:var(--gold2);font-weight:700;letter-spacing:.2px}
-  .golden .gt-top b{color:var(--gold2)}
-  .golden .gt-dw{font-size:12px;color:var(--dim);font-weight:500;margin-left:4px}
-  .golden .gt-body{margin:9px 0 0;font-size:13.5px;line-height:1.65;color:var(--paperdim)}
-  .golden .gt-warn{color:#e0655a}
-  .golden .gt-cd{margin:12px 0 0;padding:9px 12px;border-radius:9px;background:rgba(0,0,0,.28);
-    font-size:13px;color:var(--paper);text-align:center;border:1px solid var(--goldLine)}
-  .golden .gt-cd b{color:var(--gold2);font-variant-numeric:tabular-nums;font-weight:700}
+  /* 골든타임 카드 — 명품·신뢰 톤 (앱 .block 헤어라인 시스템과 통일) */
+  .golden{margin:16px 0;padding:24px 24px 20px;border-radius:18px;border:1px solid var(--goldLine);
+    background:linear-gradient(180deg,rgba(201,169,97,.05),rgba(201,169,97,.015)),var(--card);position:relative;overflow:hidden}
+  .golden::before{content:"";position:absolute;top:0;left:24px;right:24px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55}
+  .golden .gt-kick{font-size:11px;letter-spacing:2.5px;color:var(--gold);font-weight:600;margin-bottom:9px}
+  .golden .gt-year{display:flex;align-items:baseline;gap:3px;line-height:1}
+  .golden .gt-year .n{font-family:"Cormorant Garamond","Noto Serif KR",serif;font-size:52px;font-weight:600;
+    background:linear-gradient(180deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+  .golden .gt-year .u{font-family:"Noto Serif KR",serif;font-size:20px;color:var(--paperdim)}
+  .golden .gt-sub{margin-top:5px;font-size:12.5px;color:var(--dim);letter-spacing:.3px}
+  .golden .gt-body{margin:15px 0 0;font-size:13.5px;line-height:1.72;color:var(--paperdim)}
+  .golden .gt-body b{color:var(--paper);font-weight:600}
+  .golden .gt-cd{margin:16px 0 0;padding-top:15px;border-top:1px solid var(--goldLine);
+    display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .golden .gt-cd .gt-l{font-size:11.5px;color:var(--dim);letter-spacing:.3px}
+  .golden .gt-cd b{font-size:15px;color:var(--gold2);font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.4px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1124,9 +1129,11 @@ function goldenTime(d,age,nm){
     const gap=gy2-gy;
     const who=nm?`${nm}님`:'당신';
     return `<div class="golden">
-      <div class="gt-top">⏳ ${who}의 다음 인생 전환점 · <b>${gy}년</b> <span class="gt-dw">${nxt.k} 대운</span></div>
-      <p class="gt-body">이 <b>골든타임</b>을 놓치면 다음 큰 문은 <b>${gy2}년</b> — <b class="gt-warn">${gap}년</b>을 더 기다려야 열려요. 지금 이 타이밍에 방향을 잡아야 하는 이유예요.</p>
-      <div class="gt-cd">이번 주 무료 정밀 해석 마감까지 <b id="gt-timer">계산 중…</b></div>
+      <div class="gt-kick">다음 인생 전환점</div>
+      <div class="gt-year"><span class="n">${gy}</span><span class="u">년</span></div>
+      <div class="gt-sub">${nxt.k} 대운 · ${who}</div>
+      <p class="gt-body">이 흐름이 크게 열리는 해예요. 다음 전환점은 <b>${gy2}년</b>, 약 <b>${gap}년</b> 뒤예요 — 큰 결정은 이 타이밍에 모아 두면 좋아요.</p>
+      <div class="gt-cd"><span class="gt-l">이번 회차 마감까지</span><b id="gt-timer">계산 중…</b></div>
     </div>`;
   }catch(_){return '';}
 }
