@@ -887,7 +887,8 @@ function sinsal(d,noTime){
   });
   if(YANGIN[dS]!=null)brs.forEach(([p,b])=>{if(b===YANGIN[dS])add('양인',p);});
   brs.forEach(([p,b])=>{if(b===MUNCHANG[dS])add('문창귀인',p);});
-  return [...new Set(found)];
+  const seen=new Set(),uniq=[];for(const f of found){const nm=f.split('(')[0];if(!seen.has(nm)){seen.add(nm);uniq.push(f);}} // 이름 기준 중복 제거(같은 신살 여러 자리→1개)
+  return uniq;
 }
 const BONGI=[9,5,0,1,4,2,3,5,6,7,4,8];
 function gyeok(dS,mB){return sipsin(dS,BONGI[mB])+'격';}
@@ -2208,10 +2209,10 @@ const UNSEONG2_EN={장생:'Like a newborn — pure and full of growth. Fresh sta
 const DM_LETTER_EN={木:'like a spring sprout, always a step ahead and reaching forward',火:'like a blazing flame, someone who brightens and warms those around',土:'like the all-holding earth, steady and dependable',金:'like a well-forged blade, firm and clear in decision',水:'like a flowing river, wise and able to seep in anywhere'};
 // 같은 일간(日干) 유명인 — 널리 공개된 생년월일만 사용. 일간은 날짜만으로 결정되므로 사실 계산.
 const CELEBS=[
- {n:'RM (BTS)',c:'KR',y:1994,m:9,d:12},{n:'아이유 IU',c:'KR',y:1993,m:5,d:16},{n:'손흥민 Son',c:'KR',y:1992,m:7,d:8},{n:'G-Dragon',c:'KR',y:1988,m:8,d:18},{n:'정국 Jungkook',c:'KR',y:1997,m:9,d:1},{n:'김연아 Kim Yuna',c:'KR',y:1990,m:9,d:5},{n:'지민 Jimin',c:'KR',y:1995,m:10,d:13},
- {n:'宮崎駿 Miyazaki',c:'JP',y:1941,m:1,d:5},{n:'村上春樹 Murakami',c:'JP',y:1949,m:1,d:12},{n:'羽生結弦 Hanyu',c:'JP',y:1994,m:12,d:7},{n:'宇多田ヒカル Utada',c:'JP',y:1983,m:1,d:19},{n:'大谷翔平 Ohtani',c:'JP',y:1994,m:7,d:5},
- {n:'Taylor Swift',c:'US',y:1989,m:12,d:13},{n:'Barack Obama',c:'US',y:1961,m:8,d:4},{n:'Beyoncé',c:'US',y:1981,m:9,d:4},{n:'Leonardo DiCaprio',c:'US',y:1974,m:11,d:11},{n:'Oprah Winfrey',c:'US',y:1954,m:1,d:29},{n:'Elon Musk',c:'US',y:1971,m:6,d:28},{n:'Steve Jobs',c:'US',y:1955,m:2,d:24},
- {n:'成龍 Jackie Chan',c:'CN',y:1954,m:4,d:7},{n:'馬雲 Jack Ma',c:'CN',y:1964,m:9,d:10},{n:'姚明 Yao Ming',c:'CN',y:1980,m:9,d:12},{n:'周杰倫 Jay Chou',c:'CN',y:1979,m:1,d:18},{n:'范冰冰 Fan Bingbing',c:'CN',y:1981,m:9,d:16},{n:'劉德華 Andy Lau',c:'CN',y:1961,m:9,d:27}
+ {n:'RM (BTS)',ja:'RM (BTS)',c:'KR',y:1994,m:9,d:12},{n:'아이유 IU',ja:'IU (アイユ)',c:'KR',y:1993,m:5,d:16},{n:'손흥민 Son',ja:'ソン・フンミン',c:'KR',y:1992,m:7,d:8},{n:'G-Dragon',ja:'G-DRAGON',c:'KR',y:1988,m:8,d:18},{n:'정국 Jungkook',ja:'ジョングク (BTS)',c:'KR',y:1997,m:9,d:1},{n:'김연아 Kim Yuna',ja:'キム・ヨナ',c:'KR',y:1990,m:9,d:5},{n:'지민 Jimin',ja:'ジミン (BTS)',c:'KR',y:1995,m:10,d:13},
+ {n:'宮崎駿 Miyazaki',ja:'宮崎駿',c:'JP',y:1941,m:1,d:5},{n:'村上春樹 Murakami',ja:'村上春樹',c:'JP',y:1949,m:1,d:12},{n:'羽生結弦 Hanyu',ja:'羽生結弦',c:'JP',y:1994,m:12,d:7},{n:'宇多田ヒカル Utada',ja:'宇多田ヒカル',c:'JP',y:1983,m:1,d:19},{n:'大谷翔平 Ohtani',ja:'大谷翔平',c:'JP',y:1994,m:7,d:5},
+ {n:'Taylor Swift',ja:'テイラー・スウィフト',c:'US',y:1989,m:12,d:13},{n:'Barack Obama',ja:'バラク・オバマ',c:'US',y:1961,m:8,d:4},{n:'Beyoncé',ja:'ビヨンセ',c:'US',y:1981,m:9,d:4},{n:'Leonardo DiCaprio',ja:'レオナルド・ディカプリオ',c:'US',y:1974,m:11,d:11},{n:'Oprah Winfrey',ja:'オプラ・ウィンフリー',c:'US',y:1954,m:1,d:29},{n:'Elon Musk',ja:'イーロン・マスク',c:'US',y:1971,m:6,d:28},{n:'Steve Jobs',ja:'スティーブ・ジョブズ',c:'US',y:1955,m:2,d:24},
+ {n:'成龍 Jackie Chan',ja:'ジャッキー・チェン',c:'CN',y:1954,m:4,d:7},{n:'馬雲 Jack Ma',ja:'ジャック・マー',c:'CN',y:1964,m:9,d:10},{n:'姚明 Yao Ming',ja:'ヤオ・ミン',c:'CN',y:1980,m:9,d:12},{n:'周杰倫 Jay Chou',ja:'ジェイ・チョウ',c:'CN',y:1979,m:1,d:18},{n:'范冰冰 Fan Bingbing',ja:'ファン・ビンビン',c:'CN',y:1981,m:9,d:16},{n:'劉德華 Andy Lau',ja:'アンディ・ラウ',c:'CN',y:1961,m:9,d:27}
 ];
 // ── 일본어(JA) 콘텐츠 ──
 const OHAENG_DESC_JA={木:'木のように立ち上る力 — 成長・計画・信念・向上心。',火:'燃え盛る火の力 — 情熱・表現・人気・直感。',土:'すべてを抱く土の力 — 信頼・忍耐・調和・現実感覚。',金:'硬い金属の力 — 決断・信念・実行・正義。',水:'流れる水の力 — 知恵・柔軟さ・機転・順応力。'};
@@ -2481,7 +2482,7 @@ function buildPdfDoc(){
     const userStem=userDay[0]||(c.일간||'').match(/[甲乙丙丁戊己庚辛壬癸]/)?.[0];
     if(userStem&&typeof computeSaju==='function'){
       const iljuM={KR:[],JP:[],US:[],CN:[]}, ilganM={KR:[],JP:[],US:[],CN:[]};
-      CELEBS.forEach(cb=>{try{const r=computeSaju({year:cb.y,month:cb.m,day:cb.d,hour:12,minute:0,tz:9});const cd=(r.P&&r.P.day&&r.P.day.h)||'';const cs=(r.dm&&r.dm[0])||cd[0]||'';const nm=KO?cb.n:(cb.n.replace(/[가-힣]/g,'').trim()||cb.n);
+      CELEBS.forEach(cb=>{try{const r=computeSaju({year:cb.y,month:cb.m,day:cb.d,hour:12,minute:0,tz:9});const cd=(r.P&&r.P.day&&r.P.day.h)||'';const cs=(r.dm&&r.dm[0])||cd[0]||'';const nm=(LANG==='ja'&&cb.ja)?cb.ja:(KO?cb.n:(cb.n.replace(/[가-힣]/g,'').trim()||cb.n));
         if(cd&&userDay&&cd===userDay){iljuM[cb.c]&&iljuM[cb.c].push(nm);}
         else if(cs&&userStem&&cs===userStem){ilganM[cb.c]&&ilganM[cb.c].push(nm);}}catch(e){}});
       const CO={ko:{KR:'한국',JP:'일본',US:'미국',CN:'중국'},en:{KR:'Korea',JP:'Japan',US:'USA',CN:'China'},ja:{KR:'韓国',JP:'日本',US:'アメリカ',CN:'中国'},zh:{KR:'韩国',JP:'日本',US:'美国',CN:'中国'}};
@@ -2987,7 +2988,7 @@ function downloadPdf(){
  @media print{.print-hint,.scr-only{display:none!important}}
 </style></head>
 <body>
-<div class="print-hint">📄 인쇄창이 곧 뜹니다 — 대상을 <b>"PDF로 저장"</b>, 그리고 <b>"기타 설정 → 배경 그래픽"</b>을 꼭 켜주세요! (안 뜨면 Ctrl+P)</div>
+<div class="print-hint">${({ko:'📄 인쇄창이 떠요 — ① 대상 <b>"PDF로 저장"</b> ② <b>"배경 그래픽" 켜기</b> ③ <b>"머리글 및 바닥글" 끄기</b> (안 뜨면 Ctrl+P)',ja:'📄 印刷ダイアログが開きます — ① 送信先 <b>「PDFに保存」</b> ② <b>「背景のグラフィック」をON</b> ③ <b>「ヘッダーとフッター」をOFF</b>（出ない場合は Ctrl+P）',en:'📄 Print dialog opening — ① Destination <b>"Save as PDF"</b> ② turn ON <b>"Background graphics"</b> ③ turn OFF <b>"Headers and footers"</b> (or press Ctrl+P)',zh:'📄 打印窗口即将打开 — ① 目标 <b>"另存为PDF"</b> ② 开启 <b>"背景图形"</b> ③ 关闭 <b>"页眉和页脚"</b>（未弹出请按 Ctrl+P）'})[LANG]||'📄 Print dialog — Save as PDF, turn ON Background graphics, turn OFF Headers and footers.'}</div>
 <div class="scr-only" style="height:40px"></div>
 ${html}
 <scr`+`ipt>window.addEventListener('load',function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},800);});<\/scr`+`ipt>
