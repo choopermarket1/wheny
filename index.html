@@ -364,6 +364,26 @@
   .sc-tile.sc-hl{border-color:var(--gold);background:rgba(201,169,97,.09)}
   .sc-tile.sc-hl .sc-v{color:var(--gold2);font-family:"Cormorant Garamond","Noto Serif KR",serif;font-size:19px}
   .sc-brand{margin-top:17px;text-align:center;font-family:"Cormorant Garamond",serif;font-size:13px;letter-spacing:1.2px;color:var(--dim)}
+  /* 인생 타이밍 지도 */
+  .tm-lead{margin:0 0 18px;font-size:12.5px;color:var(--paperdim);line-height:1.6}
+  .tm-lead .tm-lg{margin-left:9px;font-size:11px;color:var(--dim);white-space:nowrap}
+  .tm-lead .tm-lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+  .tm-lead .d-g{background:var(--gold)}.tm-lead .d-c{background:#c0705f}.tm-lead .d-s{background:var(--gold2);box-shadow:0 0 0 2px rgba(201,169,97,.25)}
+  .tm-list{position:relative;padding-left:4px}
+  .tm-list::before{content:"";position:absolute;left:6px;top:10px;bottom:12px;width:2px;background:linear-gradient(180deg,var(--gold),var(--goldLine))}
+  .tm-now{position:relative;padding-left:24px;font-size:11px;letter-spacing:1.5px;color:var(--gold);font-weight:600;margin-bottom:14px}
+  .tm-now::before{content:"";position:absolute;left:1px;top:2px;width:12px;height:12px;border-radius:50%;border:2px solid var(--gold);background:var(--ink)}
+  .tm-row{position:relative;padding:0 0 16px 24px}
+  .tm-dot{position:absolute;left:2px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--gold);border:2px solid var(--ink)}
+  .tm-cau .tm-dot{background:#c0705f}
+  .tm-star .tm-dot{width:14px;height:14px;left:0;top:4px;background:var(--gold2);box-shadow:0 0 0 3px rgba(201,169,97,.22)}
+  .tm-yr{font-family:"Cormorant Garamond","Noto Serif KR",serif;font-size:20px;font-weight:600;color:var(--gold2);line-height:1}
+  .tm-yr i{font-style:normal;font-size:11px;color:var(--dim);margin-left:5px;font-family:"Apple SD Gothic Neo",sans-serif}
+  .tm-mid{margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .tm-badge{display:inline-block;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(201,169,97,.14);color:var(--gold2);white-space:nowrap}
+  .tm-cau .tm-badge{background:rgba(192,112,95,.15);color:#d9917f}
+  .tm-star .tm-badge{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408}
+  .tm-note{font-size:12.5px;color:var(--paperdim);line-height:1.5}
 </style>
 </head>
 <body>
@@ -1199,6 +1219,34 @@ function summaryCard(d,r,w,t,chart,age){
     </div>`;
   }catch(_){return '';}
 }
+// ── 인생 타이밍 지도: 앞으로 ~13년 핵심 연도를 세로 로드맵으로 ──
+function timingMap(해석){
+  try{
+    if(!해석||!Array.isArray(해석.타이밍)||!해석.타이밍.length) return '';
+    const DOML={연애:'연애·인연',재물:'재물운',직업:'직업·이직',문서:'문서·계약'};
+    let rows=해석.타이밍.map(s=>{
+      const d0=(s.도메인&&s.도메인[0]);
+      const label=d0?(DOML[d0]||d0):(s.등급>0?'기회':'변화');
+      const sp=(s.특수&&s.특수.length)?s.특수[0]:'';
+      const note=((s.조언||'').replace(/<[^>]+>/g,'').trim())||(sp?`${sp} 흐름`:'');
+      return {year:s.연도, age:s.나이, label, grade:s.등급, note};
+    });
+    const nx=해석.다음대운;
+    if(nx&&nx.연도>=NOW&&nx.연도<=NOW+14&&!rows.some(r=>r.year===nx.연도)){
+      rows.push({year:nx.연도, age:nx.나이, label:'인생 전환점', grade:2, note:`${nx.간지} 대운 — 판이 바뀌는 시기`, star:true});
+    }
+    rows.sort((a,b)=>a.year-b.year);
+    const body=rows.map(r=>{
+      const cls=r.star?'tm-star':(r.grade<0?'tm-cau':'tm-good');
+      return `<div class="tm-row ${cls}"><span class="tm-dot"></span>`+
+        `<div class="tm-yr">${r.year}<i>· ${r.age}세</i></div>`+
+        `<div class="tm-mid"><span class="tm-badge">${r.label}</span>${r.note?`<span class="tm-note">${r.note}</span>`:''}</div></div>`;
+    }).join('');
+    return `<div class="block tmap" style="--tc:var(--gold)"><h3>내 인생 타이밍 지도 ★</h3>
+      <p class="tm-lead"><b>${NOW}~${NOW+14}년</b>, 사주가 가리키는 <b>핵심 타이밍</b>이에요. <span class="tm-lg"><i class="d-g"></i>기회</span> <span class="tm-lg"><i class="d-c"></i>조심</span> <span class="tm-lg"><i class="d-s"></i>전환점</span></p>
+      <div class="tm-list ${isLocked()?'lockblur':''}"><div class="tm-now">지금 · ${NOW}</div>${body}</div></div>`;
+  }catch(_){return '';}
+}
 function run(){
   if(mode==="compat"){runCompat();return;}
   const tsel=document.getElementById("time").value,noTime=(tsel==="none");
@@ -1267,6 +1315,7 @@ function run(){
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${isLocked()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${isLocked()?'lockblur':''}">${dwRows}</div></div>
+    ${timingMap(chart.해석)}
     ${lockCTA()}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}인생 그래프 · 대운 흐름</h3>
       <p style="margin:0 0 14px">10년 단위 <b>대운</b>의 기운을 곡선으로 봤어요. <b style="color:#8fbf86">기회</b>엔 밀고 <b style="color:#e0655a">주의</b>엔 지키세요.</p>
