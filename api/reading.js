@@ -163,6 +163,7 @@ ${MYEONGNI_RULE}
 ${FACT_RULE}
 ${HAESEOK_RULE}
 - 출력 언어: ${langName(lang)}. 번역체 금지, 네이티브처럼.
+- ⚠️ 모든 문장을 반드시 끝맺어라. 절대 문장 중간에서 멈추지 마라 — 분량이 많으면 각 항목을 조금 짧게 써서라도 마지막 소제목까지 완결해라.
 - 소제목은 아래 목록을 그 순서대로, 표기 그대로 써라(이모지 붙이지 말고, 번역·변경 금지 — 이미 ${langName(lang)}로 되어 있다):
 ${secList(lang)}`;
 
@@ -191,6 +192,7 @@ ${personaVoice(persona, lang)}
 - '세운(연도별)'·'월운(월별)' 표가 있으니, 사용자가 특정 연·월을 물으면 그 간지·십신으로 <b>정확히</b> 답하라(추측 금지). 특정 '일(날짜)' 택일은 대략만 하고 정밀은 별도 안내.
 - 앞선 대화를 반드시 기억하고 자연스럽게 이어라(예: "아까 결혼운 물어봤지, 그거랑 이어서…"). 같은 말 반복 금지.
 - 짧고 구체적으로: 3~5개의 짧은 불릿("- ") 또는 2~4문장. 쪽집게처럼 연도·가능하면 월·구체 상황을 콕 집고, 근거(십신·오행·대운·세운)를 짧게 붙여라. 핵심은 **굵게**.
+- ⚠️ 답변은 반드시 문장을 끝맺어라. 절대 문장 중간에서 멈추지 마라 — 길어질 것 같으면 불릿 수를 줄여서라도 마지막 문장까지 완결해라.
 - [명식]에 '이름'(한자 또는 한글)이 있으면 성명학(획수·오행·뜻, 부족한 오행 보완 여부)으로도 엮어 상담하라.
 ${MYEONGNI_RULE}
 ${FACT_RULE}
@@ -268,23 +270,23 @@ export default async function handler(req, res) {
       if (chartB) system += "\n\n[상대방 명식 B]\n" + JSON.stringify(chartB, null, 2) +
         "\n※ 지금은 두 사람의 '궁합·관계' 상담이다. A=본인, B=상대. 재회·결혼·이별·속마음·궁합 관련 질문에 두 명식(오행 상생상극·일간 관계·대운)을 함께 근거로 답하라.";
       msgs = hist;
-      maxTok = 1600;
+      maxTok = 2400;
     } else if (compat) {
       system = COMPAT(persona, lang);
       userContent =
         "두 사람의 궁합을 봐줘.\n\n[A · 본인]\n" + JSON.stringify(chart, null, 2) +
         "\n\n[B · 상대]\n" + JSON.stringify(chartB, null, 2);
-      maxTok = 3000;
+      maxTok = 3800;
       msgs = [{ role: "user", content: userContent }];
     } else if (focused) {
       system = FOCUS(persona, lang, question);
       userContent = `다음은 내 사주·점성술 계산 결과야. 이 질문 하나에만 집중해서 답해줘: "${question}"\n\n` + JSON.stringify(chart, null, 2);
-      maxTok = 2600;
+      maxTok = 4200;
       msgs = [{ role: "user", content: userContent }];
     } else {
       system = SYSTEM(persona, lang);
       userContent = "다음은 내 사주·점성술 계산 결과다. 이 페르소나로 나만을 위한 해석을 써줘.\n\n" + JSON.stringify(chart, null, 2);
-      maxTok = 5500;
+      maxTok = 6800;
       msgs = [{ role: "user", content: userContent }];
     }
 
