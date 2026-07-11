@@ -766,7 +766,7 @@ const TZLABEL=[[9,{ko:'한국·일본 (UTC+9)',ja:'韓国·日本 (UTC+9)',en:'K
 // --- 결제(포트원) 상태. 서버 헬스체크로 켜짐 여부·키를 받아옴. PAID_ID 있으면 이 세션 AI 잠금 해제.
 // ★ 무료 공개 스위치: true면 서버 페이월이 켜져 있어도 결제창을 절대 띄우지 않고 전 기능 무료(잠금도 해제).
 //   정식 유료화 때 false로 바꾸고 배포하면 끝. (백엔드는 PORTONE_API_SECRET 유무로 별도 제어)
-const FREE_LAUNCH=true;
+const FREE_LAUNCH=!new URLSearchParams(location.search).has('pay'); // 기본 무료. URL에 ?pay 붙이면 결제 켜짐(테스트/오픈용)
 const APP_VER='v2-conv'; // 전환강화 테스트 버전(골든타임·초개인화·긴급성) — 미러링26 인사이트
 const LS_CHECKOUT='https://whenysaju.lemonsqueezy.com/checkout/buy/c5c428f1-6883-428d-9bd0-faa3f57ae3b7'; // Lemonsqueezy 정밀리포트 결제(오버레이). 비우면 PortOne 폴백.
 let PAY={on:false,price:3900,storeId:"",channelKey:""},PAID_ID=null;
@@ -826,7 +826,7 @@ async function ensurePaid(){
   }catch(e){alert('결제 처리 중 문제가 생겼어요. 다시 시도해주세요.');return false;}
 }
 // ── 미래 잠금(blur) 메커니즘: 결제 켜졌고(아직 안 냈으면) 미래 '연도'를 가림 → 결제 유도. 페이월 꺼짐=항상 다 보임.
-function isLocked(){return !FREE_LAUNCH&&PAY.on&&!PAID_ID;}
+function isLocked(){return !FREE_LAUNCH&&!PAID_ID;}
 function lockYr(y){return isLocked()?`<span class="lk">${IC.lock}</span>`:y;} // 미래 연도 마스킹(과거·현재는 그대로)
 async function unlock(){if(await ensurePaid()){if(mode==='compat')runCompat();else run();}} // 결제 성공 시 그 언어로 재생성(연도 공개)
 function lockCTA(){if(!isLocked())return'';return `<div class="lockcard">
