@@ -400,6 +400,9 @@
   .knm-c em{font-size:12px;color:var(--paperdim);font-style:normal}
   .knm-c i{font-size:10.5px;color:var(--gold);font-style:normal;letter-spacing:.3px}
   .knm-why{margin:16px 0 0;padding:12px 14px;border-radius:11px;background:rgba(201,169,97,.07);border:1px solid var(--goldLine);font-size:12.5px;line-height:1.6;color:var(--paperdim)}
+  .knm-sns{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .knm-sns button{flex:1;min-width:64px;padding:9px 6px;border-radius:9px;border:1px solid var(--goldLine);background:rgba(255,255,255,.02);color:var(--paperdim);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer}
+  .knm-sns button:hover{border-color:var(--gold);color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -1311,7 +1314,8 @@ function koreanName(d,chart,해석){
       <div class="knm-name"><div class="knm-hanja">${sur.h}${gh}</div><div class="knm-hangul">${sur.k}${gk}</div><div class="knm-roman">${roman}</div></div>
       <div class="knm-chars">${charHtml}</div>
       <p class="knm-why"><b>${L.why}</b> ${L.fillA} <b style="color:var(--gold2)">${els}</b> ${L.fillB}</p>
-      <button class="share" style="margin-top:16px" onclick="shareKoreanName()">${IC.cam}${shareL}</button></div>`;
+      <button class="share" style="margin-top:16px" onclick="shareKoreanName()">${IC.cam}${shareL}</button>
+      <div class="knm-sns"><button onclick="snsShare('kakao')">${ko?'카톡':'Kakao'}</button><button onclick="snsShare('x')">X</button><button onclick="snsShare('fb')">Facebook</button><button onclick="snsShare('copy')">${ko?'링크복사':'Copy link'}</button></div></div>`;
   }catch(_){return '';}
 }
 // ── 인생 타이밍 지도: 앞으로 ~13년 핵심 연도를 세로 로드맵으로 ──
@@ -1767,6 +1771,16 @@ function shareCard(){if(!CTX)return;
     try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Wheny 소름 리포트'});return;}}catch(e){}
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wheny_소름리포트.png';a.click();},'image/png');}
 // 한국 이름 공유 이미지(1080×1350, 명품 골드) — K-네임 바이럴
+function snsShare(p){
+  const url='https://wheny.vercel.app';
+  const ko=(window._KN&&window._KN.ko);
+  const nm=(document.querySelector('.knm-hangul')||{}).innerText||'';
+  const txt=(ko?'내 사주로 지은 한국 이름 ✨ '+nm:'I got my Korean name from my birth chart ✨ '+nm);
+  if(p==='x')window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(url),'_blank');
+  else if(p==='fb')window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),'_blank');
+  else if(p==='kakao'){ if(window.Kakao&&window.Kakao.Share){try{window.Kakao.Share.sendDefault({objectType:'text',text:txt+'\n'+url,link:{webUrl:url,mobileWebUrl:url}});return;}catch(e){}} try{navigator.clipboard.writeText(txt+' '+url);}catch(e){} alert(ko?'링크 복사됨 — 카카오톡에 붙여넣어 공유하세요':'Link copied — paste into KakaoTalk'); }
+  else { try{navigator.clipboard.writeText(url);}catch(e){} alert(ko?'링크 복사됨':'Link copied'); }
+}
 function shareKoreanName(){
   const k=window._KN; if(!k)return;
   const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
