@@ -403,6 +403,27 @@
   .knm-sns{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
   .knm-sns button{flex:1;min-width:64px;padding:9px 6px;border-radius:9px;border:1px solid var(--goldLine);background:rgba(255,255,255,.02);color:var(--paperdim);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer}
   .knm-sns button:hover{border-color:var(--gold);color:var(--gold2)}
+  /* 후기 */
+  .rvcard{background:var(--card);border:1px solid var(--goldLine);border-radius:20px;padding:22px 22px}
+  .rv-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .rv-t{font-size:16px;font-weight:700;color:var(--paper)}
+  .rv-avg{font-size:12.5px;color:var(--gold2);margin-left:8px}
+  .rv-write{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:10px;padding:9px 15px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer}
+  .rv-list{display:flex;flex-direction:column;gap:12px}
+  .rv-item{border-top:1px solid var(--line);padding-top:12px}
+  .rv-item:first-child{border-top:0;padding-top:0}
+  .rv-s{font-size:13px;color:var(--gold);letter-spacing:1px}
+  .rv-n{color:var(--dim);font-size:12px;margin-left:8px;letter-spacing:0}
+  .rv-x{margin-top:5px;font-size:13.5px;line-height:1.6;color:var(--paperdim)}
+  .rv-empty{text-align:center;color:var(--dim);font-size:13.5px;padding:14px 0}
+  .rv-formbox{margin-top:14px;border-top:1px solid var(--goldLine);padding-top:14px}
+  .rv-starrow{font-size:26px;letter-spacing:4px;margin-bottom:10px}
+  .rv-star{color:var(--line);cursor:pointer}.rv-star.on{color:var(--gold)}
+  #rvform input,#rvform textarea{width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:10px;color:var(--paper);font-family:inherit;font-size:14px;padding:10px 12px;margin-bottom:9px;box-sizing:border-box}
+  #rvform textarea{min-height:74px;resize:vertical}
+  .rv-btns{display:flex;gap:9px;justify-content:flex-end}
+  .rv-cancel{background:transparent;border:1px solid var(--line);color:var(--paperdim);border-radius:10px;padding:9px 15px;font-family:inherit;font-size:13px;cursor:pointer}
+  .rv-submit{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer}
 </style>
 </head>
 <body>
@@ -540,6 +561,9 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       · 환불: <a href="./policy.html#refund" style="color:#c9a961">환불·청약철회 정책</a>에 따름 (콘텐츠 생성 전 취소 시 전액 환불)
     </div>
   </div>
+
+  <!-- 실제 후기 -->
+  <div id="reviews" style="margin:20px 0 0"></div>
 
   <!-- 사업자 정보 푸터 (전자상거래법 필수 표시) -->
   <footer id="bizfooter" style="margin:26px 0 0;padding:22px 4px 6px;border-top:1px solid #2b2f3a;color:#7d7768;font-size:12px;line-height:1.85">
@@ -1964,6 +1988,43 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   const _g=document.querySelector('.go');if(_g&&typeof mode!=='undefined'&&mode==='compat'&&T.goCompat)_g.textContent=T.goCompat; // 궁합모드면 궁합버튼 텍스트 유지
   if(typeof renderTeachers==='function')renderTeachers();
   renderStatic();
+  if(typeof loadReviews==='function')loadReviews();
+}
+// ── 후기(리뷰) ──
+const REVIEW_L={
+  ko:{title:'실제 후기',write:'후기 남기기',none:'첫 후기의 주인공이 되어주세요 ✨',ph:'솔직한 후기를 남겨주세요',nameph:'닉네임(선택)',submit:'등록',thanks:'후기 고마워요! 💛',cancel:'취소',count:n=>n+'개',setup:'후기 저장소 연결 전이에요',fail:'등록 실패 — 잠시 후 다시'},
+  en:{title:'Reviews',write:'Write a review',none:'Be the first to leave a review ✨',ph:'Share your honest thoughts',nameph:'Nickname (optional)',submit:'Post',thanks:'Thanks for your review! 💛',cancel:'Cancel',count:n=>n+' reviews',setup:'Reviews store not connected yet',fail:'Failed — try again'},
+  ja:{title:'みんなの口コミ',write:'口コミを書く',none:'最初の口コミを書いてみませんか ✨',ph:'正直な感想をどうぞ',nameph:'ニックネーム(任意)',submit:'投稿',thanks:'口コミありがとう! 💛',cancel:'キャンセル',count:n=>n+'件',setup:'口コミ保存先が未接続です',fail:'投稿に失敗 — もう一度'},
+  zh:{title:'真实评价',write:'写评价',none:'成为第一个评价的人吧 ✨',ph:'分享你的真实想法',nameph:'昵称(可选)',submit:'发布',thanks:'感谢你的评价! 💛',cancel:'取消',count:n=>n+'条',setup:'评价存储未连接',fail:'发布失败 — 请重试'},
+};
+let _rvStar=5;
+function loadReviews(){
+  const box=document.getElementById('reviews'); if(!box) return;
+  const L=REVIEW_L[LANG]||REVIEW_L.ko;
+  const shell=(inner,extra)=>`<div class="rvcard"><div class="rv-head"><div><span class="rv-t">${L.title}</span>${extra||''}</div><button class="rv-write" onclick="openReview()">${L.write}</button></div><div class="rv-list">${inner}</div><div id="rvform"></div></div>`;
+  fetch('/api/review').then(r=>r.json()).then(d=>{
+    const revs=(d&&d.reviews)||[], avg=(d&&d.avg)||0, cnt=(d&&d.count)||0;
+    const extra=cnt?`<span class="rv-avg">★ ${avg} · ${L.count(cnt)}</span>`:'';
+    const list=revs.length?revs.slice(0,15).map(v=>`<div class="rv-item"><div class="rv-s">${'★'.repeat(Math.max(1,Math.min(5,v.r||5)))}<span class="rv-n">${v.n||''}</span></div><div class="rv-x">${v.t||''}</div></div>`).join(''):`<div class="rv-empty">${L.none}</div>`;
+    box.innerHTML=shell(list,extra);
+  }).catch(()=>{ box.innerHTML=shell(`<div class="rv-empty">${L.none}</div>`,''); });
+}
+function starPick(n){_rvStar=n;document.querySelectorAll('#rvform .rv-star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+function openReview(){
+  const L=REVIEW_L[LANG]||REVIEW_L.ko, f=document.getElementById('rvform'); if(!f)return; _rvStar=5;
+  f.innerHTML=`<div class="rv-formbox"><div class="rv-starrow">${[1,2,3,4,5].map(i=>`<span class="rv-star on" onclick="starPick(${i})">★</span>`).join('')}</div>`+
+    `<input id="rvName" maxlength="20" placeholder="${L.nameph}"><textarea id="rvText" maxlength="300" placeholder="${L.ph}"></textarea>`+
+    `<div class="rv-btns"><button class="rv-cancel" onclick="document.getElementById('rvform').innerHTML=''">${L.cancel}</button><button class="rv-submit" onclick="submitReview()">${L.submit}</button></div></div>`;
+  f.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function submitReview(){
+  const L=REVIEW_L[LANG]||REVIEW_L.ko;
+  const name=(document.getElementById('rvName')||{}).value||'', text=(document.getElementById('rvText')||{}).value||'';
+  if(text.trim().length<5){alert(L.ph);return;}
+  const btn=document.querySelector('#rvform .rv-submit'); if(btn){btn.disabled=true;btn.textContent='…';}
+  fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rating:_rvStar,name,text,lang:LANG})})
+    .then(r=>r.json()).then(d=>{ if(d&&d.ok){alert(L.thanks);loadReviews();} else {alert(d&&d.needSetup?L.setup:L.fail); if(btn){btn.disabled=false;btn.textContent=L.submit;}} })
+    .catch(()=>{ alert(L.fail); if(btn){btn.disabled=false;btn.textContent=L.submit;} });
 }
 function markLang(v){const sel=document.getElementById('lang');if(sel)sel.value=v;document.querySelectorAll('#flagRow .flagbtn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-l')===v));}
 function setLang(v){const changed=v!==LANG;LANG=v;applyLang(v);markLang(v);
