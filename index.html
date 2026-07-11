@@ -1304,7 +1304,7 @@ function timingMap(해석){
     }).join('');
     return `<div class="block tmap" style="--tc:var(--gold)"><h3>내 인생 타이밍 지도 ★</h3>
       <p class="tm-lead"><b>${NOW}~${NOW+14}년</b>, 사주가 가리키는 <b>핵심 타이밍</b>이에요. <span class="tm-lg"><i class="d-g"></i>기회</span> <span class="tm-lg"><i class="d-c"></i>조심</span> <span class="tm-lg"><i class="d-s"></i>전환점</span></p>
-      <div class="tm-list ${isLocked()?'lockblur':''}"><div class="tm-now">지금 · ${NOW}</div>${body}</div></div>`;
+      <div class="tm-list"><div class="tm-now">지금 · ${NOW}</div>${body}</div></div>`;
   }catch(_){return '';}
 }
 function run(){
