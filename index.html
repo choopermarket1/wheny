@@ -327,6 +327,18 @@
     #result>*:nth-child(4){animation-delay:.15s}#result>*:nth-child(5){animation-delay:.2s}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @media(max-width:400px){.brand{font-size:40px}.teachers{grid-template-columns:1fr}}
+  /* 전환 v2: 골든타임 카드 */
+  .golden{margin:14px 0;padding:18px 18px 15px;border-radius:15px;border:1px solid var(--gold);
+    background:linear-gradient(160deg,rgba(201,169,97,.14),rgba(201,169,97,.04));position:relative;overflow:hidden}
+  .golden::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0,rgba(231,211,161,.18),transparent 60%);pointer-events:none}
+  .golden .gt-top{font-size:15.5px;color:var(--gold2);font-weight:700;letter-spacing:.2px}
+  .golden .gt-top b{color:var(--gold2)}
+  .golden .gt-dw{font-size:12px;color:var(--dim);font-weight:500;margin-left:4px}
+  .golden .gt-body{margin:9px 0 0;font-size:13.5px;line-height:1.65;color:var(--paperdim)}
+  .golden .gt-warn{color:#e0655a}
+  .golden .gt-cd{margin:12px 0 0;padding:9px 12px;border-radius:9px;background:rgba(0,0,0,.28);
+    font-size:13px;color:var(--paper);text-align:center;border:1px solid var(--goldLine)}
+  .golden .gt-cd b{color:var(--gold2);font-variant-numeric:tabular-nums;font-weight:700}
 </style>
 </head>
 <body>
@@ -693,6 +705,7 @@ const TZLABEL=[[9,{ko:'한국·일본 (UTC+9)',ja:'韓国·日本 (UTC+9)',en:'K
 // ★ 무료 공개 스위치: true면 서버 페이월이 켜져 있어도 결제창을 절대 띄우지 않고 전 기능 무료(잠금도 해제).
 //   정식 유료화 때 false로 바꾸고 배포하면 끝. (백엔드는 PORTONE_API_SECRET 유무로 별도 제어)
 const FREE_LAUNCH=true;
+const APP_VER='v2-conv'; // 전환강화 테스트 버전(골든타임·초개인화·긴급성) — 미러링26 인사이트
 let PAY={on:false,price:3900,storeId:"",channelKey:""},PAID_ID=null;
 (async function initPay(){
   try{const r=await fetch('/api/reading');if(!r.ok)return;const h=await r.json();
@@ -1099,6 +1112,38 @@ async function runCompat(){
   }
   clearTimeout(to);
 }
+// ── 전환 강화 v2: 골든타임(다음 대운 전환점) + 주간 카운트다운 ──
+function goldenTime(d,age,nm){
+  try{
+    const nxt=(typeof nextDaewoon==='function')?nextDaewoon(d,age):null;
+    if(!nxt||!nxt.startYear)return '';
+    const gy=nxt.startYear;
+    const i=d.dw.findIndex(x=>x.startYear===gy);
+    const after=(i>=0&&d.dw[i+1])?d.dw[i+1]:null;
+    const gy2=after?after.startYear:gy+10;
+    const gap=gy2-gy;
+    const who=nm?`${nm}님`:'당신';
+    return `<div class="golden">
+      <div class="gt-top">⏳ ${who}의 다음 인생 전환점 · <b>${gy}년</b> <span class="gt-dw">${nxt.k} 대운</span></div>
+      <p class="gt-body">이 <b>골든타임</b>을 놓치면 다음 큰 문은 <b>${gy2}년</b> — <b class="gt-warn">${gap}년</b>을 더 기다려야 열려요. 지금 이 타이밍에 방향을 잡아야 하는 이유예요.</p>
+      <div class="gt-cd">이번 주 무료 정밀 해석 마감까지 <b id="gt-timer">계산 중…</b></div>
+    </div>`;
+  }catch(_){return '';}
+}
+function startGoldenCountdown(){
+  const el=document.getElementById('gt-timer');if(!el)return;
+  if(window._gtIv)clearInterval(window._gtIv);
+  function tick(){
+    const el=document.getElementById('gt-timer');if(!el){clearInterval(window._gtIv);return;}
+    const now=new Date();
+    let add=((1-now.getDay())+7)%7; if(add===0)add=7; // 다음 월요일 00:00 = 일요일 자정
+    const end=new Date(now.getFullYear(),now.getMonth(),now.getDate()+add,0,0,0);
+    let s=Math.max(0,Math.floor((end-now)/1000));
+    const D=Math.floor(s/86400);s%=86400;const H=Math.floor(s/3600);s%=3600;const Mn=Math.floor(s/60);const S=s%60;
+    el.textContent=`${D}일 ${String(H).padStart(2,'0')}시간 ${String(Mn).padStart(2,'0')}분 ${String(S).padStart(2,'0')}초`;
+  }
+  tick();window._gtIv=setInterval(tick,1000);
+}
 function run(){
   if(mode==="compat"){runCompat();return;}
   const tsel=document.getElementById("time").value,noTime=(tsel==="none");
@@ -1173,8 +1218,9 @@ function run(){
       ${lifeGraph(d)}
       <p style="margin:14px 0 0;font-size:11px;color:var(--dim)">※ 대운 십신 기준 흐름 참고용 — 정확한 월·연 타이밍은 ${t.nm} 선생님 정밀 해석에서.</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
+    ${goldenTime(d,age,chart.이름)}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${t.nm} 선생님의 정밀 해석</h3>
-      <p style="margin-bottom:12px">위는 요약이에요. <b>${t.nm}</b>이 명식을 직접 읽어 연애·결혼·재물·직업·건강까지 훨씬 깊게 풀어드려요.</p>
+      <p style="margin-bottom:12px">위는 <b>1차 요약</b>이에요. 이제 <b>2차 — ${chart.이름?`${chart.이름}님`:'당신'}의 사주를 실제로 계산한 맞춤 해석</b>이에요. 누구에게나 하는 말이 아니라 <b>${chart.이름?`${chart.이름}님`:'당신'}만의 명식</b>을 <b>${t.nm}</b>이 직접 읽어 연애·결혼·재물·직업·건강의 <b>'언제'</b>까지 짚어드려요.</p>
       <button class="aibtn" onclick="askAI()">${PAY.on&&!FREE_LAUNCH?`${t.nm} 정밀 해석 받기 · ${priceMain()}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
       ${PAY.on&&!FREE_LAUNCH?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
@@ -1191,6 +1237,7 @@ function run(){
     </div>`;
   renderTopics(t.cv);
   breakResult();
+  startGoldenCountdown();
   saveSession();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
