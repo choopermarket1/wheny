@@ -1259,12 +1259,12 @@ function summaryCard(d,r,w,t,chart,age){
   }catch(_){return '';}
 }
 // ── 사주 기반 한국 이름 짓기(외국인용) : 부족한 오행을 채우는 한자 이름 ──
-const KNAME_HANJA={
-  木:[{h:'榮',k:'영',r:'Yeong',m:'번영·영광',e:'glory, flourish'},{h:'柱',k:'주',r:'Ju',m:'기둥·중심',e:'pillar, support'},{h:'桐',k:'동',r:'Dong',m:'오동나무',e:'paulownia tree'},{h:'松',k:'송',r:'Song',m:'소나무·지조',e:'pine, integrity'},{h:'楨',k:'정',r:'Jeong',m:'단단한 나무',e:'sturdy tree'}],
-  火:[{h:'炫',k:'현',r:'Hyeon',m:'빛나다',e:'to shine'},{h:'熙',k:'희',r:'Hui',m:'빛나고 화목함',e:'bright, harmonious'},{h:'燦',k:'찬',r:'Chan',m:'찬란함',e:'brilliant'},{h:'煜',k:'욱',r:'Uk',m:'밝게 빛남',e:'radiant'},{h:'旻',k:'민',r:'Min',m:'가을 하늘',e:'autumn sky'}],
-  土:[{h:'均',k:'균',r:'Gyun',m:'고름·균형',e:'balance, even'},{h:'基',k:'기',r:'Gi',m:'터·바탕',e:'foundation'},{h:'城',k:'성',r:'Seong',m:'성·굳건함',e:'fortress, steadfast'},{h:'圭',k:'규',r:'Gyu',m:'옥·귀함',e:'jade tablet, noble'},{h:'培',k:'배',r:'Bae',m:'북돋움',e:'to nurture'}],
-  金:[{h:'鎭',k:'진',r:'Jin',m:'진중함',e:'calm, steadfast'},{h:'錦',k:'금',r:'Geum',m:'비단·화려함',e:'brocade, splendid'},{h:'鐘',k:'종',r:'Jong',m:'종·울림',e:'bell, resonance'},{h:'鈞',k:'균',r:'Gyun',m:'고름·무게',e:'balanced'},{h:'銀',k:'은',r:'Eun',m:'은·귀함',e:'silver, precious'}],
-  水:[{h:'潤',k:'윤',r:'Yun',m:'윤택·불림',e:'to enrich, moisten'},{h:'澈',k:'철',r:'Cheol',m:'맑음',e:'clear, pure'},{h:'河',k:'하',r:'Ha',m:'강·큰 흐름',e:'river, great flow'},{h:'泉',k:'천',r:'Cheon',m:'샘',e:'spring, fountain'},{h:'潭',k:'담',r:'Dam',m:'깊은 못',e:'deep pool'}],
+const KNAME_HANJA={ // g: m=남성 f=여성 n=중성
+  木:[{h:'榮',k:'영',r:'Yeong',m:'번영·영광',e:'glory, flourish',g:'n'},{h:'桐',k:'동',r:'Dong',m:'오동나무',e:'paulownia tree',g:'n'},{h:'松',k:'송',r:'Song',m:'소나무·지조',e:'pine, integrity',g:'m'},{h:'楨',k:'정',r:'Jeong',m:'단단한 나무',e:'sturdy tree',g:'m'},{h:'蓮',k:'련',r:'Ryeon',m:'연꽃',e:'lotus',g:'f'},{h:'柔',k:'유',r:'Yu',m:'부드러움',e:'gentle, graceful',g:'f'}],
+  火:[{h:'炫',k:'현',r:'Hyeon',m:'빛나다',e:'to shine',g:'n'},{h:'熙',k:'희',r:'Hui',m:'빛나고 화목함',e:'bright, harmonious',g:'n'},{h:'煜',k:'욱',r:'Uk',m:'밝게 빛남',e:'radiant',g:'m'},{h:'旻',k:'민',r:'Min',m:'가을 하늘',e:'autumn sky',g:'m'},{h:'昭',k:'소',r:'So',m:'밝음',e:'bright',g:'f'},{h:'晶',k:'정',r:'Jeong',m:'수정·맑음',e:'crystal, clear',g:'f'}],
+  土:[{h:'均',k:'균',r:'Gyun',m:'고름·균형',e:'balance, even',g:'m'},{h:'圭',k:'규',r:'Gyu',m:'옥·귀함',e:'jade tablet, noble',g:'m'},{h:'城',k:'성',r:'Seong',m:'성·굳건함',e:'fortress, steadfast',g:'m'},{h:'培',k:'배',r:'Bae',m:'북돋움',e:'to nurture',g:'n'},{h:'娥',k:'아',r:'A',m:'아름다움',e:'beauty, grace',g:'f'},{h:'妍',k:'연',r:'Yeon',m:'고움',e:'beautiful',g:'f'}],
+  金:[{h:'鎭',k:'진',r:'Jin',m:'진중함',e:'calm, steadfast',g:'m'},{h:'錦',k:'금',r:'Geum',m:'비단·화려함',e:'brocade, splendid',g:'n'},{h:'鐘',k:'종',r:'Jong',m:'종·울림',e:'bell, resonance',g:'m'},{h:'銀',k:'은',r:'Eun',m:'은·귀함',e:'silver, precious',g:'n'},{h:'珠',k:'주',r:'Ju',m:'진주',e:'pearl',g:'f'},{h:'瑞',k:'서',r:'Seo',m:'상서로움',e:'auspicious',g:'f'}],
+  水:[{h:'潤',k:'윤',r:'Yun',m:'윤택·불림',e:'to enrich, moisten',g:'n'},{h:'澈',k:'철',r:'Cheol',m:'맑음',e:'clear, pure',g:'m'},{h:'河',k:'하',r:'Ha',m:'강·큰 흐름',e:'river, great flow',g:'m'},{h:'泉',k:'천',r:'Cheon',m:'샘',e:'spring, fountain',g:'n'},{h:'淑',k:'숙',r:'Suk',m:'정숙·맑음',e:'graceful, pure',g:'f'},{h:'汀',k:'정',r:'Jeong',m:'물가',e:'waterside',g:'f'}],
 };
 const KNAME_SUR=[{h:'金',k:'김',r:'Kim'},{h:'李',k:'이',r:'Lee'},{h:'朴',k:'박',r:'Park'},{h:'崔',k:'최',r:'Choi'},{h:'鄭',k:'정',r:'Jung'}];
 const KNAME_EL={木:{ko:'목(木)',en:'Wood (木)'},火:{ko:'화(火)',en:'Fire (火)'},土:{ko:'토(土)',en:'Earth (土)'},金:{ko:'금(金)',en:'Metal (金)'},水:{ko:'수(水)',en:'Water (水)'}};
@@ -1284,7 +1284,9 @@ function koreanName(d,chart,해석){
     if(!need.length) need=Object.entries(d.el).sort((a,b)=>a[1]-b[1]).slice(0,2).map(x=>x[0]);
     const e1=need[0], e2=need[1]||need[0];
     const seed=((d.dStem||0)+((d.P&&d.P.day&&d.P.day.b)||0))||3;
-    const pick=(el,off)=>{const a=KNAME_HANJA[el];return a[(seed+off)%a.length];};
+    const isF=(chart&&chart.성별)==='여';
+    const pool=(el)=>{const a=KNAME_HANJA[el];const w=isF?['f','n']:['m','n'];const f=a.filter(z=>w.includes(z.g));return f.length?f:a;};
+    const pick=(el,off)=>{const a=pool(el);return a[(seed+off)%a.length];};
     const c1=pick(e1,0); let c2=pick(e2, e2===e1?2:0); if(c2.h===c1.h) c2=pick(e2,3);
     const sur=KNAME_SUR[seed%KNAME_SUR.length];
     const gh=c1.h+c2.h, gk=c1.k+c2.k;
