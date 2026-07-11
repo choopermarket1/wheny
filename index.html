@@ -344,6 +344,26 @@
     display:flex;justify-content:space-between;align-items:center;gap:10px}
   .golden .gt-cd .gt-l{font-size:11.5px;color:var(--dim);letter-spacing:.3px}
   .golden .gt-cd b{font-size:15px;color:var(--gold2);font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:.4px;white-space:nowrap}
+  /* 마지막 요약 카드 */
+  .sumcard{margin:18px 0 4px;padding:24px 22px;border-radius:20px;border:1px solid var(--goldLine);
+    background:radial-gradient(130% 90% at 50% 0,rgba(201,169,97,.10),transparent 55%),var(--card);position:relative;overflow:hidden}
+  .sumcard::before{content:"";position:absolute;top:0;left:22px;right:22px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.6}
+  .sc-top{display:flex;align-items:center;gap:14px;margin-bottom:15px}
+  .sc-av{width:66px;height:66px;flex:none;border-radius:50%;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 0 4px rgba(201,169,97,.08)}
+  .sc-av .avimg{width:100%;height:100%;object-fit:cover;object-position:50% 28%;display:block}
+  .sc-kick{font-size:10.5px;letter-spacing:2.5px;color:var(--gold);font-weight:600}
+  .sc-name{font-family:"Cormorant Garamond","Noto Serif KR",serif;font-size:27px;color:var(--paper);line-height:1.1;margin-top:2px}
+  .sc-by{font-size:12px;color:var(--dim);margin-top:3px}
+  .sc-quote{font-family:"Noto Serif KR",serif;font-size:14.5px;line-height:1.62;color:var(--paperdim);
+    padding:13px 0;border-top:1px solid var(--goldLine);border-bottom:1px solid var(--goldLine);margin-bottom:15px}
+  .sc-quote b{color:var(--paper)}
+  .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .sc-tile{background:rgba(255,255,255,.018);border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+  .sc-tile .sc-l{font-size:10.5px;color:var(--dim);letter-spacing:.4px}
+  .sc-tile .sc-v{font-size:15px;color:var(--paper);font-weight:600}
+  .sc-tile.sc-hl{border-color:var(--gold);background:rgba(201,169,97,.09)}
+  .sc-tile.sc-hl .sc-v{color:var(--gold2);font-family:"Cormorant Garamond","Noto Serif KR",serif;font-size:19px}
+  .sc-brand{margin-top:17px;text-align:center;font-family:"Cormorant Garamond",serif;font-size:13px;letter-spacing:1.2px;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -1151,6 +1171,34 @@ function startGoldenCountdown(){
   }
   tick();window._gtIv=setInterval(tick,1000);
 }
+// ── 마지막 한 장: 사주 요약 카드(선생님 캐릭터 + 키워드) ──
+function summaryCard(d,r,w,t,chart,age){
+  try{
+    const who=chart&&chart.이름?`${chart.이름}님`:'당신';
+    const dmEl=d.dm[2]||'';
+    const miss=(r&&r.missing)||[];
+    const nxt=(typeof nextDaewoon==='function')?nextDaewoon(d,age):null;
+    const cur=(typeof curDaewoon==='function')?curDaewoon(d,age):null;
+    const tiles=[
+      ['일간 · 나', `${d.dm[0]}${d.dm[1]}${dmEl}`],
+      ['띠', d.zodiac],
+      ['태양 · 달', `${w.sun[1]} · ${w.moon[1]}`],
+      ['오행', miss.length?`${miss.join('·')} 비어있음`:'고르게 갖춤'],
+      ['지금 대운', cur?`${cur.k}`:'—'],
+    ];
+    const tileHtml=tiles.map(([l,v])=>`<div class="sc-tile"><span class="sc-l">${l}</span><b class="sc-v">${v}</b></div>`).join('');
+    const goldTile=nxt&&nxt.startYear?`<div class="sc-tile sc-hl"><span class="sc-l">인생 전환점</span><b class="sc-v">${nxt.startYear}년</b></div>`:'';
+    return `<div class="sumcard">
+      <div class="sc-top">
+        <div class="sc-av">${avatar(picked)}</div>
+        <div class="sc-ti"><div class="sc-kick">사주 한 장 요약</div><div class="sc-name">${who}</div><div class="sc-by">— ${t.nm} 선생님</div></div>
+      </div>
+      <div class="sc-quote">${r.P.head}</div>
+      <div class="sc-grid">${tileHtml}${goldTile}</div>
+      <div class="sc-brand">Wheny · 언제인지까지 말해주는 사주</div>
+    </div>`;
+  }catch(_){return '';}
+}
 function run(){
   if(mode==="compat"){runCompat();return;}
   const tsel=document.getElementById("time").value,noTime=(tsel==="none");
@@ -1237,6 +1285,7 @@ function run(){
       <div class="chat-cue">${IC.chat}<span><b style="color:var(--paper)">무엇이든 직접 물어봐도 돼요.</b> 앞 대화를 기억하고 이어서 답해드려요 — <b style="color:var(--gold)">무료</b></span></div>
       <div id="more" class="chat-thread"></div>
       <div class="chat-in"><input id="chatText" placeholder="예) 올해 이직해도 될까요?" onkeydown="if(event.key==='Enter'){sendText();return false}"/><button class="chat-send" style="--tc:var(${t.cv})" onclick="sendText()">보내기</button></div></div>
+    ${summaryCard(d,r,w,t,chart,age)}
     <div class="actions">
       <button class="aibtn" style="animation:none" onclick="downloadPdf()">${IC.file||''}📄 ${pdfP(LANG).save} (50p+)</button>
       <button class="share" onclick="shareCard()">${IC.cam}이 소름 이미지로 저장·공유</button>
