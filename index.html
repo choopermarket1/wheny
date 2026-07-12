@@ -115,6 +115,18 @@
   .leap input{width:auto}
   .lbl-t{font-family:"Noto Serif KR",serif;font-size:15px;color:var(--paper);margin:22px 0 10px;font-weight:700}
   .teachers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .concern{margin:0 0 15px}
+  .concern-t{font-size:13px;color:var(--paperdim);font-weight:700;margin:0 0 9px;text-align:center}
+  .concern-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+  .concern-chip{padding:9px 14px;min-height:44px;display:inline-flex;align-items:center;border:1.4px solid color-mix(in srgb,var(--gold) 30%,transparent);border-radius:999px;background:var(--card);color:var(--paperdim);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s}
+  .concern-chip:hover{border-color:var(--gold);color:var(--gold2)}
+  .concern-chip.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 18%,var(--card));color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 26%,transparent)}
+  .concern-chip:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+  .pct-why{margin-top:11px;font-size:12px}
+  .pct-why summary{cursor:pointer;color:var(--gold2);font-weight:700;list-style:none;display:inline-block}
+  .pct-why summary::-webkit-details-marker{display:none}
+  .pct-why summary::before{content:'ⓘ '}
+  .pct-why p{margin:8px 0 0;line-height:1.6;color:var(--dim)}
   .teachers .t:nth-child(odd):last-child{grid-column:1/-1} /* 5번째(도사) 홀수 카드는 와이드 */
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
     display:flex;flex-direction:column;transition:.15s;position:relative;overflow:hidden}
@@ -433,6 +445,14 @@
   .rv-n{color:var(--dim);font-size:12px;margin-left:8px;letter-spacing:0}
   .rv-x{margin-top:5px;font-size:13.5px;line-height:1.6;color:var(--paperdim)}
   .rv-empty{text-align:center;color:var(--dim);font-size:13.5px;padding:14px 0}
+  .rv-sat{text-align:center;padding:20px 16px}
+  .rv-sat-q{font-size:15.5px;font-weight:800;color:var(--gold2)}
+  .rv-sat-sub{font-size:12.5px;color:var(--dim);margin-top:5px}
+  .rv-sat-stars{display:flex;gap:4px;justify-content:center;margin-top:12px}
+  .rv-sat-star{font-size:28px;line-height:1;color:var(--line);background:none;border:0;cursor:pointer;padding:6px;min-width:44px;min-height:44px}
+  .rv-sat-star:hover,.rv-sat-star:focus-visible{color:var(--gold2)}
+  .rv-consent{display:flex;align-items:flex-start;gap:8px;margin:12px 0 4px;font-size:12.5px;color:var(--paperdim);text-align:left;line-height:1.5;cursor:pointer}
+  .rv-consent input{margin-top:2px;flex:none}
   .rv-formbox{margin-top:14px;border-top:1px solid var(--goldLine);padding-top:14px}
   .rv-starrow{font-size:26px;letter-spacing:4px;margin-bottom:10px}
   .rv-star{color:var(--line);cursor:pointer}.rv-star.on{color:var(--gold)}
@@ -483,6 +503,10 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
   <div id="onboard"></div>
 
   <div class="card" id="form">
+    <div class="concern" role="group" aria-label="가장 궁금한 주제">
+      <div class="concern-t" id="concernT">가장 궁금한 주제는?</div>
+      <div class="concern-chips" id="concernChips"></div>
+    </div>
     <div class="seg" role="tablist" style="margin-bottom:14px">
       <button role="tab" aria-pressed="true" id="m-solo" data-t="solo" onclick="setMode('solo')">내 사주</button>
       <button role="tab" aria-pressed="false" id="m-compat" data-t="compat" onclick="setMode('compat')">궁합</button>
@@ -890,7 +914,31 @@ function setMode(m){mode=m;
 function renderTeachers(){document.getElementById("teachers").innerHTML=Object.entries(TEACHERS).map(([k,t])=>
   `<div class="t" role="button" tabindex="0" aria-pressed="${k===picked}" style="--tc:var(${t.cv})" onclick="pick('${k}')" onkeydown="if(event.key==='Enter'||event.key===' '){pick('${k}');event.preventDefault()}">
     <span class="em">${avatar(k)}</span><div class="t-info"><span class="nm">${TT(k).nm}</span><span class="ds">${TT(k).ds}</span></div></div>`).join("");}
-function pick(k){picked=k;renderTeachers();}
+function pick(k){picked=k;renderTeachers();if(typeof trackEvent==='function')trackEvent('teacher_select',{teacher:k});}
+/* ===== 고민 주제 선택(결과 표시 순서에만 반영, 계산 불변) ===== */
+const CONCERN_L={
+ ko:{t:'가장 궁금한 주제는?',all:'전체 운세',love:'연애·결혼',money:'재물',job:'직장·이직',biz:'사업',rel:'인간관계'},
+ en:{t:'What matters most to you?',all:'Overall',love:'Love·Marriage',money:'Wealth',job:'Career·Job',biz:'Business',rel:'Relationships'},
+ ja:{t:'一番気になるテーマは？',all:'全体運',love:'恋愛·結婚',money:'金運',job:'仕事·転職',biz:'ビジネス',rel:'人間関係'},
+ zh:{t:'你最想了解什么？',all:'整体运势',love:'爱情·婚姻',money:'财运',job:'事业·跳槽',biz:'创业',rel:'人际关系'}
+};
+let concern='all';
+const CONCERN_ORDER=['all','love','money','job','biz','rel'];
+const CONCERN_MAP={love:'love',money:'work',job:'work',biz:'work',rel:'rel'}; // 주제→결과 블록 data-concern
+function renderConcern(){
+  const box=document.getElementById('concernChips');if(!box)return;
+  const L=CONCERN_L[LANG]||CONCERN_L.ko;
+  const tEl=document.getElementById('concernT');if(tEl)tEl.textContent=L.t;
+  box.innerHTML=CONCERN_ORDER.map(c=>`<button type="button" class="concern-chip${c===concern?' on':''}" aria-pressed="${c===concern}" data-c="${c}" onclick="selectConcern('${c}')">${L[c]}</button>`).join('');
+}
+function selectConcern(c){concern=c;renderConcern();if(typeof trackEvent==='function')trackEvent('concern_select',{concern:c});reorderByConcern();}
+function reorderByConcern(){
+  const res=document.getElementById('result');if(!res)return;
+  const key=CONCERN_MAP[concern];if(!key)return; // 전체=정렬 안 함
+  const blocks=[...res.querySelectorAll('.block[data-concern="'+key+'"]')];if(!blocks.length)return;
+  const hero=res.querySelector('.hero-r');const anchor=hero?hero.nextSibling:res.firstChild;
+  blocks.reverse().forEach(b=>res.insertBefore(b,anchor));
+}
 function setCal(c){cal=c;
   document.getElementById("seg-sol").setAttribute("aria-pressed",c==="sol");
   document.getElementById("seg-lun").setAttribute("aria-pressed",c==="lun");
@@ -1420,7 +1468,7 @@ function run(){
       <div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 봐드립니다</div>
       <div class="oneline">${r.P.head}</div>
     </div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
+    <div class="block" data-concern="rel" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
       <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}오행 밸런스</h3>
       ${ohaengRadar(d.el)}
@@ -1428,9 +1476,9 @@ function run(){
     ${chart.이름?`<div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}이름 풀이</h3><p>입력하신 이름 <b>${chart.이름}</b> — 이 이름이 사주의 ${missing.length?`부족한 <b style="color:#e0655a">${missing.join('·')}</b> 기운을 보완하는지`:'오행 균형에 어떻게 작용하는지'}, <b>${t.nm}</b>이 <b>획수·오행·뜻</b>으로 풀어드려요.</p><p style="margin:8px 0 0;font-size:12px;color:var(--dim)">정밀 해석·대화에서 이름까지 깊게 봐드려요.</p></div>`:''}
     ${koreanName(d,chart,chart.해석)}
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${isLocked()?'lockblur':''}">${r.loveTime}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
+    <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
+    <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${isLocked()?'lockblur':''}">${r.loveTime}</p></div>
+    <div class="block" data-concern="work" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
       <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)"><b style="color:var(--gold)">월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p class="${isLocked()?'lockblur':''}">${r.future3}</p></div>
@@ -1441,7 +1489,8 @@ function run(){
       ${noTime?'<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">⚠ 시간 미상 — 년·월·일주 3기둥+대운 기준. 같은 날 태어난 분과 큰 틀은 비슷하고, <b style="color:var(--paperdim)">시간을 넣으면 훨씬 정확</b>해져요.</p>':''}</div>
     <div class="block" style="--tc:var(${t.cv})"><h3>동서양 교차검증</h3>
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
-      <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p></div>
+      <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p>
+      <details class="pct-why"><summary>이 수치는 어떻게 나오나요?</summary><p>사주 오행과 별자리 원소가 <b>같은 계열</b>이면 높게, 다르면 기본값으로 표시하는 <b>방향성 지표</b>예요. 정밀 확률이 아니라 동·서양 두 관점의 <b>결이 얼마나 겹치는지</b>를 보여줍니다.</p></details></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${isLocked()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${isLocked()?'lockblur':''}">${dwRows}</div></div>
     ${timingMap(chart.해석)}
     ${lockCTA()}
@@ -1470,6 +1519,7 @@ function run(){
     </div>`;
   renderTopics(t.cv);
   breakResult();
+  reorderByConcern();
   saveSession();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1916,29 +1966,29 @@ const STATIC_I18N={
       badge:'런칭 특가',hook:'결혼·이직·돈이 <b>‘언제’</b>인지 — 연도와 달까지 콕 집어드려요',g1:'연애·결혼운 터지는 <b>연도·달</b>',g2:'재물이 들어오는 시기 & 새는 구멍',g3:'직업·이직·사업 최적 <b>타이밍</b>',g4:'이름 성명학 + 궁합(상대 명식까지)',g5:'선생님과 <b>무제한 후속 질문</b>(대화 기억)',anchor:'오프라인 사주 3~5만원 · 전화상담 3만원',guarantee:'리포트 생성 전 취소 시 100% 환불',cta:'지금 내 타이밍 확인하기',
       pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
       fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)',vMailNo:'2024-부산해운대-0897',
-      wTitle:'왜 Wheny여야 하나요',w1t:'"언제"를 년·월로 콕 집습니다',w1d:'좋은 말만 하는 운세가 아니에요. <b style="color:#c7bfa9">한국천문연구원(KASI) 검증 만세력</b>으로 절기를 분 단위까지 계산하고, 결혼·이직·돈이 <b style="color:#e7d3a1">몇 년 몇 월</b>인지 근거와 함께 짚습니다.',w2t:'과거를 먼저 맞히는지 보고 결정하세요',w2d:'무료 리포트가 <b style="color:#c7bfa9">당신의 과거 변곡점</b>(흐름이 꺾인 나이)부터 맞히는지 먼저 확인하세요. 과거가 맞아야 미래도 믿을 수 있으니까요. 생성 전 취소는 <b style="color:#8fbf86">100% 환불</b>입니다.'},
+      wTitle:'왜 Wheny여야 하나요',w1t:'"언제"를 년·월로 콕 집습니다',w1d:'좋은 말만 하는 운세가 아니에요. <b style="color:#c7bfa9">한국천문연구원(KASI) 절기·음력 데이터 기반 만세력</b>으로 절기를 분 단위까지 계산하고, 결혼·이직·돈이 <b style="color:#e7d3a1">몇 년 몇 월</b>인지 근거와 함께 짚습니다.',w2t:'과거를 먼저 맞히는지 보고 결정하세요',w2d:'무료 리포트가 <b style="color:#c7bfa9">당신의 과거 변곡점</b>(흐름이 꺾인 나이)부터 맞히는지 먼저 확인하세요. 과거가 맞아야 미래도 믿을 수 있으니까요. 생성 전 취소는 <b style="color:#8fbf86">100% 환불</b>입니다.'},
   en:{n1:'Your chart, luck cycles & signs are <b>real astronomical calculations</b>.',n2:'Lunar dates use approximate conversion (leap-month edge years corrected with official solar-term data).',n3:'The <b>reader\'s full reading</b> is provided after payment.',n3free:'<b style="color:#8fbf86">Free launch period</b> — the full reading, questions and compatibility are all free right now, no payment needed.',freeNote:'<b style="color:#8fbf86">Free launch period</b> — everything is free right now, no payment',
-      pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',trustKasi:'KASI-verified ephemeris',trustRefund:'100% refund guarantee',trustSecure:'Secure checkout',
+      pTag:'Paid product',pName:'Wheny Full Saju Reading',pDesc:'The reader reads your chart (saju) and Western astrology directly for a detailed reading of <b style="color:#c7bfa9">love, marriage, wealth, career, health & timing</b>. Includes follow-up questions & compatibility. Digital content delivered online right after payment.',cur:'KRW',trustKasi:'KASI ephemeris data',trustRefund:'100% refund guarantee',trustSecure:'Secure checkout',
       badge:'Launch price',hook:'<b>When</b> you marry, switch jobs, come into money — down to the year and month',g1:'The <b>year & month</b> your love & marriage luck peaks',g2:'When wealth flows in — and where it leaks',g3:'Best <b>timing</b> for career, job change, business',g4:'Name reading + compatibility (both charts)',g5:'<b>Unlimited follow-up questions</b> (remembers you)',anchor:'Offline reading $25–40 · phone reading $25',guarantee:'100% refund if canceled before the reading is generated',cta:'Unlock my timing now',
       pay:'Payment: credit/debit card, etc. (PG: PortOne)',deliver:'Delivery: shown online immediately after payment',refundLbl:'Refund',refundLink:'Refund & withdrawal policy',refundTail:' applies (full refund if canceled before the reading is generated).',
       fTerms:'Terms',fPrivacy:'Privacy Policy',fRefund:'Refund & Withdrawal',lBiz:'Company',lRep:'CEO',lReg:'Business Reg. No.',lMail:'E-commerce Reg. No.',lAddr:'Address',lTel:'Support',lEmail:'Email',lHost:'Hosting',disc:'Readings are for reference/entertainment and do not replace professional advice.',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',vMailNo:'2024-Busan Haeundae-0897',
       obEyebrow:'NEW TO SAJU?',obTitle:'Your zodiac says <b>who</b> you are.<br>This tells you <b style="color:#e7d3a1">when</b>.',
       ob1t:'An Eastern birth chart',ob1d:'Saju (Four Pillars) has been read across Korea and East Asia for over 1,000 years — from the exact year, month, day and hour you were born.',
       ob2t:'Why it can say "when"',ob2d:'Western astrology reads 12 signs. Saju computes 60-cycle pillars plus 10-year luck cycles — a timeline of your life, not just a personality type.',
-      ob3t:'Calculated, then read for you',ob3d:'Your chart is computed to the minute on a KASI-verified ephemeris, cross-checked with your Sun & Moon signs — then your chosen reader interprets it.',
+      ob3t:'Calculated, then read for you',ob3d:'Your chart is computed to the minute on a KASI ephemeris data, cross-checked with your Sun & Moon signs — then your chosen reader interprets it.',
       wTitle:'Why Wheny',w1t:'We pin your "when" to the year and month',w1d:'Not feel-good fortunes. Your chart is computed on an ephemeris <b style="color:#c7bfa9">verified against KASI</b> (Korea Astronomy & Space Science Institute) down to the minute — so marriage, career moves and money are pinned to <b style="color:#e7d3a1">a year and month</b>, with reasons.',w2t:'Verify the past before you pay',w2d:'The free reading first calls out <b style="color:#c7bfa9">the turning points of your past</b>. If it nails where your life bent, you can trust where it points next. Cancel before generation for a <b style="color:#8fbf86">100% refund</b>.'},
   ja:{n1:'命式・大運・星座は実際の<b>万年暦・天文計算値</b>です。',n2:'旧暦は近似変換（閏月の境界年は公式の節気データで補正）。',n3:'<b>占い師の詳しい鑑定</b>は決済後に提供されます。',n3free:'<b style="color:#8fbf86">今は無料公開期間</b> — 決済なしで詳しい鑑定・質問・相性まですべてご利用いただけます。',freeNote:'今は<b style="color:#8fbf86">無料公開期間</b> — 決済なしですべて利用できます',
-      pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',trustKasi:'KASI検証の万年暦',trustRefund:'100%返金保証',trustSecure:'安全決済',
+      pTag:'有料商品のご案内',pName:'Wheny 精密四柱鑑定',pDesc:'占い師が命式（四柱推命）と西洋占星術を直接読み、<b style="color:#c7bfa9">恋愛・結婚・財運・仕事・健康・タイミング</b>を詳しく鑑定します。追加質問・相性も含む、決済後すぐオンライン提供のデジタルコンテンツです。',cur:'ウォン',trustKasi:'KASI暦データ基準の万年暦',trustRefund:'100%返金保証',trustSecure:'安全決済',
       badge:'ローンチ特価',hook:'結婚・転職・お金が<b>「いつ」</b>か — 年と月まで的確に',g1:'恋愛・結婚運が弾ける<b>年・月</b>',g2:'お金が入る時期と漏れる穴',g3:'仕事・転職・事業の最適<b>タイミング</b>',g4:'姓名判断＋相性（お相手の命式も）',g5:'占い師への<b>無制限の追加質問</b>（会話を記憶）',anchor:'対面鑑定3〜5万ウォン・電話相談3万ウォン',guarantee:'鑑定生成前のキャンセルは100%返金',cta:'今すぐ私のタイミングを見る',
       pay:'決済手段: クレジット・デビットカード等（決済代行 PortOne）',deliver:'提供方法: 決済完了後すぐ画面でオンライン提供',refundLbl:'返金',refundLink:'返金・キャンセル方針',refundTail:'に従います（コンテンツ生成前のキャンセルは全額返金）。',
       fTerms:'利用規約',fPrivacy:'プライバシーポリシー',fRefund:'返金・キャンセル',lBiz:'商号',lRep:'代表者',lReg:'事業者登録番号',lMail:'通信販売業申告番号',lAddr:'住所',lTel:'カスタマーセンター',lEmail:'メール',lHost:'ホスティング提供',disc:'本サービスの鑑定は参考・娯楽用であり、専門的な助言に代わるものではありません。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',vMailNo:'2024-Busan Haeundae-0897',
-      wTitle:'なぜWhenyなのか',w1t:'「いつ」を年・月まで特定します',w1d:'耳ざわりの良い占いではありません。<b style="color:#c7bfa9">韓国天文研究院(KASI)検証の万年暦</b>で節気を分単位まで計算し、結婚・転職・お金が<b style="color:#e7d3a1">何年何月</b>かを根拠とともに示します。',w2t:'まず過去が当たるか確かめてから',w2d:'無料鑑定がまず<b style="color:#c7bfa9">あなたの過去の転機</b>(流れが変わった年齢)を当てるか確認してください。過去が当たってこそ未来も信じられます。生成前のキャンセルは<b style="color:#8fbf86">100%返金</b>。'},
+      wTitle:'なぜWhenyなのか',w1t:'「いつ」を年・月まで特定します',w1d:'耳ざわりの良い占いではありません。<b style="color:#c7bfa9">韓国天文研究院(KASI)暦データ基準の万年暦</b>で節気を分単位まで計算し、結婚・転職・お金が<b style="color:#e7d3a1">何年何月</b>かを根拠とともに示します。',w2t:'まず過去が当たるか確かめてから',w2d:'無料鑑定がまず<b style="color:#c7bfa9">あなたの過去の転機</b>(流れが変わった年齢)を当てるか確認してください。過去が当たってこそ未来も信じられます。生成前のキャンセルは<b style="color:#8fbf86">100%返金</b>。'},
   zh:{n1:'命盘·大运·星座为真实的<b>万年历·天文推算值</b>。',n2:'农历为近似换算（闰月边界年以官方节气数据校正）。',n3:'<b>老师的精细解读</b>在付款后提供。',n3free:'<b style="color:#8fbf86">现为免费公开期</b> — 无需付款即可使用精细解读·提问·合婚全部功能。',freeNote:'现为<b style="color:#8fbf86">免费公开期</b> — 无需付款即可全部使用',
-      pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',trustKasi:'KASI验证万年历',trustRefund:'100%退款保证',trustSecure:'安全支付',
+      pTag:'付费商品说明',pName:'Wheny 精密八字解读',pDesc:'老师直接研读命盘（八字）与西洋占星，详细解读<b style="color:#c7bfa9">恋爱·婚姻·财运·事业·健康·时机</b>。含追问与合婚，付款后即时在线提供的数字内容。',cur:'韩元',trustKasi:'基于KASI节气·农历数据',trustRefund:'100%退款保证',trustSecure:'安全支付',
       badge:'上线特价',hook:'结婚·跳槽·财运<b>「何时」</b>——精确到年和月',g1:'恋爱·婚姻运爆发的<b>年·月</b>',g2:'财运进账的时机与漏财之处',g3:'事业·跳槽·创业的最佳<b>时机</b>',g4:'姓名学＋合婚（含对方命盘）',g5:'向老师<b>无限追问</b>（记住对话）',anchor:'线下算命3~5万韩元·电话咨询3万韩元',guarantee:'内容生成前取消可100%退款',cta:'立即查看我的时机',
       pay:'支付方式: 信用卡·借记卡等（支付代行 PortOne）',deliver:'提供方式: 付款完成后即时在页面在线提供',refundLbl:'退款',refundLink:'退款·撤销政策',refundTail:'（内容生成前取消可全额退款）。',
       fTerms:'服务条款',fPrivacy:'隐私政策',fRefund:'退款·撤销',lBiz:'商号',lRep:'代表',lReg:'营业执照号',lMail:'通信销售申告号',lAddr:'地址',lTel:'客服',lEmail:'邮箱',lHost:'主机托管',disc:'本服务的解读仅供参考·娱乐，不能替代专业咨询。',vBiz:'Lorenchu Company, Inc.',vRep:'Choo Se-eun',vAddr:'3F #303, 78 Centum-jungang-ro, Haeundae-gu, Busan, Republic of Korea',vMailNo:'2024-Busan Haeundae-0897',
-      wTitle:'为什么选 Wheny',w1t:'把「何时」精确到年和月',w1d:'不是只说好话的运势。以<b style="color:#c7bfa9">韩国天文研究院(KASI)验证的万年历</b>将节气计算到分钟级，结婚·跳槽·财运<b style="color:#e7d3a1">在哪年哪月</b>，连同依据一并点破。',w2t:'先验证过去，再决定付费',w2d:'先看免费解读能否说中<b style="color:#c7bfa9">你过去的转折点</b>(人生转向的年龄)。过去说得准，未来才值得信。内容生成前取消<b style="color:#8fbf86">100%退款</b>。'},
+      wTitle:'为什么选 Wheny',w1t:'把「何时」精确到年和月',w1d:'不是只说好话的运势。以<b style="color:#c7bfa9">韩国天文研究院(KASI)节气·农历数据的万年历</b>将节气计算到分钟级，结婚·跳槽·财运<b style="color:#e7d3a1">在哪年哪月</b>，连同依据一并点破。',w2t:'先验证过去，再决定付费',w2d:'先看免费解读能否说中<b style="color:#c7bfa9">你过去的转折点</b>(人生转向的年龄)。过去说得准，未来才值得信。内容生成前取消<b style="color:#8fbf86">100%退款</b>。'},
 };
 function renderStatic(){
   const s=STATIC_I18N[LANG]||STATIC_I18N.ko;
@@ -2004,6 +2054,7 @@ function applyLang(l){const T=I18N[l]||I18N.ko;
   fillTime('time');fillTime('ptime');fillTz();
   const _g=document.querySelector('.go');if(_g&&typeof mode!=='undefined'&&mode==='compat'&&T.goCompat)_g.textContent=T.goCompat; // 궁합모드면 궁합버튼 텍스트 유지
   if(typeof renderTeachers==='function')renderTeachers();
+  if(typeof renderConcern==='function')renderConcern();
   renderStatic();
   if(typeof loadReviews==='function')loadReviews();
 }
@@ -2015,27 +2066,44 @@ const REVIEW_L={
   zh:{title:'真实评价',write:'写评价',none:'成为第一个评价的人吧 ✨',ph:'分享你的真实想法',nameph:'昵称(可选)',submit:'发布',thanks:'感谢你的评价! 💛',cancel:'取消',count:n=>n+'条',setup:'评价存储未连接',fail:'发布失败 — 请重试'},
 };
 let _rvStar=5;
+const SAT={
+ ko:{q:'이 결과, 얼마나 맞았나요?',sub:'가볍게 별점만 눌러도 돼요',c:'공개 후기로 등록에 동의합니다',nc:'공개 등록 동의를 체크해주세요'},
+ en:{q:'How accurate was this reading?',sub:'A quick star rating is enough',c:'I agree to post this publicly',nc:'Please check the consent box'},
+ ja:{q:'この鑑定、どのくらい当たってましたか？',sub:'星の評価だけでもOK',c:'公開の口コミ投稿に同意します',nc:'公開同意にチェックしてください'},
+ zh:{q:'这次解读准吗？',sub:'点个星级也可以',c:'我同意公开发布此评价',nc:'请勾选公开同意'}
+};
+// 후기 0개일 때: "실제 후기" 섹션 대신 만족도 평가 UI (TODO: 저장은 /api/review + UPSTASH 키 필요)
+function satisfyCard(){
+  const s=SAT[LANG]||SAT.ko;
+  return `<div class="rvcard rv-sat"><div class="rv-sat-q">${s.q}</div><div class="rv-sat-sub">${s.sub}</div>`+
+    `<div class="rv-sat-stars" role="group" aria-label="${s.q}">${[1,2,3,4,5].map(n=>`<button type="button" class="rv-sat-star" aria-label="${n}" onclick="openReview(${n})">★</button>`).join('')}</div>`+
+    `<div id="rvform"></div></div>`;
+}
 function loadReviews(){
   const box=document.getElementById('reviews'); if(!box) return;
   const L=REVIEW_L[LANG]||REVIEW_L.ko;
   const shell=(inner,extra)=>`<div class="rvcard"><div class="rv-head"><div><span class="rv-t">${L.title}</span>${extra||''}</div><button class="rv-write" onclick="openReview()">${L.write}</button></div><div class="rv-list">${inner}</div><div id="rvform"></div></div>`;
   fetch('/api/review').then(r=>r.json()).then(d=>{
     const revs=(d&&d.reviews)||[], avg=(d&&d.avg)||0, cnt=(d&&d.count)||0;
-    const extra=cnt?`<span class="rv-avg">★ ${avg} · ${L.count(cnt)}</span>`:'';
-    const list=revs.length?revs.slice(0,15).map(v=>`<div class="rv-item"><div class="rv-s">${'★'.repeat(Math.max(1,Math.min(5,v.r||5)))}<span class="rv-n">${v.n||''}</span></div><div class="rv-x">${v.t||''}</div></div>`).join(''):`<div class="rv-empty">${L.none}</div>`;
+    if(cnt===0){ box.innerHTML=satisfyCard(); return; } // 후기 0개 → 만족도 평가 UI
+    const extra=`<span class="rv-avg">★ ${avg} · ${L.count(cnt)}</span>`;
+    const list=revs.slice(0,15).map(v=>`<div class="rv-item"><div class="rv-s">${'★'.repeat(Math.max(1,Math.min(5,v.r||5)))}<span class="rv-n">${v.n||''}</span></div><div class="rv-x">${v.t||''}</div></div>`).join('');
     box.innerHTML=shell(list,extra);
-  }).catch(()=>{ box.innerHTML=shell(`<div class="rv-empty">${L.none}</div>`,''); });
+  }).catch(()=>{ box.innerHTML=satisfyCard(); });
 }
 function starPick(n){_rvStar=n;document.querySelectorAll('#rvform .rv-star').forEach((s,i)=>s.classList.toggle('on',i<n));}
-function openReview(){
-  const L=REVIEW_L[LANG]||REVIEW_L.ko, f=document.getElementById('rvform'); if(!f)return; _rvStar=5;
-  f.innerHTML=`<div class="rv-formbox"><div class="rv-starrow">${[1,2,3,4,5].map(i=>`<span class="rv-star on" onclick="starPick(${i})">★</span>`).join('')}</div>`+
+function openReview(preset){
+  const L=REVIEW_L[LANG]||REVIEW_L.ko, s=SAT[LANG]||SAT.ko, f=document.getElementById('rvform'); if(!f)return; _rvStar=(preset>=1&&preset<=5)?preset:5;
+  f.innerHTML=`<div class="rv-formbox"><div class="rv-starrow">${[1,2,3,4,5].map(i=>`<span class="rv-star${i<=_rvStar?' on':''}" onclick="starPick(${i})">★</span>`).join('')}</div>`+
     `<input id="rvName" maxlength="20" placeholder="${L.nameph}"><textarea id="rvText" maxlength="300" placeholder="${L.ph}"></textarea>`+
+    `<label class="rv-consent"><input type="checkbox" id="rvConsent"><span>${s.c}</span></label>`+
     `<div class="rv-btns"><button class="rv-cancel" onclick="document.getElementById('rvform').innerHTML=''">${L.cancel}</button><button class="rv-submit" onclick="submitReview()">${L.submit}</button></div></div>`;
   f.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function submitReview(){
-  const L=REVIEW_L[LANG]||REVIEW_L.ko;
+  const L=REVIEW_L[LANG]||REVIEW_L.ko, s=SAT[LANG]||SAT.ko;
+  const consent=document.getElementById('rvConsent');
+  if(consent&&!consent.checked){alert(s.nc);return;} // 공개 동의 필수(개인정보 자유입력 보호)
   const name=(document.getElementById('rvName')||{}).value||'', text=(document.getElementById('rvText')||{}).value||'';
   if(text.trim().length<5){alert(L.ph);return;}
   const btn=document.querySelector('#rvform .rv-submit'); if(btn){btn.disabled=true;btn.textContent='…';}
@@ -2068,10 +2136,10 @@ applyLang(LANG);markLang(LANG);
 <script>
 /* ===== 정밀 사주 명리서 PDF (인쇄용 뷰 → 브라우저 'PDF로 저장'. 50p+) ===== */
 const PDF_I18N={
-  ko:{save:'전체 사주서 PDF 저장',title:'정밀 사주 명리서',sub:'사주 만세력 × 서양 점성술 정밀 분석',toc:'목차',issued:'발행',forWhom:'의뢰인',birth:'생년월일',gender:'성별',age:'나이',myeongsik:'명식(命式) 四柱',hour:'時주',day:'日주',month:'月주',year:'年주',daymaster:'일간(日干) — 나라는 사람',ohaeng:'오행(五行) 분포와 균형',sipsin:'십신(十神) 십성 해설',gyeok:'격국(格局)',yong:'용신(用神)',sinsal:'신살(神殺)',unseong:'십이운성(十二運星)',gongmang:'공망(空亡)',daewoon:'대운(大運) 흐름',daewoonN:'대운',seun:'세운(歲運) 연도별',worun:'월운(月運) 월별',love:'연애·인연',marry:'결혼·배우자',money:'재물·재정',career:'직업·진로',health:'건강',people:'대인관계·귀인',name:'이름 풀이',ai:'선생님 정밀 해석',chatQA:'상담 문답 기록',timing:'나의 핵심 타이밍',outro:'맺음말',disc:'본 명리서의 해석은 참고·오락용이며, 만세력·천문 계산값(한국천문연구원 검증)에 기반합니다. 전문 의료·법률·투자 자문을 대체하지 않습니다.',none:'없음',strong:'신강',weak:'신약',count:'개',ageU:'세',yr:'년',you:'당신',present:'뚜렷이 나타남',absent:'비어 있음'},
-  en:{save:'Save full reading as PDF',title:'Full Saju Reading',sub:'Saju (Four Pillars) × Western astrology — detailed analysis',toc:'Contents',issued:'Issued',forWhom:'For',birth:'Date of birth',gender:'Gender',age:'Age',myeongsik:'Four Pillars (命式)',hour:'Hour',day:'Day',month:'Month',year:'Year',daymaster:'Day Master — Who You Are',ohaeng:'Five Elements — balance',sipsin:'Ten Gods (十神)',gyeok:'Structure (格局)',yong:'Useful God (用神)',sinsal:'Spirits (神殺)',unseong:'Twelve Stages (十二運星)',gongmang:'Void (空亡)',daewoon:'Luck Cycles (大運)',daewoonN:'Luck cycle',seun:'Yearly luck (歲運)',worun:'Monthly luck (月運)',love:'Love & connections',marry:'Marriage & partner',money:'Wealth',career:'Career',health:'Health',people:'People & benefactors',name:'Name reading',ai:'Reader — full interpretation',chatQA:'Consultation Q&A',timing:'Your key timing',outro:'Closing',disc:'This reading is for reference/entertainment, computed on a KASI-verified ephemeris. It does not replace professional medical, legal or financial advice.',none:'none',strong:'strong',weak:'weak',count:'',ageU:'',yr:'',you:'You',present:'clearly present',absent:'empty'},
-  ja:{save:'鑑定書をPDF保存',title:'精密 四柱推命 鑑定書',sub:'四柱推命 × 西洋占星術 精密分析',toc:'目次',issued:'発行',forWhom:'ご依頼者',birth:'生年月日',gender:'性別',age:'年齢',myeongsik:'命式 四柱',hour:'時柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — あなたという人',ohaeng:'五行の分布とバランス',sipsin:'十神の解説',gyeok:'格局',yong:'用神',sinsal:'神殺',unseong:'十二運星',gongmang:'空亡',daewoon:'大運の流れ',daewoonN:'大運',seun:'歳運（年ごと）',worun:'月運（月ごと）',love:'恋愛・縁',marry:'結婚・伴侶',money:'財運',career:'仕事・進路',health:'健康',people:'人間関係・貴人',name:'姓名判断',ai:'占い師 精密鑑定',chatQA:'相談の問答',timing:'あなたの重要なタイミング',outro:'結び',disc:'本鑑定は参考・娯楽用で、韓国天文研究院検証の万年暦に基づきます。専門的な医療・法律・投資助言に代わるものではありません。',none:'なし',strong:'身強',weak:'身弱',count:'',ageU:'歳',yr:'年',you:'あなた',present:'はっきり現れる',absent:'空'},
-  zh:{save:'保存完整命书PDF',title:'精密八字命书',sub:'八字命理 × 西洋占星 精密分析',toc:'目录',issued:'签发',forWhom:'委托人',birth:'出生日期',gender:'性别',age:'年龄',myeongsik:'命式 四柱',hour:'时柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — 你这个人',ohaeng:'五行分布与平衡',sipsin:'十神解读',gyeok:'格局',yong:'用神',sinsal:'神煞',unseong:'十二运星',gongmang:'空亡',daewoon:'大运走势',daewoonN:'大运',seun:'流年（岁运）',worun:'流月（月运）',love:'恋爱·缘分',marry:'婚姻·伴侣',money:'财运',career:'事业·前途',health:'健康',people:'人际·贵人',name:'姓名学',ai:'老师 精密解读',chatQA:'咨询问答',timing:'你的关键时机',outro:'结语',disc:'本命书仅供参考·娱乐，基于韩国天文研究院验证的万年历推算。不能替代专业医疗·法律·投资咨询。',none:'无',strong:'身强',weak:'身弱',count:'个',ageU:'岁',yr:'年',you:'你',present:'明显呈现',absent:'空缺'}
+  ko:{save:'전체 사주서 PDF 저장',title:'정밀 사주 명리서',sub:'사주 만세력 × 서양 점성술 정밀 분석',toc:'목차',issued:'발행',forWhom:'의뢰인',birth:'생년월일',gender:'성별',age:'나이',myeongsik:'명식(命式) 四柱',hour:'時주',day:'日주',month:'月주',year:'年주',daymaster:'일간(日干) — 나라는 사람',ohaeng:'오행(五行) 분포와 균형',sipsin:'십신(十神) 십성 해설',gyeok:'격국(格局)',yong:'용신(用神)',sinsal:'신살(神殺)',unseong:'십이운성(十二運星)',gongmang:'공망(空亡)',daewoon:'대운(大運) 흐름',daewoonN:'대운',seun:'세운(歲運) 연도별',worun:'월운(月運) 월별',love:'연애·인연',marry:'결혼·배우자',money:'재물·재정',career:'직업·진로',health:'건강',people:'대인관계·귀인',name:'이름 풀이',ai:'선생님 정밀 해석',chatQA:'상담 문답 기록',timing:'나의 핵심 타이밍',outro:'맺음말',disc:'본 명리서의 해석은 참고·오락용이며, 만세력·천문 계산값(한국천문연구원 절기·음력 데이터)에 기반합니다. 전문 의료·법률·투자 자문을 대체하지 않습니다.',none:'없음',strong:'신강',weak:'신약',count:'개',ageU:'세',yr:'년',you:'당신',present:'뚜렷이 나타남',absent:'비어 있음'},
+  en:{save:'Save full reading as PDF',title:'Full Saju Reading',sub:'Saju (Four Pillars) × Western astrology — detailed analysis',toc:'Contents',issued:'Issued',forWhom:'For',birth:'Date of birth',gender:'Gender',age:'Age',myeongsik:'Four Pillars (命式)',hour:'Hour',day:'Day',month:'Month',year:'Year',daymaster:'Day Master — Who You Are',ohaeng:'Five Elements — balance',sipsin:'Ten Gods (十神)',gyeok:'Structure (格局)',yong:'Useful God (用神)',sinsal:'Spirits (神殺)',unseong:'Twelve Stages (十二運星)',gongmang:'Void (空亡)',daewoon:'Luck Cycles (大運)',daewoonN:'Luck cycle',seun:'Yearly luck (歲運)',worun:'Monthly luck (月運)',love:'Love & connections',marry:'Marriage & partner',money:'Wealth',career:'Career',health:'Health',people:'People & benefactors',name:'Name reading',ai:'Reader — full interpretation',chatQA:'Consultation Q&A',timing:'Your key timing',outro:'Closing',disc:'This reading is for reference/entertainment, computed on a KASI ephemeris data. It does not replace professional medical, legal or financial advice.',none:'none',strong:'strong',weak:'weak',count:'',ageU:'',yr:'',you:'You',present:'clearly present',absent:'empty'},
+  ja:{save:'鑑定書をPDF保存',title:'精密 四柱推命 鑑定書',sub:'四柱推命 × 西洋占星術 精密分析',toc:'目次',issued:'発行',forWhom:'ご依頼者',birth:'生年月日',gender:'性別',age:'年齢',myeongsik:'命式 四柱',hour:'時柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — あなたという人',ohaeng:'五行の分布とバランス',sipsin:'十神の解説',gyeok:'格局',yong:'用神',sinsal:'神殺',unseong:'十二運星',gongmang:'空亡',daewoon:'大運の流れ',daewoonN:'大運',seun:'歳運（年ごと）',worun:'月運（月ごと）',love:'恋愛・縁',marry:'結婚・伴侶',money:'財運',career:'仕事・進路',health:'健康',people:'人間関係・貴人',name:'姓名判断',ai:'占い師 精密鑑定',chatQA:'相談の問答',timing:'あなたの重要なタイミング',outro:'結び',disc:'本鑑定は参考・娯楽用で、韓国天文研究院暦データ基準の万年暦に基づきます。専門的な医療・法律・投資助言に代わるものではありません。',none:'なし',strong:'身強',weak:'身弱',count:'',ageU:'歳',yr:'年',you:'あなた',present:'はっきり現れる',absent:'空'},
+  zh:{save:'保存完整命书PDF',title:'精密八字命书',sub:'八字命理 × 西洋占星 精密分析',toc:'目录',issued:'签发',forWhom:'委托人',birth:'出生日期',gender:'性别',age:'年龄',myeongsik:'命式 四柱',hour:'时柱',day:'日柱',month:'月柱',year:'年柱',daymaster:'日干 — 你这个人',ohaeng:'五行分布与平衡',sipsin:'十神解读',gyeok:'格局',yong:'用神',sinsal:'神煞',unseong:'十二运星',gongmang:'空亡',daewoon:'大运走势',daewoonN:'大运',seun:'流年（岁运）',worun:'流月（月运）',love:'恋爱·缘分',marry:'婚姻·伴侣',money:'财运',career:'事业·前途',health:'健康',people:'人际·贵人',name:'姓名学',ai:'老师 精密解读',chatQA:'咨询问答',timing:'你的关键时机',outro:'结语',disc:'本命书仅供参考·娱乐，基于韩国天文研究院节气·农历数据的万年历推算。不能替代专业医疗·法律·投资咨询。',none:'无',strong:'身强',weak:'身弱',count:'个',ageU:'岁',yr:'年',you:'你',present:'明显呈现',absent:'空缺'}
 };
 const SINSAL_DESC={천을귀인:'하늘이 내린 귀인. 위기의 순간 뜻밖의 도움과 사람 복이 따른다.',도화:'매력·인기·이성운. 사람을 끄는 힘이 강하되 구설도 조심.',역마:'이동·변화·해외·활동성. 한자리에 머물지 않는 기운.',화개:'예술·종교·학문·고독. 깊이 파고드는 재능, 때로 외로움.',양인:'강한 추진력과 칼 같은 결단. 과하면 사고·극단 주의.',문창귀인:'총명·문서·시험 유리. 배움과 글에서 빛난다.'};
 const UNSEONG_DESC={장생:'새로 태어나는 기운. 시작·성장',목욕:'다듬어지는 기운. 변동·기복',관대:'갖춰지는 기운. 준비·성장',건록:'자리 잡는 기운. 왕성·독립',제왕:'절정의 기운. 최고조·강함',쇠:'기우는 기운. 안정·성숙',병:'약해지는 기운. 휴식 필요',사:'멈추는 기운. 정리·마무리',묘:'갈무리 기운. 저장·잠복',절:'끊기는 기운. 전환·비움',태:'잉태되는 기운. 새 씨앗',양:'길러지는 기운. 준비·양육'};
