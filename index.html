@@ -2,8 +2,25 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Wheny · 언제인지까지 말해주는 사주</title>
+<meta name="description" content="사주 만세력과 서양 점성술을 교차해 연애, 결혼, 재물, 이직의 중요한 시기를 연도와 월로 알려주는 맞춤 운세 서비스." />
+<meta name="robots" content="index,follow" />
+<link rel="canonical" href="https://wheny.vercel.app/" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0d'/%3E%3Cpath d='M21 6a10 10 0 1 0 0 20 8 8 0 0 1 0-20z' fill='%23c9a961'/%3E%3Ccircle cx='11' cy='9' r='1.1' fill='%23e7d3a1'/%3E%3Ccircle cx='9' cy='15' r='.8' fill='%23e7d3a1'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="/img/dokseol-ko.jpg" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Wheny" />
+<meta property="og:title" content="Wheny · 언제인지까지 말해주는 사주" />
+<meta property="og:description" content="사주 만세력과 서양 점성술을 교차해 연애, 결혼, 재물, 이직의 중요한 시기를 연도와 월로 알려주는 맞춤 운세 서비스." />
+<meta property="og:url" content="https://wheny.vercel.app/" />
+<meta property="og:image" content="https://wheny.vercel.app/img/dokseol-ko.jpg" />
+<meta property="og:locale" content="ko_KR" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Wheny · 언제인지까지 말해주는 사주" />
+<meta name="twitter:description" content="사주 만세력과 서양 점성술을 교차해 연애, 결혼, 재물, 이직의 중요한 시기를 연도와 월로 알려주는 맞춤 운세 서비스." />
+<meta name="twitter:image" content="https://wheny.vercel.app/img/dokseol-ko.jpg" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Wheny","alternateName":"Wheny · 언제인지까지 말해주는 사주","url":"https://wheny.vercel.app/","applicationCategory":"LifestyleApplication","operatingSystem":"Web","inLanguage":["ko","en","ja","zh"],"description":"사주 만세력과 서양 점성술을 교차해 연애·결혼·재물·이직의 중요한 시기를 연도와 월로 알려주는 맞춤 운세 서비스."}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Noto+Serif+KR:wght@400;500;600;700;900&family=Nanum+Pen+Script&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
@@ -551,7 +568,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid #2b2f3a;padding-bottom:16px;margin-bottom:16px">
       <div>
         <div style="font-size:18px;font-weight:800">Wheny 정밀 사주 리포트</div>
-        <div style="color:#9a9280;font-size:13.5px;margin-top:6px;line-height:1.6">선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.</div>
+        <div style="color:#9a9280;font-size:13.5px;margin-top:6px;line-height:1.6">선생님이 명식(사주)과 서양 점성술을 선택한 캐릭터의 말투로 해석해 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세히 짚어드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.</div>
       </div>
       <div style="text-align:right;white-space:nowrap"><span style="font-size:33px;font-weight:800;color:#e7d3a1;letter-spacing:-.01em;font-variant-numeric:tabular-nums">3,900</span><span style="color:#c9a961;font-size:17px;font-weight:700;margin-left:3px">원</span></div>
     </div>
@@ -1240,24 +1257,10 @@ function goldenTime(d,age,nm){
       <div class="gt-year"><span class="n">${gy}</span><span class="u">년</span></div>
       <div class="gt-sub">${nxt.k} 대운 · ${who}</div>
       <p class="gt-body">이 흐름이 크게 열리는 해예요. 다음 전환점은 <b>${gy2}년</b>, 약 <b>${gap}년</b> 뒤예요 — 큰 결정은 이 타이밍에 모아 두면 좋아요.</p>
-      <div class="gt-cd"><span class="gt-l">이번 회차 마감까지</span><b id="gt-timer">계산 중…</b></div>
     </div>`;
   }catch(_){return '';}
 }
-function startGoldenCountdown(){
-  const el=document.getElementById('gt-timer');if(!el)return;
-  if(window._gtIv)clearInterval(window._gtIv);
-  function tick(){
-    const el=document.getElementById('gt-timer');if(!el){clearInterval(window._gtIv);return;}
-    const now=new Date();
-    let add=((1-now.getDay())+7)%7; if(add===0)add=7; // 다음 월요일 00:00 = 일요일 자정
-    const end=new Date(now.getFullYear(),now.getMonth(),now.getDate()+add,0,0,0);
-    let s=Math.max(0,Math.floor((end-now)/1000));
-    const D=Math.floor(s/86400);s%=86400;const H=Math.floor(s/3600);s%=3600;const Mn=Math.floor(s/60);const S=s%60;
-    el.textContent=`${D}일 ${String(H).padStart(2,'0')}시간 ${String(Mn).padStart(2,'0')}분 ${String(S).padStart(2,'0')}초`;
-  }
-  tick();window._gtIv=setInterval(tick,1000);
-}
+// (제거됨) startGoldenCountdown — 매주 리셋되는 가짜 마감 타이머라 신뢰도 위해 삭제
 // ── 마지막 한 장: 사주 요약 카드(선생님 캐릭터 + 키워드) ──
 function summaryCard(d,r,w,t,chart,age){
   try{
@@ -1449,7 +1452,7 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>강점 · 약점 한눈에</h3><p>${r.strength}</p></div>
     ${goldenTime(d,age,chart.이름)}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.spark}${t.nm} 선생님의 정밀 해석</h3>
-      <p style="margin-bottom:12px">위는 <b>1차 요약</b>이에요. 이제 <b>2차 — ${chart.이름?`${chart.이름}님`:'당신'}의 사주를 실제로 계산한 맞춤 해석</b>이에요. 누구에게나 하는 말이 아니라 <b>${chart.이름?`${chart.이름}님`:'당신'}만의 명식</b>을 <b>${t.nm}</b>이 직접 읽어 연애·결혼·재물·직업·건강의 <b>'언제'</b>까지 짚어드려요.</p>
+      <p style="margin-bottom:12px">위는 <b>1차 요약</b>이에요. 이제 <b>2차 — ${chart.이름?`${chart.이름}님`:'당신'}의 사주를 실제로 계산한 맞춤 해석</b>이에요. 누구에게나 하는 말이 아니라 <b>${chart.이름?`${chart.이름}님`:'당신'}만의 명식</b>을 <b>${t.nm}</b>의 말투로 해석해 연애·결혼·재물·직업·건강의 <b>'언제'</b>까지 짚어드려요.</p>
       <button class="aibtn" onclick="askAI()">${PAY.on&&!FREE_LAUNCH?`${t.nm} 정밀 해석 받기 · ${priceMain()}`:`${IC.spark}${t.nm} 정밀 해석 받기`}</button>
       ${PAY.on&&!FREE_LAUNCH?`<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">한 번 결제하면 <b style="color:var(--paperdim)">정밀 리포트 + 아래 질문 + 궁합</b>까지 이 화면에서 다 열려요.</p>`:''}
       <div id="ai-box"></div></div>
@@ -1467,7 +1470,6 @@ function run(){
     </div>`;
   renderTopics(t.cv);
   breakResult();
-  startGoldenCountdown();
   saveSession();
   document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1688,7 +1690,7 @@ const UI18N={
   lockBtn:{ko:'내 타이밍 잠금 해제',en:'Unlock my timing',ja:'私のタイミングを見る',zh:'解锁我的时机'},
   lockGuar:{ko:'생성 전 취소 시 100% 환불',en:'100% refund if canceled before generating',ja:'生成前のキャンセルは100%返金',zh:'生成前取消可100%退款'},
   lockTeaser:{ko:'당신의 <b>결혼·재물·이직</b>이 <b>몇 년 몇 월</b>인지, 2026·2027년 조심할 달과 좋은 달이 바로 여기 적혀 있어요.',en:'The exact <b>year and month</b> of your <b>marriage, wealth and career moves</b> — plus the months to seize and to guard in 2026–2027 — are written right here.',ja:'あなたの<b>結婚・財運・転職</b>が<b>何年何月</b>か、2026・2027年の用心すべき月と好機の月が、ここに記されています。',zh:'你的<b>结婚·财运·跳槽</b>在<b>哪年哪月</b>，以及2026·2027年该把握与该当心的月份，就写在这里。'},
-  trustKasi:{ko:'KASI 검증 만세력',en:'KASI-verified ephemeris',ja:'KASI検証の万年暦',zh:'KASI验证万年历'},
+  trustKasi:{ko:'KASI 절기·음력 데이터 기반',en:'Based on KASI ephemeris data',ja:'KASI暦データに基づく',zh:'基于KASI节气·农历数据'},
   loveYr:{ko:'인연운',en:'love luck',ja:'縁の年',zh:'姻缘运'},
   mGood:{ko:'좋음',en:'Good',ja:'良い',zh:'佳'},
   mCaution:{ko:'주의',en:'Caution',ja:'注意',zh:'注意'},
@@ -1910,7 +1912,7 @@ const I18N={
 // 하단 정적 섹션(면책·유료상품카드·사업자푸터) 언어별 렌더 — 외국어에서 한국어로 남던 것 수정
 const STATIC_I18N={
   ko:{n1:'명식·대운·별자리는 실제 <b>만세력·천문 계산값</b>입니다.',n2:'음력은 근사 변환(윤달 경계년은 공식 절기 데이터로 보정).',n3:'<b>선생님의 정밀 해석</b>은 결제 후 제공됩니다.',n3free:'<b style="color:#8fbf86">지금은 무료 공개 기간</b> — 결제 없이 정밀 해석·질문·궁합까지 전부 이용할 수 있어요.',freeNote:'지금은 <b style="color:#8fbf86">무료 공개 기간</b> — 결제 없이 전부 이용 가능해요',
-      pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'선생님이 명식(사주)과 서양 점성술을 직접 읽어 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세 해석해 드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',trustKasi:'KASI 검증 만세력',trustRefund:'100% 환불 보장',trustSecure:'안전 결제',
+      pTag:'유료 상품 안내',pName:'Wheny 정밀 사주 리포트',pDesc:'선생님이 명식(사주)과 서양 점성술을 선택한 캐릭터의 말투로 해석해 <b style="color:#c7bfa9">연애·결혼·재물·직업·건강·타이밍</b>을 상세히 짚어드립니다. 후속 질문·궁합 포함, 결제 즉시 온라인 제공되는 디지털 콘텐츠입니다.',cur:'원',trustKasi:'KASI 절기·음력 데이터 기반',trustRefund:'100% 환불 보장',trustSecure:'안전 결제',
       badge:'런칭 특가',hook:'결혼·이직·돈이 <b>‘언제’</b>인지 — 연도와 달까지 콕 집어드려요',g1:'연애·결혼운 터지는 <b>연도·달</b>',g2:'재물이 들어오는 시기 & 새는 구멍',g3:'직업·이직·사업 최적 <b>타이밍</b>',g4:'이름 성명학 + 궁합(상대 명식까지)',g5:'선생님과 <b>무제한 후속 질문</b>(대화 기억)',anchor:'오프라인 사주 3~5만원 · 전화상담 3만원',guarantee:'리포트 생성 전 취소 시 100% 환불',cta:'지금 내 타이밍 확인하기',
       pay:'결제수단: 신용·체크카드 등 (전자결제대행 PortOne)',deliver:'제공방식: 결제 완료 즉시 화면에서 온라인 제공',refundLbl:'환불',refundLink:'환불·청약철회 정책',refundTail:'에 따름 (콘텐츠 생성 전 취소 시 전액 환불)',
       fTerms:'이용약관',fPrivacy:'개인정보처리방침',fRefund:'환불·청약철회',lBiz:'상호',lRep:'대표자',lReg:'사업자등록번호',lMail:'통신판매업신고번호',lAddr:'주소',lTel:'고객센터',lEmail:'이메일',lHost:'호스팅 제공',disc:'본 서비스의 해석은 참고·오락용이며 전문 자문을 대체하지 않습니다.',vBiz:'주식회사 로렌츄컴퍼니',vRep:'추세은',vAddr:'부산광역시 해운대구 센텀중앙로 78, 3층 303호 (우동, 센텀그린타워)',vMailNo:'2024-부산해운대-0897',
@@ -1977,7 +1979,22 @@ function renderStatic(){
     ${s.lHost}: Vercel Inc.<br>
     <span style="display:block;margin-top:10px;color:#5c5749">© 2026 ${s.vBiz} · Wheny. ${s.disc}</span>`;
 }
+const SEO_L={
+  ko:{t:'Wheny · 언제인지까지 말해주는 사주',d:'사주 만세력과 서양 점성술을 교차해 연애, 결혼, 재물, 이직의 중요한 시기를 연도와 월로 알려주는 맞춤 운세 서비스.',loc:'ko_KR'},
+  en:{t:'Wheny · Korean Saju that tells you WHEN',d:'Korean Saju (Four Pillars) crossed with Western astrology — the exact years and months for love, marriage, money and career.',loc:'en_US'},
+  ja:{t:'Wheny · 「いつ」まで教える四柱推命',d:'四柱推命と西洋占星術を掛け合わせ、恋愛・結婚・金運・転職の重要な時期を年と月で教えるパーソナル占い。',loc:'ja_JP'},
+  zh:{t:'Wheny · 连「何时」都告诉你的四柱运势',d:'结合四柱八字与西方星座，用年份和月份告诉你爱情、婚姻、财运、跳槽的关键时机的运势服务。',loc:'zh_CN'}
+};
+function updateSEO(l){
+  const s=SEO_L[l]||SEO_L.ko;
+  document.title=s.t; document.documentElement.lang=l;
+  const set=(sel,val)=>{const e=document.querySelector(sel);if(e)e.setAttribute('content',val);};
+  set('meta[name="description"]',s.d);
+  set('meta[property="og:title"]',s.t); set('meta[property="og:description"]',s.d); set('meta[property="og:locale"]',s.loc);
+  set('meta[name="twitter:title"]',s.t); set('meta[name="twitter:description"]',s.d);
+}
 function applyLang(l){const T=I18N[l]||I18N.ko;
+  updateSEO(l);
   document.querySelectorAll('[data-t]').forEach(e=>{const k=e.getAttribute('data-t');if(T[k]!=null)e.textContent=T[k];});
   document.querySelectorAll('[data-tp]').forEach(e=>{const k=e.getAttribute('data-tp');if(T[k]!=null)e.setAttribute('placeholder',T[k]);});
   const dl=document.getElementById('dateLbl');if(dl)dl.textContent=T.birth+(l==='ko'?` (${cal==='lun'?'음력':'양력'})`:'');
