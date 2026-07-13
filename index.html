@@ -1092,9 +1092,24 @@ function report(persona,d,w,age,gender){
   const mt=MOON_T[w.moon[2]],yt=YEAR_THEME[sipsin(d.dStem,yearGZ(NOW).s)],hz=missing.length?HEALTH[missing[0]]:HEALTH[dmEl],cl=CLOSER[persona];
   const ELEM_FULL={木:"성장·기획·명분",火:"열정·표현·인기",土:"신뢰·인내·중재",金:"결단·원칙·실행",水:"지혜·유연·수완"};
   const strongEls=Object.entries(d.el).filter(([k,v])=>v>=2).map(([k])=>k);
-  const charDetail=`타고난 기운은 <b>${d.dm[1]}${dmEl}</b> — ${ELEM_TRAIT[dmEl]}이에요. 오행 분포를 보면 ${strongEls.length?`<b>${strongEls.join('·')}</b> 기운이 강해서 ${strongEls.map(e=>ELEM_FULL[e]).join(', ')} 쪽 재능이 도드라지고`:'오행이 비교적 고르게 퍼져 어느 한쪽에 치우치지 않고'}, ${missing.length?`반대로 <b>${missing.join('·')}</b> 기운이 비어 ${missing.map(m=>MISSING_JAB[m]).join('·')}에서 약해지기 쉬워요. 이건 결핍이 아니라 <b>사람·환경·습관으로 채우면 되는 부분</b>이라 미리 알아두면 훨씬 수월합니다.`:'큰 편중이 없어 어디에 놓여도 무난히 적응하는 편이에요.'} 겉으로 보이는 모습(태양 <b>${w.sun[1]}</b>)과 속마음(달 <b>${w.moon[1]}</b>)이 달라서, ${mt} 감정을 안에 품고 겉은 다르게 보일 때가 많아요. ${cl[0]}`;
+  // ── 심화 재료: 격국·용신·기신·타이밍(계산은 기존 순수함수 재사용, 해석에만 활용) ──
+  const _H=(typeof interpret==='function')?(()=>{try{return interpret(d,w,age,gender)}catch(e){return null}})():null;
+  const _M=(typeof myeongni==='function')?(()=>{try{return myeongni(d)}catch(e){return null}})():null;
+  const 격국=(_H&&_H.격국)||(_M&&_M.격국)||'';
+  const 용신L=(_H&&_H.용신)||(_M&&_M.용신&&_M.용신.용신후보)||[];
+  const 기신L=(_H&&_H.기신)||[];
+  const 신강약=(_M&&_M.용신&&_M.용신.신강약)||(_H&&_H.강약)||'';
+  const 타이밍=(_H&&_H.타이밍)||[];
+  const GYEOK_DESC={비견격:'홀로 서서 자기 판을 짜는',겁재격:'추진력은 강하나 나눔·경쟁이 큰',식신격:'표현·창작으로 풀어내는',상관격:'재능으로 튀고 틀을 깨는',정재격:'꾸준히 쌓아 안정으로 가는',편재격:'큰 판·유동 자산을 굴리는',정관격:'원칙과 자리를 지키는',편관격:'결단·돌파로 밀어붙이는',정인격:'배우고 문서·귀인으로 크는',편인격:'전환·자격으로 방향 트는'};
+  const 격설=GYEOK_DESC[격국]||'', hasG=!!격설;
+  const elName=e=>({木:'木(성장·경쟁)',火:'火(열정·표현)',土:'土(안정·표현)',金:'金(결실·결단)',水:'水(지혜·절제)'}[e]||e);
+  const 용신Txt=용신L.length?용신L.map(elName).join('·'):'', 기신Txt=기신L.length?기신L.map(elName).join('·'):'';
+  const goodYr=타이밍.filter(x=>x.등급>=2)[0]||타이밍.filter(x=>x.등급>0)[0]||null;
+  const warnYr=타이밍.filter(x=>x.등급<=-1)[0]||null;
+  const yStr=x=>x?`<b>${x.연도}년(${x.십신||''})</b>`:'';
+  const charDetail=`${hasG?`<b>${격국}</b> — <b>${격설} 그릇</b>이에요. `:''}일간은 <b>${d.dm[1]}${dmEl}</b>(${ELEM_TRAIT[dmEl]})${신강약?`, 기운은 <b>${신강약}</b>`:''}이에요. ${용신Txt?`그래서 살리는 <b>용신은 ${용신Txt}</b> — 이 기운이 오는 해·환경·사람이 흐름을 열어줘요.${기신Txt?` 반대로 <b>${기신Txt}</b>가 강해지는 때는 과열·소모가 커지니 그때만 속도를 줄이면 돼요.`:''}`:`${strongEls.length?`<b>${strongEls.join('·')}</b> 기운이 강해 ${strongEls.map(e=>ELEM_FULL[e]).join(', ')} 재능이 도드라지고, `:'오행이 고루 퍼져 '}${missing.length?`<b>${missing.join('·')}</b>이 비어 ${missing.map(m=>MISSING_JAB[m]).join('·')}에서 약해지기 쉬워요.`:'큰 편중이 없어요.'}`} 겉모습(태양 <b>${w.sun[1]}</b>)과 속마음(달 <b>${w.moon[1]}</b>)이 달라 ${mt} 감정을 안에 품는 편이에요. ${cl[0]}`;
   const love=`감정은 달(<b>${w.moon[1]}</b>)이 말해줘요 — ${mt} 편이에요. ${gwan?"사주에 인연 자리(관성)를 갖추고 있어 좋은 상대를 알아보는 눈이 있는 편":"인연 자리(관성)가 뚜렷하지 않아, 좋은 인연도 스쳐 지나가기 쉬운 편"}이고, 밀당으로 재기보다 <b>먼저 마음을 여는 쪽</b>이 훨씬 잘 풀려요. 지금 <b>${cur.k} 대운</b>에서는 ${gwan?'관계가 한 단계 진전되기 좋은 흐름이라, 미루던 관계라면 지금이 매듭지을 때':'혼자 애태우기보다 표현하고 움직여야 결과가 나는 시기'}예요. ${cl[1]}`;
-  const money=`${jae?"재물 그릇(재성)을 갖춰서 버는 힘 자체는 있는 사주":"큰 재성이 뚜렷하진 않아 한 방보다 꾸준히 쌓는 방식이 맞는 사주"}예요. ${missing.length?`다만 <b>${missing[0]} 기운이 없어</b> ${missTxt}가 약한 탓에, 결정적 순간에 돈이 새거나 매듭을 못 지어 손해 보기 쉬우니 그 대목만 조심하세요.`:"오행이 고루 있어 큰 기복 없이 모으는 안정형이에요."} 투자·큰 지출은 <b>${cur.k} 대운</b>의 결을 보고 타이밍을 잡는 게 유리합니다. ${cl[2]}`;
+  const money=`${jae?"재물 그릇(재성)을 갖춰 버는 힘 자체는 있어요":"큰 재성이 뚜렷하진 않아 한 방보다 꾸준히 쌓는 방식이 맞아요"}. ${warnYr?`다만 <b>${warnYr.연도}년(${warnYr.십신})</b>은 <b>${warnYr.조언||'지출·손실 조심'}</b> — 큰 지출·보증·동업은 이 해를 피하세요.`:missing.length?`다만 결정적 순간 돈이 새기 쉬우니 매듭짓는 힘을 사람·시스템으로 보완하세요.`:"오행이 고루 있어 큰 기복 없이 모으는 안정형이에요."} ${goodYr?`반대로 <b>${goodYr.연도}년(${goodYr.십신}${goodYr.특수&&goodYr.특수.length?'·'+goodYr.특수.join('·'):''})</b>엔 ${goodYr.조언||'버는 문이 크게 열려요'} — 투자·큰 결정은 이때로 몰아요.`:`투자·큰 지출은 <b>${cur.k} 대운</b>의 결을 보고 타이밍을 잡으세요.`} ${cl[2]}`;
   const year=`<b>${NOW}년(${yearGZ(NOW).k})</b>은 당신에게 <b>${yt}</b>예요. 지금 <b>${cur.k} 대운</b>과 겹쳐 변화의 진폭이 큰 해라, 새로 크게 벌이기보다 <b>있는 걸 정리하고 방향을 선택</b>하는 데 힘을 쓰는 게 이득이에요. 상반기엔 준비, 하반기엔 실행으로 나눠 가면 실수를 줄일 수 있어요. ${cl[3]}`;
   const lt=loveTiming(d.dStem,gender||"female");
   const loveTime=lt.length?`사주로 <b>인연운이 강해지는 해</b>를 보면 <b>${lt.join('·')}년</b> 즈음이에요. ${gender==='male'?'재성(인연운)이 들어오는 시기라 새 인연이 활발해집니다.':'관성(배우자운)이 들어오는 시기라 좋은 인연·결혼 얘기가 나오기 쉬워요.'} 이때 소개·모임 자리를 늘려두면 확률이 올라가요. ${cl[1]}`:`가까운 10년 안에 인연운이 특별히 몰리는 해는 뚜렷하진 않아요. 대신 <b>${cur.k} 대운</b> 흐름에서 스스로 움직일 때 인연이 생겨요. ${cl[1]}`;
@@ -1102,7 +1117,7 @@ function report(persona,d,w,age,gender){
   const future3=`앞으로 3년 흐름이에요. <b>${NOW}</b> ${yt} → <b>${NOW+1}</b> ${y27} → <b>${NOW+2}</b> ${y28}. 세 해 모두 지금의 <b>${cur.k} 대운</b> 안에서 지나가니, ${nxt?`다음 대운(${Math.round(nxt.age)}살·${nxt.startYear}년)으로 넘어가기 전 <b>정리와 준비의 구간</b>`:'이 대운의 결실을 거두는 구간'}으로 보면 됩니다. ${cl[4]}`;
   const strength=`한 줄로 정리하면 — 강점은 <b>${strongEls.length?ELEM_FULL[strongEls[0]]:'균형감과 적응력'}</b>, 약점은 <b>${missing.length?MISSING_JAB[missing[0]]:'지나친 신중함'}</b>이에요. 이 둘만 알고 있어도 언제 밀고 언제 물러설지 판단이 훨씬 쉬워집니다. ${cl[0]}`;
   const health=`기운상 <b>${hz}</b> 쪽이 약점이에요. 무리하면 여기부터 신호가 오니, 이 부분을 평소에 미리 챙기는 게 좋아요. ${cl[3]}`;
-  const advice=`지금은 <b>${cur.k} 대운</b> — 판을 새로 짜기보다 ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년)</b>`:"다음 분기점"} 전까지 힘을 모을 때예요. 큰 결정(이직·계약·결혼)은 흩뿌리지 말고 그 타이밍에 몰아서 하세요. ${cl[4]}`;
+  const advice=`지금 <b>${cur.k} 대운</b>은 힘을 모으는 구간이에요. ${goodYr?`<b>${goodYr.연도}년(${goodYr.십신})을 노려요</b> — ${goodYr.조언||'흐름이 크게 열리는 해'}.`:''}${warnYr?` 단 <b>${warnYr.연도}년</b>은 지키고,`:' 큰 결정은'} ${nxt?`<b>${Math.round(nxt.age)}살(${nxt.startYear}년) 대운 전환</b> 전에 이직·계약·결혼 같은 큰 결정을 몰아서 하세요.`:'이 대운 안에서 결판을 보세요.'} ${cl[4]}`;
   const P={
     dokseol:{head:`<b>${pastAge}살(${pastYear}년)</b> 즈음 대운이 갈렸어. 관계든 일이든 판이 한 번 크게 바뀌는 시기였고, 너도 느꼈을 거야. 그 흐름이 지금까지 이어져.`,
       me:`${d.dm[1]}${dmEl} 일간이야. ${ELEM_TRAIT[dmEl]}인데, ${missing.length?`사주에 <b>${missing[0]}(${missTxt})가 없어</b>. 그래서 늘 ${missTxt}에서 발목 잡히지. 본인이 제일 잘 알잖아.`:`오행은 그럭저럭 갖췄어.`}`,
