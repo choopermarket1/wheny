@@ -127,6 +127,13 @@
   .pct-why summary::-webkit-details-marker{display:none}
   .pct-why summary::before{content:'ⓘ '}
   .pct-why p{margin:8px 0 0;line-height:1.6;color:var(--dim)}
+  .share-unlock{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 14%,var(--card)),var(--card));border:1px solid var(--gold);border-radius:16px;padding:20px 18px;margin:16px 0;text-align:center;box-shadow:0 20px 50px -28px rgba(201,169,97,.5)}
+  .share-unlock .su-h{font-size:16px;font-weight:800;color:var(--gold2)}
+  .share-unlock .su-d{font-size:13.5px;color:var(--paperdim);line-height:1.6;margin:8px 0 14px}
+  .share-unlock .su-btn{width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1408;border:0;border-radius:13px;padding:15px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;min-height:44px}
+  .share-unlock .su-alt{display:flex;gap:8px;justify-content:center;margin-top:11px}
+  .share-unlock .su-alt button{flex:1;max-width:130px;background:var(--card2);border:1px solid var(--line);color:var(--paperdim);border-radius:10px;padding:9px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:44px}
+  .share-unlock .su-alt button:hover,.share-unlock .su-alt button:focus-visible{border-color:var(--gold);color:var(--gold2)}
   .teachers .t:nth-child(odd):last-child{grid-column:1/-1} /* 5번째(도사) 홀수 카드는 와이드 */
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
     display:flex;flex-direction:column;transition:.15s;position:relative;overflow:hidden}
@@ -906,6 +913,34 @@ function lockCTA(){if(!isLocked())return'';return `<div class="lockcard">
   <button class="lockcard-btn" onclick="unlock()">${U('lockBtn')} · ${priceMain()} →</button>
   <div class="lockcard-trust"><span>✓ ${U('trustKasi')}</span><span>✓ ${U('lockGuar')}</span></div>
 </div>`;}
+/* ===== Share-to-unlock (결제 없이 공유로 '언제' 잠금해제 — 바이럴 게이트) ===== */
+const SHARE_UNLOCK_L={
+ ko:{title:"'언제'가 잠겨 있어요",desc:'친구에게 공유하면 연애·재물·타이밍의 정확한 <b>연·월</b>이 바로 열려요.',btn:'공유하고 전부 열기 🔓',share:'내 인생의 전환점은 언제일까? Wheny 사주로 봤어 🌙',copy:'링크 복사',done:'열렸어요! ✨'},
+ en:{title:"Your 'WHEN' is locked",desc:'Share with a friend to instantly unlock the exact <b>year & month</b> for love, wealth and timing.',btn:'Share to unlock all 🔓',share:'When is my life turning point? I checked on Wheny 🌙',copy:'Copy link',done:'Unlocked! ✨'},
+ ja:{title:"「いつ」がロック中",desc:'友達にシェアすると、恋愛・金運・タイミングの正確な<b>年・月</b>がすぐ開きます。',btn:'シェアして全部開く 🔓',share:'私の人生の転機はいつ？Whenyで占ってみた 🌙',copy:'リンクをコピー',done:'開きました！ ✨'},
+ zh:{title:"你的「何时」已锁定",desc:'分享给朋友，立即解锁爱情·财运·时机的准确<b>年月</b>。',btn:'分享并全部解锁 🔓',share:'我人生的转折点在何时？我在Wheny测了 🌙',copy:'复制链接',done:'已解锁！ ✨'}
+};
+let _unlocked=(()=>{try{return localStorage.getItem('wheny_unlocked')==='1'}catch(e){return false}})();
+function gated(){return isLocked()||!_unlocked;} // 결제잠금 or 아직 공유 안 함
+function _doUnlock(){_unlocked=true;try{localStorage.setItem('wheny_unlocked','1')}catch(e){}
+  document.querySelectorAll('#result .lockblur').forEach(e=>e.classList.remove('lockblur'));
+  document.querySelectorAll('#result .share-unlock').forEach(e=>e.remove());
+  if(typeof toast==='function')toast((SHARE_UNLOCK_L[LANG]||SHARE_UNLOCK_L.ko).done);
+  if(typeof trackEvent==='function')trackEvent('share_complete',{via:'unlock'});}
+function shareUnlock(via){
+  const s=SHARE_UNLOCK_L[LANG]||SHARE_UNLOCK_L.ko, url='https://wheny.vercel.app/';
+  if(typeof trackEvent==='function')trackEvent('share_start',{via:via||'native'});
+  if((via==='kakao'||via==='x')&&typeof snsShare==='function'){snsShare(via);_doUnlock();return;}
+  if(navigator.share){navigator.share({title:'Wheny',text:s.share,url}).then(_doUnlock).catch(_doUnlock);}
+  else{try{navigator.clipboard.writeText(s.share+' '+url)}catch(e){}_doUnlock();}
+}
+function shareUnlockCard(){
+  if(!gated()||isLocked())return''; // 결제잠금이면 기존 lockCTA가 담당
+  const s=SHARE_UNLOCK_L[LANG]||SHARE_UNLOCK_L.ko;
+  return `<div class="share-unlock"><div class="su-h">🔒 ${s.title}</div><p class="su-d">${s.desc}</p>`+
+    `<button class="su-btn" onclick="shareUnlock()">${s.btn}</button>`+
+    `<div class="su-alt"><button onclick="shareUnlock('kakao')">Kakao</button><button onclick="shareUnlock('x')">X</button><button onclick="shareUnlock('copy')">${s.copy}</button></div></div>`;
+}
 function setMode(m){mode=m;
   document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
   document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
@@ -1477,11 +1512,12 @@ function run(){
     ${koreanName(d,chart,chart.해석)}
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
-    <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${isLocked()?'lockblur':''}">${r.loveTime}</p></div>
+    ${shareUnlockCard()}
+    <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${gated()?'lockblur':''}">${r.loveTime}</p></div>
     <div class="block" data-concern="work" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
       <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)"><b style="color:var(--gold)">월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p class="${isLocked()?'lockblur':''}">${r.future3}</p></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p class="${gated()?'lockblur':''}">${r.future3}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
       <tr><td class="hanja">${noTime?'<span style="color:var(--dim);font-size:14px">미상</span>':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
@@ -1491,7 +1527,7 @@ function run(){
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p>
       <details class="pct-why"><summary>이 수치는 어떻게 나오나요?</summary><p>사주 오행과 별자리 원소가 <b>같은 계열</b>이면 높게, 다르면 기본값으로 표시하는 <b>방향성 지표</b>예요. 정밀 확률이 아니라 동·서양 두 관점의 <b>결이 얼마나 겹치는지</b>를 보여줍니다.</p></details></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${isLocked()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${isLocked()?'lockblur':''}">${dwRows}</div></div>
+    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${gated()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${gated()?'lockblur':''}">${dwRows}</div></div>
     ${timingMap(chart.해석)}
     ${lockCTA()}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}인생 그래프 · 대운 흐름</h3>
