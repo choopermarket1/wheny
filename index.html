@@ -1301,6 +1301,88 @@ function compatDial(score){
   return `<div class="cd"><svg viewBox="0 0 110 110" class="cd-svg"><circle cx="55" cy="55" r="${r}" class="cd-bg"/><circle cx="55" cy="55" r="${r}" class="cd-fg" style="stroke:${col};stroke-dasharray:${c.toFixed(1)};stroke-dashoffset:${off.toFixed(1)}"/><text x="55" y="53" class="cd-num" style="fill:${col}">${score}</text><text x="55" y="72" class="cd-unit">${U('pts')}</text></svg></div>`;
 }
 
+/* ===== 궁합 상성 엔진 (결정적 계산 → 진짜 점수 + 근거) =====
+   근거: 원진/귀문 지지짝·겉속궁합·배우자십신 = 실제 명리 자료 대조(웹검증). 가중치는 Wheny 스코어 모델. */
+const _CG_YUKHAP=new Set(['0-1','2-11','3-10','4-9','5-8','6-7']);        // 지지 육합
+const _CG_WONJIN=new Set(['0-7','1-6','2-9','3-8','4-11','5-10']);        // 원진(애증): 자미·축오·인유·묘신·진해·사술
+const _CG_GWIMUN=new Set(['0-9','1-6','2-7','3-8','4-11','5-10']);        // 귀문관(예민): 자유·축오·인미·묘신·진해·사술
+const _CG_SAMHAP=[[8,0,4],[2,6,10],[11,3,7],[5,9,1]];                     // 삼합국 水火木金
+function _cgKey(a,b){return a<b?a+'-'+b:b+'-'+a;}
+function _cgSamhap(a,b){return _CG_SAMHAP.some(t=>t.includes(a)&&t.includes(b)&&a!==b);}
+const _CG_GEN={木:'火',火:'土',土:'金',金:'水',水:'木'};                   // 상생
+function compatEngine(A,B){
+  try{
+    const ai=A._i,bi=B._i; if(!ai||!bi)return null;
+    let s=60; const it=[];
+    const add=(k,el,tone,d)=>{it.push({k,el,tone,d});s+=d;};
+    // 1) 속궁합 — 일간 천간합/생극
+    const dsA=ai.ds,dsB=bi.ds,elA=STEMS[dsA][2],elB=STEMS[dsB][2],pairEl=`${STEMS[dsA][0]}×${STEMS[dsB][0]}`;
+    if(Math.abs(dsA-dsB)===5)add('ilganHap',pairEl,'good',14);
+    else if(elA===elB)add('ilganBihwa',pairEl,'soft',3);
+    else if(_CG_GEN[elA]===elB||_CG_GEN[elB]===elA)add('ilganSaeng',pairEl,'good',7);
+    else add('ilganGeuk',pairEl,'warn',-5);
+    // 2) 속궁합 — 일지 육합/삼합/충 + 원진/귀문
+    const dbA=ai.db,dbB=bi.db,bk=_cgKey(dbA,dbB),bpair=`${BRANCHES[dbA][0]}×${BRANCHES[dbB][0]}`;
+    if(_CG_YUKHAP.has(bk))add('iljiYukhap',bpair,'good',12);
+    else if(_cgSamhap(dbA,dbB))add('iljiSamhap',bpair,'good',8);
+    if(Math.abs(dbA-dbB)===6)add('iljiChung',bpair,'warn',-12);
+    if(_CG_WONJIN.has(bk))add('wonjin',bpair,'warn',-8);
+    if(_CG_GWIMUN.has(bk))add('gwimun',bpair,'warn',-6);
+    // 3) 겉궁합 — 년지(띠) 합/충
+    const ybA=ai.yb,ybB=bi.yb,yk=_cgKey(ybA,ybB),ypair=`${BRANCHES[ybA][3]}×${BRANCHES[ybB][3]}`;
+    if(_CG_YUKHAP.has(yk)||_cgSamhap(ybA,ybB))add('ttiHap',ypair,'good',6);
+    else if(Math.abs(ybA-ybB)===6)add('ttiChung',ypair,'warn',-4);
+    // 4) 용신 상호보완
+    const yA=(A.명리&&A.명리.용신&&A.명리.용신.용신후보)||[],yB=(B.명리&&B.명리.용신&&B.명리.용신.용신후보)||[];
+    const strong=(C)=>Object.keys(C.오행분포||{}).filter(e=>(C.오행분포[e]||0)>=2);
+    const sA=strong(A),sB=strong(B);
+    const bFillsA=yA.some(e=>sB.includes(e)),aFillsB=yB.some(e=>sA.includes(e));
+    if(bFillsA&&aFillsB)add('yongMutual',(yA.filter(e=>sB.includes(e)).concat(yB.filter(e=>sA.includes(e)))).join('·'),'good',14);
+    else if(bFillsA||aFillsB)add('yongOne',(bFillsA?yA.filter(e=>sB.includes(e)):yB.filter(e=>sA.includes(e))).join('·'),'good',7);
+    // 5) 부족 오행 보완
+    const mA=A.없는오행||[],mB=B.없는오행||[];
+    const bFillMiss=mA.filter(e=>sB.includes(e)),aFillMiss=mB.filter(e=>sA.includes(e));
+    if(bFillMiss.length||aFillMiss.length)add('ohBohwan',[...new Set([...bFillMiss,...aFillMiss])].join('·'),'good',Math.min(8,(bFillMiss.length?4:0)+(aFillMiss.length?4:0)));
+    // 6) 배우자 십신 (남=재성, 여=관성이 상대에게서 오나)
+    const spouseHit=(self,other)=>{const ss=sipsin(self._i.ds,other._i.ds);return self.성별==='남'?['정재','편재'].includes(ss):['정관','편관'].includes(ss);};
+    const aGetsSpouse=spouseHit(A,B),bGetsSpouse=spouseHit(B,A);
+    if(aGetsSpouse||bGetsSpouse)add('baeuja','',(aGetsSpouse&&bGetsSpouse)?'good':'soft',(aGetsSpouse?6:0)+(bGetsSpouse?6:0));
+    s=Math.max(25,Math.min(99,Math.round(s)));
+    return {score:s,items:it};
+  }catch(e){return null;}
+}
+// 궁합 근거 라벨(4개국어) + 판정
+const _CG_L={
+  ilganHap:['일간 천간합','Day-stem union','日干の合','日干相合'],
+  ilganSaeng:['일간 상생','Day-stems generate','日干の相生','日干相生'],
+  ilganBihwa:['일간 비화(동질)','Same day-element','日干の比和','日干比和'],
+  ilganGeuk:['일간 상극','Day-stems clash','日干の相剋','日干相剋'],
+  iljiYukhap:['일지 육합 · 속궁합','Day-branch harmony (inner)','日支の六合','日支六合'],
+  iljiSamhap:['일지 삼합','Day-branch trine','日支の三合','日支三合'],
+  iljiChung:['일지 충','Day-branch clash','日支の冲','日支相冲'],
+  wonjin:['원진 · 애증','Wonjin (love–hate)','怨嗔(愛憎)','怨嗔(爱恨)'],
+  gwimun:['귀문관 · 예민','Gwimun (over-sensitive)','鬼門関(過敏)','鬼门关(敏感)'],
+  ttiHap:['띠 궁합 · 겉궁합','Zodiac harmony (outer)','干支(年)の相性','生肖相合'],
+  ttiChung:['띠 충','Zodiac clash','干支(年)の冲','生肖相冲'],
+  yongMutual:['용신 상호보완 · 찰떡','Mutual Useful-God fit','用神の相互補完','用神互补'],
+  yongOne:['용신 보완(한쪽)','One-way Useful-God fit','用神の補完(片方)','用神补足(单向)'],
+  ohBohwan:['부족 오행 보완','Fills a missing element','不足五行の補完','补足欠缺五行'],
+  baeuja:['배우자 기운(십신)','Spouse-star match','配偶の気(十神)','配偶之气(十神)'],
+};
+function _cgLbl(k){const a=_CG_L[k]||[k];return LANG==='en'?a[1]:LANG==='ja'?a[2]:LANG==='zh'?a[3]:a[0];}
+function compatEvidence(ce){
+  if(!ce||!ce.items||!ce.items.length)return'';
+  const li=lang=>{};
+  const rows=ce.items.map(x=>{
+    const col=x.tone==='warn'?'#e0655a':x.tone==='soft'?'#c9a961':'#8fbf86';
+    const ic=x.tone==='warn'?'⚠':'✓';
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(201,169,97,.14)"><span style="color:${col};font-size:13px;flex:none">${ic}</span><span style="flex:1;font-size:13.5px;color:var(--paper)">${_cgLbl(x.k)}${x.el?` <b style="color:var(--gold)">${x.el}</b>`:''}</span></div>`;
+  }).join('');
+  const cap={ko:'상성 근거 (실제 명식 계산)',en:'Match basis (from both charts)',ja:'相性の根拠(命式計算)',zh:'合婚依据(命盘推算)'}[LANG]||'Match basis';
+  return `<div style="margin-top:14px;padding:12px 14px;background:rgba(0,0,0,.18);border:1px solid rgba(201,169,97,.22);border-radius:12px">
+    <div style="font-size:11px;letter-spacing:1px;color:var(--gold);font-weight:700;margin-bottom:4px">${cap}</div>${rows}</div>`;
+}
+
 /* ===== 실행 ===== */
 function chartOf(Y,M,D,h,mi,tz,gender,noTime){
   const b={year:Y,month:M,day:D,hour:h,minute:mi,tz,gender},d=computeSaju(b),w=computeWest(b),age=NOW-Y;
@@ -1311,7 +1393,8 @@ function chartOf(Y,M,D,h,mi,tz,gender,noTime){
     일간:`${d.dm[0]}${d.dm[1]}(${d.dm[2]})`,띠:d.zodiac,오행분포:el,
     없는오행:Object.keys(el).filter(k=>el[k]===0),태양별자리:w.sun[1],달별자리:w.moon[1],
     대운:d.dw.map(x=>({나이:x.age,시작연도:x.startYear,간지:x.k,십신:x.ss})),현재대운:curDaewoon(d,age).k,
-    명리:myeongni(d,noTime)};
+    명리:myeongni(d,noTime),
+    _i:{ds:d.P.day.s,db:d.P.day.b,yb:d.P.year.b,mb:d.P.month.b,dmEl:d.dm[2]}};
   try{if(typeof MY2!=='undefined')MY2.enrich(c);}catch(e){} // 심화 v2 (궁합 명식에도 지장간·합충 제공)
   return c;
 }
@@ -1323,6 +1406,7 @@ async function runCompat(){
   const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
   const tz=Number(gv("tz")),t=TEACHERS[picked];
   const A=chartOf(aY,aM,aD,ah,0,tz,gv("gender"),aNo),B=chartOf(bY,bM,bD,bh,0,tz,gv("pgender"),bNo);
+  const CE=compatEngine(A,B); // 결정적 상성(점수·근거) — AI에 앵커로 전달
   const anm=(document.getElementById('hanja')?.value||'').trim();if(anm)A.이름=anm;
   if(!await ensurePaid())return;
   const box=document.getElementById("result");
@@ -1354,12 +1438,14 @@ async function runCompat(){
       const reader=res.body.getReader(),dec=new TextDecoder();
       while(true){const {done,value}=await reader.read();if(done)break;acc+=dec.decode(value,{stream:true});const el=document.getElementById('compatStream');if(el)el.innerHTML=mdToHtml(acc)+'<span class="cur">▍</span>';}
     }else{const data=await res.json();acc=data.reading||'';}
-    const cm=acc.match(/(\d{1,3})\s*(?:점|\/\s*100|点|分)/),cscore=cm?+cm[1]:78;
-    CTX={tname:tname,chart:A,chartB:B,persona:picked,chat:[],cscore:cscore,compatText:acc}; // 궁합 채팅 컨텍스트(상대 명식 포함) + PDF용 점수·해석
+    const cm=acc.match(/(\d{1,3})\s*(?:점|\/\s*100|点|分)/),cscore=(CE&&CE.score!=null)?CE.score:(cm?+cm[1]:78); // 계산된 상성 점수 우선, 실패 시 AI 파싱 폴백
+    if(CE&&CE.score!=null)acc=acc.replace(/(\d{1,3})(\s*(?:점|\/\s*100|点|分))/, String(CE.score)+'$2'); // AI가 쓴 숫자를 계산 점수로 정규화(다이얼과 일치·지어낸 숫자 노출 방지)
+    CTX={tname:tname,chart:A,chartB:B,persona:picked,chat:[],cscore:cscore,compatText:acc,cengine:CE}; // 궁합 채팅 컨텍스트(상대 명식 포함) + PDF용 점수·근거·해석
     box.innerHTML=`
       <div class="block" style="--tc:var(${t.cv})"><h3>${IC.gauge}${L.title(A,B)}</h3>
         ${L.chips(A,B)}
         ${compatDial(cscore)}
+        ${compatEvidence(CE)}
         <div class="ai-out" style="margin-top:14px">${mdToHtml(acc)}${ttsBtn()}</div>
         <button class="aibtn" style="animation:none;margin-top:14px" onclick="downloadPdf()">📄 ${({ko:'궁합 명리서 PDF 저장 (12p)',en:'Save compatibility reading (PDF)',ja:'相性の鑑定書をPDF保存',zh:'保存合婚命书PDF'})[LANG]||'Save compatibility PDF'}</button></div>
       <div class="block" style="--tc:var(${t.cv})"><h3>${L.askMore}</h3>
