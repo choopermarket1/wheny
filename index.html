@@ -2681,6 +2681,23 @@ function buildPdfDoc(){
       </div>
     </div>`));
   }
+  // 1.7 한눈에 — 당신 얘기 (화면 상담 톤: 격국·용신·타이밍 요약)
+  {
+    const GYK={비견격:['홀로 서서 자기 판을 짜는','who stands alone and builds their own field','独りで自分の場を築く','独立自主、开创自己天地的'],겁재격:['추진력은 강하나 나눔·경쟁이 큰','driven, though with strong rivalry and sharing','推進力は強いが競争・分け合いが大きい','推动力强但竞争与分享大的'],월겁격:['경쟁 속에 제 몫을 지키는','who holds their share amid rivalry','競争の中で自分の分を守る','在竞争中守住本分的'],식신격:['표현·창작으로 풀어내는','who expresses and creates','表現・創作で解き放つ','以表达与创作抒发的'],상관격:['재능으로 튀고 틀을 깨는','who shines by talent and breaks the mould','才能で際立ち枠を破る','以才华出众、打破框架的'],정재격:['꾸준히 쌓아 안정으로 가는','who builds steadily toward stability','着実に積み安定へ向かう','稳步积累、走向安定的'],편재격:['큰 판·유동 자산을 굴리는','who works big and moves capital','大きな場・流動資産を回す','运筹大局与流动资产的'],정관격:['원칙과 자리를 지키는','who upholds principle and position','原則と立場を守る','恪守原则与本分的'],편관격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],칠살격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],정인격:['배우고 문서·귀인으로 크는','who grows through learning and mentors','学び・文書・貴人で伸びる','以学习、文书与贵人成长的'],편인격:['전환·자격으로 방향 트는','who pivots through skills and turning points','転換・資格で方向を切り替える','以转变与资历转向的'],건록격:['제 힘으로 자립하는','who stands on their own strength','自らの力で自立する','凭自身力量自立的'],양인격:['강한 기세로 밀어붙이는','who drives with strong momentum','強い勢いで押し進める','以强劲气势推进的']};
+    const g=m.격국, gk=g?gyeokX(g):'', gt=(GYK[g]||[])[LANG==='ja'?2:LANG==='zh'?3:LANG==='en'?1:0]||'';
+    const yong=(m.용신&&m.용신.용신후보&&m.용신.용신후보.length)?m.용신.용신후보.map(elLabel).join(' · '):'';
+    const goodY=seun.filter(s=>['식신','정재','편재','정관','정인'].includes(s.십신)).slice(0,3).map(s=>s.연도);
+    const warnY=seun.filter(s=>['겁재','비견'].includes(s.십신)).slice(0,2).map(s=>s.연도);
+    const row=(emo,lbl,txt)=>`<div style="display:flex;gap:12px;padding:13px 0;border-bottom:1px dotted #e2d8c2"><div style="font-size:22px;flex:none">${emo}</div><div style="min-width:0"><div style="font-size:11px;letter-spacing:1px;color:#b08d57;font-weight:700;margin-bottom:3px">${lbl}</div><div style="font-size:16px;line-height:1.7;color:#2a2118">${txt}</div></div></div>`;
+    const rows=[];
+    if(gk)rows.push(row('🏛️',P4('당신이라는 그릇','WHO YOU ARE','あなたという器','你这个人'),P4(`당신은 <b>${gk}</b> — <b>${gt} 그릇</b>이에요.`,`You are a <b>${gk}</b> — someone <b>${gt}</b>.`,`あなたは<b>${gk}</b> — <b>${gt}器</b>です。`,`你是<b>${gk}</b> — <b>${gt}的器量</b>。`)));
+    if(yong)rows.push(row('🔑',P4('풀리는 기운','WHAT UNLOCKS YOU','ほどける気','解运之气'),P4(`살리는 <b>용신은 ${yong}</b> — 이 기운이 오는 해·환경·사람이 흐름을 열어줘요.`,`Your <b>Useful God is ${yong}</b> — years, places and people that carry it open your flow.`,`あなたを活かす<b>用神は${yong}</b> — この気が巡る年・環境・人が流れを開きます。`,`助你的<b>用神是${yong}</b> — 此气到来的年份、环境与人会为你开运。`)));
+    if(goodY.length||warnY.length)rows.push(row('⏰',P4('때','TIMING','タイミング','时机'),P4(`${goodY.length?`<b>${goodY.join('·')}년</b>에 문이 크게 열려요.`:''}${warnY.length?` 반대로 <b>${warnY.join('·')}년</b>엔 지출·동업·보증을 조심하고 지키세요.`:''}`,`${goodY.length?`Doors open wide around <b>${goodY.join(' · ')}</b>.`:''}${warnY.length?` Around <b>${warnY.join(' · ')}</b>, guard against spending, partnerships and guarantees.`:''}`,`${goodY.length?`<b>${goodY.join('·')}年</b>頃に扉が大きく開きます。`:''}${warnY.length?` 逆に<b>${warnY.join('·')}年</b>は出費・共同事業・保証に注意し守りを。`:''}`,`${goodY.length?`<b>${goodY.join('·')}年</b>前后大门敞开。`:''}${warnY.length?` 相反，<b>${warnY.join('·')}年</b>需当心支出、合伙与担保，宜守。`:''}`)));
+    if(rows.length){
+      const sumTitle=P4('한눈에 — 당신 얘기','At a glance — about you','ひと目で — あなたの話','一眼看懂 — 关于你');
+      pages.push(pg(pdfHead(sumTitle,nm,true)+`<div style="background:#fffdf6;border:1px solid #ece0c4;border-radius:10px;padding:6mm 7mm;-webkit-print-color-adjust:exact;print-color-adjust:exact">${rows.join('')}</div>${bl(P4(['아래 페이지들에서 이 세 가지를 <b>하나씩 근거와 함께</b> 풀어드려요.'],['The pages that follow unpack each of these <b>with its reasoning</b>.'],['以下のページで、これらを<b>根拠とともに一つずつ</b>解いていきます。'],['以下页面将<b>逐一附上依据</b>为你展开。']))}`));
+    }
+  }
   // 2 목차
   const toc=[P.myeongsik,P.daymaster,P.ohaeng,P.sipsin,P.gyeok,P.yong,P.sinsal,P.unseong,P.gongmang,P.daewoon,P.seun,P.worun,P.love,P.marry,P.money,P.career,P.health,P.people,P.name,P.ai,P.timing];
   pages.push(pg(pdfHead(P.toc,null,true)+`<div style="font-size:15px;line-height:1;color:#3a3226">${toc.map((t,i)=>`<div style="display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dotted #ddd"><span style="font-family:'Cormorant Garamond',serif;font-size:19px;color:#c9a961;font-weight:700;width:30px">${i+1<10?'0'+(i+1):i+1}</span><span>${t}</span></div>`).join('')}</div>`));
