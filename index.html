@@ -134,6 +134,14 @@
   .share-unlock .su-alt{display:flex;gap:8px;justify-content:center;margin-top:11px}
   .share-unlock .su-alt button{flex:1;max-width:130px;background:var(--card2);border:1px solid var(--line);color:var(--paperdim);border-radius:10px;padding:9px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:44px}
   .share-unlock .su-alt button:hover,.share-unlock .su-alt button:focus-visible{border-color:var(--gold);color:var(--gold2)}
+  .summary-card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--gold);border-radius:16px;padding:18px 16px;margin:14px 0 4px;box-shadow:0 18px 44px -30px rgba(201,169,97,.5)}
+  .summary-card .sc-label{font-size:12px;font-weight:800;color:var(--gold2);letter-spacing:.5px;margin-bottom:11px;text-align:center}
+  .summary-card .sc-line{display:flex;gap:10px;align-items:flex-start;margin:9px 0;font-size:14px;line-height:1.55;color:var(--paper)}
+  .summary-card .sc-line b{color:var(--gold2)}
+  .summary-card .sc-n{flex:none;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--gold) 22%,var(--card));color:var(--gold2);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .sc-toc{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+  .sc-toc button{background:var(--card);border:1px solid color-mix(in srgb,var(--gold) 28%,transparent);color:var(--gold2);border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;min-height:40px}
+  .sc-toc button:hover,.sc-toc button:focus-visible{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--card))}
   .teachers .t:nth-child(odd):last-child{grid-column:1/-1} /* 5번째(도사) 홀수 카드는 와이드 */
   .t{background:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;
     display:flex;flex-direction:column;transition:.15s;position:relative;overflow:hidden}
@@ -941,6 +949,27 @@ function shareUnlockCard(){
     `<button class="su-btn" onclick="shareUnlock()">${s.btn}</button>`+
     `<div class="su-alt"><button onclick="shareUnlock('kakao')">Kakao</button><button onclick="shareUnlock('x')">X</button><button onclick="shareUnlock('copy')">${s.copy}</button></div></div>`;
 }
+/* ===== 결과 상단: 핵심 3줄 요약카드 + 결과 내 목차 (계산 불변, 표시만) ===== */
+const SUMMARY_L={
+ ko:{core:'핵심 3줄 요약',timing:'가장 중요한 시기',action:'지금 할 것',toc:{love:'연애·결혼',money:'재물·일',when:'언제 ★',chart:'명식'}},
+ en:{core:'3-line summary',timing:'Key timing',action:'Do now',toc:{love:'Love',money:'Wealth',when:'WHEN ★',chart:'Chart'}},
+ ja:{core:'要点3行まとめ',timing:'重要な時期',action:'今すること',toc:{love:'恋愛',money:'金運',when:'いつ ★',chart:'命式'}},
+ zh:{core:'核心3行',timing:'关键时机',action:'现在该做',toc:{love:'爱情',money:'财运',when:'何时 ★',chart:'命盘'}}
+};
+function _firstSent(s){if(!s)return'';const t=String(s).replace(/<[^>]+>/g,'').trim();const m=t.split(/(?<=[.!?。！？…])\s/);return (m[0]||t).slice(0,90);}
+function coreSummary(r){
+  try{
+    const L=SUMMARY_L[LANG]||SUMMARY_L.ko;
+    const ans={love:r.loveTime,money:r.money,job:r.money,biz:r.money,rel:r.P.me,all:r.P.when}[concern]||r.P.when;
+    const l1=_firstSent(ans), l2=_firstSent(r.P.when), l3=_firstSent(r.advice||r.P.when);
+    const toc=`<div class="sc-toc">`+[['love',L.toc.love],['money',L.toc.money],['when',L.toc.when],['chart',L.toc.chart]].map(([id,tx])=>`<button type="button" onclick="jumpSec('${id}')">${tx}</button>`).join('')+`</div>`;
+    return `<div class="summary-card" id="summaryCard"><div class="sc-label">${L.core}</div>`+
+      `<p class="sc-line"><span class="sc-n">1</span><span>${l1}</span></p>`+
+      `<p class="sc-line sc-when ${gated()?'lockblur':''}"><span class="sc-n">2</span><span><b>${L.timing}</b> · ${l2}</span></p>`+
+      `<p class="sc-line"><span class="sc-n">3</span><span><b>${L.action}</b> · ${l3}</span></p>${toc}</div>`;
+  }catch(e){return '';}
+}
+function jumpSec(id){const el=document.getElementById('sec-'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});if(typeof trackEvent==='function')trackEvent('result_section_open',{section:id});}
 function setMode(m){mode=m;
   document.getElementById("m-solo").setAttribute("aria-pressed",m==="solo");
   document.getElementById("m-compat").setAttribute("aria-pressed",m==="compat");
@@ -971,7 +1000,8 @@ function reorderByConcern(){
   const res=document.getElementById('result');if(!res)return;
   const key=CONCERN_MAP[concern];if(!key)return; // 전체=정렬 안 함
   const blocks=[...res.querySelectorAll('.block[data-concern="'+key+'"]')];if(!blocks.length)return;
-  const hero=res.querySelector('.hero-r');const anchor=hero?hero.nextSibling:res.firstChild;
+  const sc=document.getElementById('summaryCard'),hero=res.querySelector('.hero-r');
+  const anchor=sc?sc.nextSibling:(hero?hero.nextSibling:res.firstChild); // 요약카드 뒤에 정렬
   blocks.reverse().forEach(b=>res.insertBefore(b,anchor));
 }
 function setCal(c){cal=c;
@@ -1503,6 +1533,7 @@ function run(){
       <div class="who"><span class="em">${avatar(picked)}</span><b>${t.nm}</b> 선생님이 봐드립니다</div>
       <div class="oneline">${r.P.head}</div>
     </div>
+    ${coreSummary(r)}
     <div class="block" data-concern="rel" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
       <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}오행 밸런스</h3>
@@ -1513,12 +1544,12 @@ function run(){
     <div class="block" style="--tc:var(${t.cv})"><h3>성격 · 기질 자세히</h3><p>${r.charDetail}</p></div>
     <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>연애 · 인연</h3><p>${r.love}</p></div>
     ${shareUnlockCard()}
-    <div class="block" data-concern="love" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${gated()?'lockblur':''}">${r.loveTime}</p></div>
-    <div class="block" data-concern="work" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
+    <div class="block" id="sec-love" data-concern="love" style="--tc:var(${t.cv})"><h3>${IC.heart}연애 · 결혼 타이밍 ★</h3>${loveTimeline(d.dStem,gender)}<p class="${gated()?'lockblur':''}">${r.loveTime}</p></div>
+    <div class="block" id="sec-money" data-concern="work" style="--tc:var(${t.cv})"><h3>재물 · 일</h3><p>${r.money}</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.cal}${NOW} 올해 월별 흐름</h3><p>${r.year}</p>${monthHeatmap(d.dStem)}
       <p style="margin:10px 0 0;font-size:11.5px;color:var(--paperdim)"><b style="color:var(--gold)">월을 누르면</b> 자세히 봐요 · <span class="dot g"></span>좋음 <span class="dot r"></span>주의 — 사주 월운은 <b>절기 기준</b>(양력 그 달 대표)</p></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>향후 3년 · ${NOW}~${NOW+2}</h3><p class="${gated()?'lockblur':''}">${r.future3}</p></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
+    <div class="block" id="sec-chart" style="--tc:var(${t.cv})"><h3>명식 · 사주 원판</h3>
       <table><tr><th>시주</th><th>일주</th><th>월주</th><th>년주</th></tr>
       <tr><td class="hanja">${noTime?'<span style="color:var(--dim);font-size:14px">미상</span>':d.P.hour.h}</td><td class="hanja">${d.P.day.h}</td><td class="hanja">${d.P.month.h}</td><td class="hanja">${d.P.year.h}</td></tr>
       <tr><td class="kohan">${noTime?'시간모름':d.P.hour.k}</td><td class="kohan">${d.P.day.k}</td><td class="kohan">${d.P.month.k}</td><td class="kohan">${d.P.year.k}</td></tr></table>
@@ -1527,7 +1558,7 @@ function run(){
       <div class="cross"><span class="pct">${r.pct}%</span><div class="gauge"><div class="gfill" style="width:${r.pct}%"></div></div></div>
       <p style="margin-top:11px">사주(동양)와 별자리(서양)가 <b>같은 결</b>을 가리켜요. 태양 <b>${w.sun[1]}</b> · 달 <b>${w.moon[1]}</b> — 우연이 아니라는 신호.</p>
       <details class="pct-why"><summary>이 수치는 어떻게 나오나요?</summary><p>사주 오행과 별자리 원소가 <b>같은 계열</b>이면 높게, 다르면 기본값으로 표시하는 <b>방향성 지표</b>예요. 정밀 확률이 아니라 동·서양 두 관점의 <b>결이 얼마나 겹치는지</b>를 보여줍니다.</p></details></div>
-    <div class="block" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${gated()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${gated()?'lockblur':''}">${dwRows}</div></div>
+    <div class="block" id="sec-when" style="--tc:var(${t.cv})"><h3>언제 · 당신의 타이밍 ★</h3><p class="${gated()?'lockblur':''}">${r.P.when}</p><div class="dwrap ${gated()?'lockblur':''}">${dwRows}</div></div>
     ${timingMap(chart.해석)}
     ${lockCTA()}
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.chart}인생 그래프 · 대운 흐름</h3>
@@ -1557,7 +1588,7 @@ function run(){
   breakResult();
   reorderByConcern();
   saveSession();
-  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+  (document.getElementById("summaryCard")||document.getElementById("result")).scrollIntoView({behavior:"smooth",block:"start"});
 }
 // 외국어 결과(A안): 시각요소는 그대로 + 본문은 AI가 그 언어로 스트리밍 생성
 const FI18N={
@@ -1591,7 +1622,7 @@ function renderForeign(t,d,w,noTime,conv){
   saveSession();
   renderTopics(t.cv); // 외국어에도 주제 버튼(한국어와 동일)
   if(!isLocked())autoForeignReport(); // 잠겼으면 AI 대신 잠금CTA(위에서 렌더)
-  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+  (document.getElementById("summaryCard")||document.getElementById("result")).scrollIntoView({behavior:"smooth",block:"start"});
 }
 async function autoForeignReport(attempt){
   attempt=attempt||1;
