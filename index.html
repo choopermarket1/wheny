@@ -532,7 +532,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
     </div>
     <label id="dateLbl">생년월일 (양력)</label>
     <div class="drow"><select id="dY" aria-label="연도"></select><select id="dM" aria-label="월"></select><select id="dD" aria-label="일"></select></div>
-    <input type="hidden" id="date" value="1995-05-15" />
+    <input type="hidden" id="date" value="" /><!-- ⚠ 기본 생년월일 금지: 값이 있으면 사용자가 안 고른 날짜로 리포트가 나감 -->
     <div class="leap" id="leapWrap" style="display:none">
       <input type="checkbox" id="leap" /><label for="leap" style="margin:0;color:var(--paperdim);font-weight:600">이 달은 윤달이에요</label>
     </div>
@@ -560,7 +560,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
       <div class="lbl-t" style="color:var(--hong)" data-t="pTitle">💞 상대방 (양력 기준)</div>
       <label data-t="pBirth">상대 생년월일</label>
       <div class="drow"><select id="pY"></select><select id="pM"></select><select id="pD"></select></div>
-      <input type="hidden" id="pdate" value="1994-08-20" />
+      <input type="hidden" id="pdate" value="" /><!-- ⚠ 상대 생년월일도 기본값 금지 -->
       <div class="row">
         <div><label data-t="pTime">상대 태어난 시</label><select id="ptime">
           <option value="none" selected>🕐 시간 모름</option>
@@ -1222,7 +1222,8 @@ function lifeGraph(d){
     curX=xs(Math.min(n-1,curIdx+Math.min(1,(NOW-pts[curIdx].year)/span)));}
   const dots=pts.map((p,i)=>{const cls=p.score>=1?'op':p.score<=-.8?'ca':'nu',cur=i===curIdx;
     return `<circle cx="${xs(i)}" cy="${ys(p.score)}" r="${cur?5.5:4}" class="lg-dot ${cls}${cur?' cur':''}"/>`;}).join("");
-  const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">${isLocked()&&p.year>NOW?'··':"'"+String(p.year).slice(2)}</text>`).join("");
+  // x축 = 나이(단위 표기). 연도 축약('32)은 나이와 헷갈려서 ageFmt로 단위를 붙임. 정확한 연도는 아래 기회/주의 목록에 표시.
+  const labels=pts.map((p,i)=>`<text x="${xs(i)}" y="${H-11}" class="lg-x${i===curIdx?' cur':''}">${isLocked()&&p.year>NOW?'··':ageFmt(p.age)}</text>`).join("");
   const fut=pts.filter(p=>p.year+10>NOW); // 현재+미래 대운만 (지나간 시기는 하이라이트 제외)
   const opp=[...fut].filter(p=>p.score>=1).sort((a,b)=>b.score-a.score).slice(0,2);
   const cau=[...fut].filter(p=>p.score<=-.8).sort((a,b)=>a.score-b.score).slice(0,2);
@@ -1547,9 +1548,17 @@ function koreanName(d,chart,해석){
     const pool=(el)=>{const a=KNAME_HANJA[el];const w=isF?['f','n']:['m','n'];const f=a.filter(z=>w.includes(z.g));return f.length?f:a;};
     const pick=(el,off)=>{const a=pool(el);return a[(seed+off)%a.length];};
     const c1=pick(e1,0); let c2=pick(e2, e2===e1?2:0); if(c2.h===c1.h) c2=pick(e2,3);
-    const surP=KNAME_SUR.filter(z=>z.el===e1); const surList=surP.length?surP:KNAME_SUR; const sur=surList[seed%surList.length]; // 성씨도 사주(부족 오행)에 맞춰
+    // 한국어 이용자는 성(姓)을 바꾸지 않음 — 입력한 이름의 성을 그대로 두고 이름 두 글자만 새로 지음
+    let sur=null;
+    const _inNm=String((chart&&chart.이름)||'').trim().replace(/\s+/g,'');
+    if(ko&&_inNm.length>=2){
+      const CPD=['남궁','황보','제갈','선우','사공','서문','독고','동방'], CPDH=['南宮','皇甫','諸葛','鮮于','司空','西門','獨孤','東方'];
+      let s=CPD.find(x=>_inNm.startsWith(x))||CPDH.find(x=>_inNm.startsWith(x))||_inNm[0];
+      if(s){const hit=KNAME_SUR.find(z=>z.k===s||z.h===s); sur=hit||{h:s,k:s,r:'',el:''};}
+    }
+    if(!sur){const surP=KNAME_SUR.filter(z=>z.el===e1); const surList=surP.length?surP:KNAME_SUR; sur=surList[seed%surList.length];} // 성 미입력·외국어면 부족 오행에 맞춰 추천
     const gh=c1.h+c2.h, gk=c1.k+c2.k;
-    const roman=`${sur.r} ${c1.r}${c2.r.toLowerCase()}`;
+    const roman=[sur.r,`${c1.r}${c2.r.toLowerCase()}`].filter(Boolean).join(' ');
     const src=chart&&chart.이름?`<span class="knm-from">${chart.이름} →</span>`:'';
     const els=[...new Set([e1,e2])].map(L.elword).join(ko?'·':' & ');
     window._KN={sur,c1,c2,gh,gk,roman,els,ko};
@@ -2102,11 +2111,29 @@ function fillDob(yId,mId,dId,hiddenId){
   const yS=document.getElementById(yId),mS=document.getElementById(mId),dS=document.getElementById(dId),hid=document.getElementById(hiddenId);
   if(!yS||!hid)return;
   const suf=DATE_SUF[LANG]||DATE_SUF.ko;
-  const [dy,dm,dd]=(hid.value||'1995-05-15').split('-').map(Number);
-  let o='';for(let y=2020;y>=1920;y--)o+=`<option value="${y}"${y===dy?' selected':''}>${y}${suf[0]}</option>`;yS.innerHTML=o;
-  o='';for(let m=1;m<=12;m++)o+=`<option value="${m}"${m===dm?' selected':''}>${m}${suf[1]}</option>`;mS.innerHTML=o;
-  function set(){hid.value=`${yS.value}-${String(mS.value).padStart(2,'0')}-${String(dS.value).padStart(2,'0')}`;}
-  function days(keep){const dim=new Date(+yS.value,+mS.value,0).getDate();let cur=keep?Math.min(+dS.value||dd,dim):dd;if(cur>dim)cur=dim;let x='';for(let d=1;d<=dim;d++)x+=`<option value="${d}"${d===cur?' selected':''}>${d}${suf[2]}</option>`;dS.innerHTML=x;}
+  // ⚠ 생년월일 기본값 금지: 미리 채워두면 사용자가 안 고른 날짜로 그럴듯한 리포트가 나와 치명적(띠·명식 전부 틀림).
+  // 반드시 '미선택'으로 시작하고, 셋 다 고를 때만 히든값을 채운다(run()의 needDob 가드가 작동).
+  const PH=({ko:['생년','월','일'],en:['Year','Month','Day'],ja:['生年','月','日'],zh:['出生年','月','日']})[LANG]||['Year','Month','Day'];
+  const _p=String(hid.value||'').split('-').map(Number);
+  const has=_p.length===3&&_p.every(n=>Number.isFinite(n)&&n>0);
+  const dy=has?_p[0]:0, dm=has?_p[1]:0, dd=has?_p[2]:0;
+  let o=`<option value=""${has?'':' selected'}>${PH[0]}</option>`;
+  for(let y=2020;y>=1920;y--)o+=`<option value="${y}"${y===dy?' selected':''}>${y}${suf[0]}</option>`;yS.innerHTML=o;
+  o=`<option value=""${has?'':' selected'}>${PH[1]}</option>`;
+  for(let m=1;m<=12;m++)o+=`<option value="${m}"${m===dm?' selected':''}>${m}${suf[1]}</option>`;mS.innerHTML=o;
+  function set(){
+    if(!yS.value||!mS.value||!dS.value){hid.value='';return;} // 하나라도 미선택이면 비워서 실행 차단
+    hid.value=`${yS.value}-${String(mS.value).padStart(2,'0')}-${String(dS.value).padStart(2,'0')}`;
+  }
+  function days(keep){
+    const yv=+yS.value,mv=+mS.value;
+    if(!yv||!mv){dS.innerHTML=`<option value="" selected>${PH[2]}</option>`;return;}
+    const dim=new Date(yv,mv,0).getDate();
+    let cur=keep?Math.min(+dS.value||dd,dim):dd; if(cur>dim)cur=dim;
+    let x=`<option value=""${cur?'':' selected'}>${PH[2]}</option>`;
+    for(let d=1;d<=dim;d++)x+=`<option value="${d}"${d===cur?' selected':''}>${d}${suf[2]}</option>`;
+    dS.innerHTML=x;
+  }
   days(false);set();
   yS.onchange=()=>{days(true);set();};mS.onchange=()=>{days(true);set();};dS.onchange=set;
 }
@@ -2796,7 +2823,9 @@ function buildPdfDoc(){
     }
   }
   // 2 목차
-  const toc=[P.myeongsik,P.daymaster,P.ohaeng,P.sipsin,P.gyeok,P.yong,P.sinsal,P.unseong,P.gongmang,P.daewoon,P.seun,P.worun,P.love,P.marry,P.money,P.career,P.health,P.people,P.name,P.ai,P.timing];
+  // AI 해석은 생성돼 있을 때만 페이지가 만들어짐 → 목차도 같은 조건으로(없는 항목이 목차에 남는 불일치 방지)
+  const _hasAI=(function(){try{const a=grabAiHtml();return !!(a&&a.replace(/<[^>]+>/g,'').trim().length>60);}catch(e){return false;}})();
+  const toc=[P.myeongsik,P.daymaster,P.ohaeng,P.sipsin,P.gyeok,P.yong,P.sinsal,P.unseong,P.gongmang,P.daewoon,P.seun,P.worun,P.love,P.marry,P.money,P.career,P.health,P.people,P.name].concat(_hasAI?[P.ai]:[]).concat([P.timing]);
   pages.push(pg(pdfHead(P.toc,null,true)+`<div style="font-size:15px;line-height:1;color:#3a3226">${toc.map((t,i)=>`<div style="display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dotted #ddd"><span style="font-family:'Cormorant Garamond',serif;font-size:19px;color:#c9a961;font-weight:700;width:30px">${i+1<10?'0'+(i+1):i+1}</span><span>${t}</span></div>`).join('')}</div>`));
   // 3 명식
   const cols=[[P.year,c.명식?.년주],[P.month,c.명식?.월주],[P.day,c.명식?.일주],[P.hour,c.명식?.시주]];
@@ -2866,10 +2895,42 @@ function buildPdfDoc(){
   pages.push(pg(pdfHead(P.sipsin,nm)+`${svgSipsinWheel()}${bl([P4('가운데 <b>나(일간)</b>를 기준으로, 사주의 다른 글자들이 나와 맺는 관계를 <b>열 가지 역할</b>로 나눈 것이 <b>십신(十神)</b>입니다.','With <b>ME (your Day Master)</b> at the centre, the way every other character relates to "me" is sorted into <b>ten roles</b> — the <b>Ten Gods (十神)</b>.','中央の<b>私(日主)</b>を基準に、命式の他の文字が私と結ぶ関係を<b>十の役割</b>に分けたものが<b>十神</b>です。','以中央的<b>我(日主)</b>为准，命式其他字与「我」结成的关系，分为<b>十种角色</b>，即<b>十神</b>。'),P4('<b>재물·직업·인연·귀인</b>이 모두 이 열 가지 안에서 읽힙니다. 다음 장부터 하나씩 캐릭터로 풀어 드릴게요.','<b>Wealth, career, love and helpers</b> are all read within these ten. From the next pages, each is drawn as a character.','<b>財・仕事・縁・貴人</b>は、すべてこの十の中で読み解けます。次のページから、一つずつキャラクターで解説します。','<b>财富、事业、缘分、贵人</b>都在这十者之中读取。从下一页起，逐一以角色为你拆解。')])}<div style="margin-top:10px"></div>
     <table style="width:100%;border-collapse:collapse;font-size:13px">${Object.keys(SIP10x).map(k=>`<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;width:${KO?70:118}px;color:#2a2118;font-weight:600">${godLabel(k)}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;color:#3a3226">${SIPd[k]}</td></tr>`).join('')}</table>`));
   // 11b 십신 10개 각 페이지 (심화 + 세운에서 그 십신 오는 해로 개인화)
+  // 원국 십신 분포 — 이 십신이 내 명식 어느 자리에 있는지(일간=나 자신이므로 제외). 지지는 본기(BONGI) 기준.
+  const _sipPos=(function(){
+    const out={};
+    if(!c.명식)return out;
+    // 일간 인덱스: 명식 일주의 첫 글자(천간) → 없으면 _i 폴백 (솔로 리포트 chart엔 _i가 없음)
+    let ds=STEMS.findIndex(s=>s[0]===String(c.명식.일주||'')[0]);
+    if(ds<0&&c._i&&typeof c._i.ds==='number')ds=c._i.ds;
+    if(ds<0)return out;
+    const STEM_L={년주:P4('년간','year stem','年干','年干'),월주:P4('월간','month stem','月干','月干'),시주:P4('시간(時干)','hour stem','時干','時干')};
+    const BR_L={년주:P4('년지','year branch','年支','年支'),월주:P4('월지','month branch','月支','月支'),일주:P4('일지','day branch','日支','日支'),시주:P4('시지','hour branch','時支','時支')};
+    ['년주','월주','일주','시주'].forEach(key=>{
+      const gz=c.명식[key]; if(!gz||/미상|모름/.test(String(gz)))return;
+      const sc=String(gz)[0], bc=String(gz).slice(-1);
+      if(key!=='일주'){const si=STEMS.findIndex(s=>s[0]===sc);
+        if(si>=0){const t=sipsin(ds,si);(out[t]=out[t]||[]).push(`${STEM_L[key]}(${sc})`);}}
+      const bi=BRANCHES.findIndex(b=>b[0]===bc);
+      if(bi>=0){const bs=BONGI[bi];
+        if(typeof bs==='number'){const t2=sipsin(ds,bs);(out[t2]=out[t2]||[]).push(`${BR_L[key]}(${bc})`);}}
+    });
+    return out;
+  })();
   Object.keys(SIP10x).forEach(k=>{const ys=seun.filter(s=>s.십신===k).map(s=>s.연도).slice(0,6);const o=SIP10x[k];
+    const _pos=_sipPos[k]||[];
+    const _posBlock=pdfSub(LB('inChart'),[_pos.length
+      ? P4(`당신 명식의 <b>${_pos.join(' · ')}</b>에 있습니다 (${_pos.length}자리). 타고난 기운이라 삶에서 실제로 작동합니다.`,
+           `Present in your chart at <b>${_pos.join(' · ')}</b> (${_pos.length}). You were born with it, so it actually operates in your life.`,
+           `あなたの命式の<b>${_pos.join(' · ')}</b>にあります(${_pos.length}箇所)。生まれ持った気なので、実生活で実際に働きます。`,
+           `位于你命式的<b>${_pos.join(' · ')}</b>(${_pos.length}处)。这是与生俱来之气，会在生活中实际运作。`)
+      : P4(`당신 원국에는 이 기운이 <b>없습니다</b>. 타고나지 않았으니 대운·세운으로 올 때 <b>빌려 쓰는 힘</b>입니다 — 그때가 이 주제의 시기예요.`,
+           `This energy is <b>absent</b> from your natal chart. Not innate — it is a force you <b>borrow</b> when a luck cycle brings it, and that is your window for this theme.`,
+           `原局にはこの気が<b>ありません</b>。生まれ持っていないため、大運・歳運で巡る時に<b>借りて使う力</b>です — その時がこの主題の時期です。`,
+           `你的原局<b>没有</b>这股气。并非天生，而是大运·流年到来时<b>借用之力</b> — 那时才是这一主题的时期。`)]);
     pages.push(pg(pdfHead(`${P.sipsin.split(' ')[0]} · ${godLabel(k)}`,nm)+`<div style="font-size:${KO?40:30}px;text-align:center;color:#2a2118;margin:3mm 0 1mm">${godLabel(k)}</div>
     <div style="text-align:center;font-size:12.5px;color:#7a6f5c;margin-bottom:2px">${o.뜻}</div>`+
       pdfBiyu(SIPb[k])+
+      _posBlock+
       pdfSub(LB('nature'),[o.성향])+
       pdfSub(LB('strength'),[o.강점])+
       pdfSub(LB('shadow'),[o.그림자])+
