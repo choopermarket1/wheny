@@ -552,7 +552,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
         <option value="19">술시 (저녁 7~9시)</option>
         <option value="21">해시 (밤 9~11시)</option>
       </select></div>
-      <div><label data-t="gender">성별</label><select id="gender"><option value="female" data-t="female">여자</option><option value="male" data-t="male">남자</option></select></div>
+      <div><label data-t="gender">성별</label><select id="gender"><option value="" selected data-t="pickGender">성별 선택</option><option value="female" data-t="female">여자</option><option value="male" data-t="male">남자</option></select><!-- ⚠ 기본값 금지: 성별로 대운 순행/역행이 바뀌어 타이밍이 전부 달라짐 --></div>
     </div>
     <label data-t="name">이름 (선택 — 넣으면 이름 풀이까지)</label>
     <input id="hanja" data-tp="namePH" placeholder="한자 또는 한글 이름 · 비워둬도 돼요 (예: 秀賢 / 홍길동)" maxlength="10" autocomplete="off" />
@@ -571,7 +571,7 @@ if(location.hostname.endsWith("github.io"))location.replace("https://wheny-choop
           <option value="15">신시 (오후 3~5시)</option><option value="17">유시 (저녁 5~7시)</option>
           <option value="19">술시 (저녁 7~9시)</option><option value="21">해시 (밤 9~11시)</option>
         </select></div>
-        <div><label data-t="gender">성별</label><select id="pgender"><option value="male" data-t="male">남자</option><option value="female" data-t="female">여자</option></select></div>
+        <div><label data-t="gender">성별</label><select id="pgender"><option value="" selected data-t="pickGender">성별 선택</option><option value="male" data-t="male">남자</option><option value="female" data-t="female">여자</option></select></div>
       </div>
     </div>
     <label data-t="tz">기준 시간대</label>
@@ -1402,6 +1402,7 @@ function chartOf(Y,M,D,h,mi,tz,gender,noTime){
 async function runCompat(){
   const gv=id=>document.getElementById(id).value;
   if(!gv("date")||!gv("pdate")){alert(AL('needDob2'));return;}
+  if(!gv("gender")||!gv("pgender")){alert(AL('needGender2'));return;}
   const at=gv("time"),bt=gv("ptime"),aNo=at==="none",bNo=bt==="none";
   const [aY,aM,aD]=gv("date").split("-").map(Number),ah=aNo?12:Number(at);
   const [bY,bM,bD]=gv("pdate").split("-").map(Number),bh=bNo?12:Number(bt);
@@ -1609,6 +1610,7 @@ function run(){
   const tsel=document.getElementById("time").value,noTime=(tsel==="none");
   const dv=document.getElementById("date").value;
   if(!dv){alert(AL('needDob'));return;}
+  if(!document.getElementById("gender").value){alert(AL('needGender'));return;}
   let [Y,M,D]=dv.split("-").map(Number);const h=noTime?12:Number(tsel),mi=0;
   const tz=Number(document.getElementById("tz").value),gender=document.getElementById("gender").value;
   let conv="";
@@ -1906,6 +1908,8 @@ function sendLabel(){return LANG==='ko'?'보내기':(FI18N[LANG]||FI18N.en).send
 const ALERT_I18N={
   needDob:{ko:'생년월일을 입력해주세요',en:'Please enter your birth date',ja:'生年月日を入力してください',zh:'请输入出生日期'},
   needDob2:{ko:'두 사람의 생년월일을 입력해주세요',en:"Please enter both people's birth dates",ja:'二人の生年月日を入力してください',zh:'请输入两人的出生日期'},
+  needGender:{ko:'성별을 선택해주세요 (성별에 따라 대운 흐름이 달라집니다)',en:'Please select your gender — it changes the direction of your luck cycles',ja:'性別を選択してください（性別で大運の流れが変わります）',zh:'请选择性别（性别会改变大运的走向）'},
+  needGender2:{ko:'두 사람의 성별을 선택해주세요',en:"Please select both people's gender",ja:'二人の性別を選択してください',zh:'请选择两人的性别'},
 };
 function AL(k){const m=ALERT_I18N[k]||{};return m[LANG]||m.ko;}
 // 외국어 화면에 남는 마이크로 라벨(듣기·점·지금·타이밍·대기·에러)
@@ -2156,10 +2160,10 @@ const TEACH_I18N={
 };
 function TT(k){const t=(TEACH_I18N[LANG]||TEACH_I18N.ko)[k]||TEACH_I18N.ko[k];return {nm:t.nm,ds:t.ds};}
 const I18N={
-  ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',goCompat:'💞 두 사람 궁합 보기',pTitle:'💞 상대방 (양력 기준)',pBirth:'상대 생년월일',pTime:'상대 태어난 시',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요",tagline:'<b>언제</b>인지까지 말해주는 사주',tagsub:'사주 만세력 × 서양 점성술 교차검증'},
-  en:{solo:'My Saju',compat:'Compatibility',solar:'Solar',lunar:'Lunar',birth:'Date of birth',btime:'Time of birth',unknown:"Don't know",gender:'Gender',female:'Female',male:'Male',name:'Name (optional)',namePH:'Hanja or your name · optional',tz:'Time zone',pickTeacher:'Choose your reader',go:'See my reading',goCompat:'💞 See the match',pTitle:'💞 Partner (solar date)',pBirth:"Partner's date of birth",pTime:"Partner's time of birth",note:"If you don't know the time, choose Unknown",tagline:'The saju that tells you <b>when</b>',tagsub:'Saju × Western astrology, cross-checked'},
-  ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',goCompat:'💞 二人の相性を見る',pTitle:'💞 お相手 (新暦)',pBirth:'お相手の生年月日',pTime:'お相手の生まれた時刻',note:'時刻が不明なら「不明」を選択',tagline:'<b>いつ</b>かまで教える四柱推命',tagsub:'四柱推命 × 西洋占星術 クロス検証'},
-  zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',goCompat:'💞 查看两人合婚',pTitle:'💞 对方 (阳历)',pBirth:'对方出生日期',pTime:'对方出生时辰',note:'不知道时辰就选"不知道"',tagline:'连<b>何时</b>都告诉你的八字',tagsub:'八字 × 西洋占星 交叉验证'}
+  ko:{solo:'내 사주',compat:'궁합',solar:'양력',lunar:'음력',birth:'생년월일',btime:'태어난 시',unknown:'시간 모름',gender:'성별',pickGender:'성별 선택',female:'여자',male:'남자',name:'이름 (선택)',namePH:'한자 또는 한글 이름 · 비워둬도 돼요',tz:'기준 시간대',pickTeacher:'당신을 봐줄 선생님을 고르세요',go:'내 소름 리포트 보기',goCompat:'💞 두 사람 궁합 보기',pTitle:'💞 상대방 (양력 기준)',pBirth:'상대 생년월일',pTime:'상대 태어난 시',note:"태어난 시각을 모르면 '시간 모름'을 선택하세요",tagline:'<b>언제</b>인지까지 말해주는 사주',tagsub:'사주 만세력 × 서양 점성술 교차검증'},
+  en:{solo:'My Saju',compat:'Compatibility',solar:'Solar',lunar:'Lunar',birth:'Date of birth',btime:'Time of birth',unknown:"Don't know",gender:'Gender',pickGender:'Select gender',female:'Female',male:'Male',name:'Name (optional)',namePH:'Hanja or your name · optional',tz:'Time zone',pickTeacher:'Choose your reader',go:'See my reading',goCompat:'💞 See the match',pTitle:'💞 Partner (solar date)',pBirth:"Partner's date of birth",pTime:"Partner's time of birth",note:"If you don't know the time, choose Unknown",tagline:'The saju that tells you <b>when</b>',tagsub:'Saju × Western astrology, cross-checked'},
+  ja:{solo:'私の四柱',compat:'相性',solar:'新暦',lunar:'旧暦',birth:'生年月日',btime:'生まれた時刻',unknown:'不明',gender:'性別',pickGender:'性別を選択',female:'女性',male:'男性',name:'名前(任意)',namePH:'漢字または名前・任意',tz:'タイムゾーン',pickTeacher:'占い師を選んでください',go:'鑑定を見る',goCompat:'💞 二人の相性を見る',pTitle:'💞 お相手 (新暦)',pBirth:'お相手の生年月日',pTime:'お相手の生まれた時刻',note:'時刻が不明なら「不明」を選択',tagline:'<b>いつ</b>かまで教える四柱推命',tagsub:'四柱推命 × 西洋占星術 クロス検証'},
+  zh:{solo:'我的八字',compat:'合婚',solar:'阳历',lunar:'农历',birth:'出生日期',btime:'出生时辰',unknown:'不知道',gender:'性别',pickGender:'请选择性别',female:'女',male:'男',name:'姓名(可选)',namePH:'汉字或姓名·可留空',tz:'时区',pickTeacher:'选择为你解读的老师',go:'查看我的解读',goCompat:'💞 查看两人合婚',pTitle:'💞 对方 (阳历)',pBirth:'对方出生日期',pTime:'对方出生时辰',note:'不知道时辰就选"不知道"',tagline:'连<b>何时</b>都告诉你的八字',tagsub:'八字 × 西洋占星 交叉验证'}
 };
 // 하단 정적 섹션(면책·유료상품카드·사업자푸터) 언어별 렌더 — 외국어에서 한국어로 남던 것 수정
 const STATIC_I18N={
