@@ -2688,6 +2688,11 @@ function splitSent(s){return String(s||'').split(/(?<=[.。!?！？])\s+/).map(t
 function bl(items){const lines=(items||[]).filter(Boolean).flatMap(splitSent);return `<ul style="list-style:none;padding:0;margin:7px 0 0">${lines.map(x=>`<li style="display:flex;gap:10px;font-size:15.5px;line-height:1.92;color:#332c22;margin:0 0 11px;word-break:keep-all;overflow-wrap:anywhere"><span style="color:#b08d57;flex:none;font-size:16px;line-height:1.6">▪</span><span>${mkHi(x)}</span></li>`).join('')}</ul>`;}
 function kv(rows){return `<table style="width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 0">${rows.filter(Boolean).map(r=>`<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;width:110px;color:#7a6f5c;vertical-align:top">${r[0]}</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#2a2118">${r[1]}</td></tr>`).join('')}</table>`;}
 function grabAiHtml(){const el=document.querySelector('#ai-box .ai-out')||document.getElementById('foreignReport')||document.querySelector('#result .ai-out');return el?el.innerHTML:'';}
+// 격국 한줄 성격(4개국어) — PDF 요약페이지·격국페이지 공용
+const GYEOK_TRAIT={비견격:['홀로 서서 자기 판을 짜는','who stands alone and builds their own field','独りで自分の場を築く','独立自主、开创自己天地的'],겁재격:['추진력은 강하나 나눔·경쟁이 큰','driven, though with strong rivalry and sharing','推進力は強いが競争・分け合いが大きい','推动力强但竞争与分享大的'],월겁격:['경쟁 속에 제 몫을 지키는','who holds their share amid rivalry','競争の中で自分の分を守る','在竞争中守住本分的'],식신격:['표현·창작으로 풀어내는','who expresses and creates','表現・創作で解き放つ','以表达与创作抒发的'],상관격:['재능으로 튀고 틀을 깨는','who shines by talent and breaks the mould','才能で際立ち枠を破る','以才华出众、打破框架的'],정재격:['꾸준히 쌓아 안정으로 가는','who builds steadily toward stability','着実に積み安定へ向かう','稳步积累、走向安定的'],편재격:['큰 판·유동 자산을 굴리는','who works big and moves capital','大きな場・流動資産を回す','运筹大局与流动资产的'],정관격:['원칙과 자리를 지키는','who upholds principle and position','原則と立場を守る','恪守原则与本分的'],편관격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],칠살격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],정인격:['배우고 문서·귀인으로 크는','who grows through learning and mentors','学び・文書・貴人で伸びる','以学习、文书与贵人成长的'],편인격:['전환·자격으로 방향 트는','who pivots through skills and turning points','転換・資格で方向を切り替える','以转变与资历转向的'],건록격:['제 힘으로 자립하는','who stands on their own strength','自らの力で自立する','凭自身力量自立的'],양인격:['강한 기세로 밀어붙이는','who drives with strong momentum','強い勢いで押し進める','以强劲气势推进的']};
+function gTrait(g){const a=GYEOK_TRAIT[g]||[];return (LANG==='ja'?a[2]:LANG==='zh'?a[3]:LANG==='en'?a[1]:a[0])||'';}
+// 공망이 걸린 기둥별 의미(4개국어)
+const GONGMANG_PILLAR={년:['조상·초년운·윗사람','ancestry, early years, elders','先祖・幼少期・目上','祖辈·早年·长辈'],월:['부모·직장·사회 기반','parents, career, social footing','親・職場・社会基盤','父母·职场·社会根基'],일:['배우자·나 자신','spouse and your own core','配偶・自分自身','配偶与自身'],시:['자식·말년·결실','children, later years, harvest','子・晩年・実り','子女·晚年·成果']};
 function buildPdfDoc(){
   if(!CTX||!CTX.chart)return'';
   const c=CTX.chart,P=pdfP(LANG),m=c.명리||{},el=c.오행분포||{},miss=c.없는오행||[];
@@ -2776,8 +2781,7 @@ function buildPdfDoc(){
   }
   // 1.7 한눈에 — 당신 얘기 (화면 상담 톤: 격국·용신·타이밍 요약)
   {
-    const GYK={비견격:['홀로 서서 자기 판을 짜는','who stands alone and builds their own field','独りで自分の場を築く','独立自主、开创自己天地的'],겁재격:['추진력은 강하나 나눔·경쟁이 큰','driven, though with strong rivalry and sharing','推進力は強いが競争・分け合いが大きい','推动力强但竞争与分享大的'],월겁격:['경쟁 속에 제 몫을 지키는','who holds their share amid rivalry','競争の中で自分の分を守る','在竞争中守住本分的'],식신격:['표현·창작으로 풀어내는','who expresses and creates','表現・創作で解き放つ','以表达与创作抒发的'],상관격:['재능으로 튀고 틀을 깨는','who shines by talent and breaks the mould','才能で際立ち枠を破る','以才华出众、打破框架的'],정재격:['꾸준히 쌓아 안정으로 가는','who builds steadily toward stability','着実に積み安定へ向かう','稳步积累、走向安定的'],편재격:['큰 판·유동 자산을 굴리는','who works big and moves capital','大きな場・流動資産を回す','运筹大局与流动资产的'],정관격:['원칙과 자리를 지키는','who upholds principle and position','原則と立場を守る','恪守原则与本分的'],편관격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],칠살격:['결단·돌파로 밀어붙이는','who pushes through with decisive force','決断・突破で押し進める','以决断与突破推进的'],정인격:['배우고 문서·귀인으로 크는','who grows through learning and mentors','学び・文書・貴人で伸びる','以学习、文书与贵人成长的'],편인격:['전환·자격으로 방향 트는','who pivots through skills and turning points','転換・資格で方向を切り替える','以转变与资历转向的'],건록격:['제 힘으로 자립하는','who stands on their own strength','自らの力で自立する','凭自身力量自立的'],양인격:['강한 기세로 밀어붙이는','who drives with strong momentum','強い勢いで押し進める','以强劲气势推进的']};
-    const g=m.격국, gk=g?gyeokX(g):'', gt=(GYK[g]||[])[LANG==='ja'?2:LANG==='zh'?3:LANG==='en'?1:0]||'';
+    const g=m.격국, gk=g?gyeokX(g):'', gt=gTrait(g);
     const yong=(m.용신&&m.용신.용신후보&&m.용신.용신후보.length)?m.용신.용신후보.map(elLabel).join(' · '):'';
     const goodY=seun.filter(s=>['식신','정재','편재','정관','정인'].includes(s.십신)).slice(0,3).map(s=>s.연도);
     const warnY=seun.filter(s=>['겁재','비견'].includes(s.십신)).slice(0,2).map(s=>s.연도);
@@ -2874,10 +2878,59 @@ function buildPdfDoc(){
       pdfPen(LB('advice'),o.조언)
     ));});
   // 12 격국
-  if(m.격국)pages.push(pg(pdfHead(P.gyeok,nm)+`<div style="font-size:${KO?32:26}px;text-align:center;color:#2a2118;margin:6mm 0">${boxit(gyeokX(m.격국))}</div>${bl(P4(['<b>격국</b> = 이 사주가 타고난 <b>틀·그릇</b>.','월지(태어난 달)가 일간과 맺는 관계로 정해집니다.','삶이 어떤 방향으로 짜여 있는지를 보여줍니다.'],['<b>Structure (格局)</b> is the innate <b>frame or "mould"</b> of your chart — the overall shape your life is built around.','It is set by how the month branch (your birth month) relates to your Day Master.','Think of it as the genre of your story; the rest of the reading plays out inside it.'],['<b>格局</b>とは、この命式が生まれ持った<b>枠・器</b>です。','月支(生まれた月)が日主と結ぶ関係で決まります。','人生がどんな方向に組み立てられているかを示します。'],['<b>格局</b>是这张命式与生俱来的<b>框架、器量</b>。','由月支(出生月份)与日主的关系而定。','它显示你的人生被编织成怎样的走向。']))}`));
+  if(m.격국){
+    const _gk=String(m.격국).replace(/격$/,''), _go=SIP10x[_gk]||{}, _gt=gTrait(m.격국);
+    const _mj=c.명식&&c.명식.월주?c.명식.월주:'', _mb=String(_mj).slice(-1);
+    const _gyr=seun.filter(s=>s.십신===_gk).map(s=>s.연도).slice(0,5);
+    pages.push(pg(pdfHead(P.gyeok,nm)
+      +`<div style="font-size:${KO?32:26}px;text-align:center;color:#2a2118;margin:5mm 0 1mm">${boxit(gyeokX(m.격국))}</div>`
+      +(_gt?`<div style="text-align:center;font-size:${KO?15:13.5}px;color:#7a6f5c;margin:0 0 4mm;word-break:keep-all">${P4(`${_gt} 그릇`,_gt,`${_gt}器`,`${_gt}的器量`)}</div>`:'')
+      +bl(P4(['<b>격국</b> = 이 사주가 타고난 <b>틀·그릇</b>.','월지(태어난 달)가 일간과 맺는 관계로 정해집니다.','삶이 어떤 방향으로 짜여 있는지를 보여줍니다.'],['<b>Structure (格局)</b> is the innate <b>frame or "mould"</b> of your chart — the overall shape your life is built around.','It is set by how the month branch (your birth month) relates to your Day Master.','Think of it as the genre of your story; the rest of the reading plays out inside it.'],['<b>格局</b>とは、この命式が生まれ持った<b>枠・器</b>です。','月支(生まれた月)が日主と結ぶ関係で決まります。','人生がどんな方向に組み立てられているかを示します。'],['<b>格局</b>是这张命式与生俱来的<b>框架、器量</b>。','由月支(出生月份)与日主的关系而定。','它显示你的人生被编织成怎样的走向。']))
+      +(_mj?pdfSub(LB('inChart'),[P4(
+         `월주 <b>${mingCell(_mj)}</b> 가운데 <b>월지 ${_mb}</b>의 본기가 일간 <b>${ILGAN}</b>에게 <b>${godLabel(_gk)}</b>으로 작용해 <b>${gyeokX(m.격국)}</b>이 되었습니다.`,
+         `Within your month pillar <b>${mingCell(_mj)}</b>, the main energy of the <b>month branch ${_mb}</b> relates to your Day Master <b>${ILGAN}</b> as <b>${godLabel(_gk)}</b> — that is what sets your structure as <b>${gyeokX(m.격국)}</b>.`,
+         `月柱<b>${mingCell(_mj)}</b>のうち<b>月支 ${_mb}</b>の本気が日主<b>${ILGAN}</b>に<b>${godLabel(_gk)}</b>として働き、<b>${gyeokX(m.격국)}</b>となりました。`,
+         `月柱<b>${mingCell(_mj)}</b>之中，<b>月支 ${_mb}</b>的本气对日主<b>${ILGAN}</b>形成<b>${godLabel(_gk)}</b>，因此为<b>${gyeokX(m.격국)}</b>。`)]):'')
+      +(_go.성향?pdfSub(LB('nature'),[_go.성향]):'')
+      +(_go.연애직업?pdfSub(LB('work'),[_go.연애직업]):'')
+      +(_gyr.length?pdfSub(LB('timing'),[P4(
+         `이 기운이 세운으로 다시 오는 해 — <b>${_gyr.join(' · ')}년</b>. 격의 색이 가장 진해지는 시기입니다.`,
+         `Years when this energy returns — <b>${_gyr.join(' · ')}</b>. Your structure shows most strongly then.`,
+         `この気が再び巡る年 — <b>${_gyr.join(' · ')}年</b>。格の色が最も濃くなる時期です。`,
+         `此气再度到来的年份 — <b>${_gyr.join(' · ')}年</b>。格局最为鲜明之时。`)]):'')
+      +(_go.조언?pdfPen(LB('advice'),_go.조언):'')
+    ));
+  }
   // 13 용신
   if(m.용신)pages.push(pg(pdfHead(P.yong,nm)+`<div style="text-align:center;margin:5mm 0"><span style="font-size:22px;color:#2a2118">${KO?(m.용신.신강약||''):(m.용신.신강약==='신강'?P4('','Strong Self','身強','身强'):m.용신.신강약==='신약'?P4('','Weak Self','身弱','身弱'):(m.용신.신강약||''))}</span> · <span style="font-size:22px;color:#b08d57">${boxit((m.용신.용신후보||[]).map(elLabel).join(' · '),'#b08d57')}</span></div>
-    ${bl(P4(['<b>용신</b> = 이 사주에 <b>가장 필요한 기운</b>.','용신 오행이 오는 <b>대운·세운·계절</b> = 풀리는 때.','그 반대 = 조심할 때.','※ 억부 기준 참고 — 조후 등 다른 관점도 있습니다.'],['<b>Useful God</b> = the element your chart most needs.','Years/seasons that bring it = your <b>unlocking</b> times.','The opposite = time for care.','※ Strength-based reading; other schools differ.'],['<b>用神</b> = この命式に<b>最も必要な気</b>。','用神の五行が巡る<b>大運・歳運・季節</b> = ほどける時。','その逆 = 用心すべき時。','※ 抑扶を基準とした参考です — 調候など他の見方もあります。'],['<b>用神</b> = 这张命式<b>最需要的气</b>。','用神五行到来的<b>大运·流年·季节</b> = 顺遂之时。','相反 = 需当心之时。','※ 以抑扶为准的参考 — 另有调候等其他视角。']))}`));
+    ${bl(P4(['<b>용신</b> = 이 사주에 <b>가장 필요한 기운</b>.','용신 오행이 오는 <b>대운·세운·계절</b> = 풀리는 때.','그 반대 = 조심할 때.','※ 억부 기준 참고 — 조후 등 다른 관점도 있습니다.'],['<b>Useful God</b> = the element your chart most needs.','Years/seasons that bring it = your <b>unlocking</b> times.','The opposite = time for care.','※ Strength-based reading; other schools differ.'],['<b>用神</b> = この命式に<b>最も必要な気</b>。','用神の五行が巡る<b>大運・歳運・季節</b> = ほどける時。','その逆 = 用心すべき時。','※ 抑扶を基準とした参考です — 調候など他の見方もあります。'],['<b>用神</b> = 这张命式<b>最需要的气</b>。','用神五行到来的<b>大运·流年·季节</b> = 顺遂之时。','相反 = 需当心之时。','※ 以抑扶为准的参考 — 另有调候等其他视角。']))}
+    ${(function(){
+      const ys=m.용신.용신후보||[]; if(!ys.length)return'';
+      const dmE=(c.일간||'').match(/[木火土金水]/)?.[0]||'';
+      const gis=['木','火','土','金','水'].filter(e=>!ys.includes(e)&&e!==dmE);
+      const elOf=s=>{try{return K2EL(String(s.간지||'')[0])}catch(e){return''}};
+      const yy=[...new Set(seun.filter(s=>ys.includes(elOf(s))).map(s=>s.연도))].slice(0,6);
+      const cy=[...new Set(seun.filter(s=>gis.includes(elOf(s))).map(s=>s.연도))].slice(0,4);
+      let o='';
+      ys.forEach(e=>{const d=OH5x[e]||{}; if(!d.적으면&&!d.성격)return;
+        o+=pdfSub(`${elLabel(e)}${d.el?` · ${d.el}`:''}`,[d.적으면||d.성격]);});
+      if(yy.length)o+=pdfSub(LB('timing'),[P4(
+        `용신 기운이 세운으로 오는 해 — <b>${yy.join(' · ')}년</b>. 새로 벌이거나 큰 결정을 붙이기 좋은 구간입니다.`,
+        `Years your Useful God arrives — <b>${yy.join(' · ')}</b>. Good windows to start things and land big decisions.`,
+        `用神の気が巡る年 — <b>${yy.join(' · ')}年</b>。新しく始め、大きな決断を寄せるのに良い区間です。`,
+        `用神之气到来的年份 — <b>${yy.join(' · ')}年</b>。适合开创与做重大决定。`)]);
+      if(cy.length)o+=pdfSub(LB('caution'),[P4(
+        `반대로 <b>${gis.map(elLabel).join(' · ')}</b>가 강해지는 <b>${cy.join(' · ')}년</b>은 과열·소모가 커집니다. 벌이기보다 지키는 쪽에 무게를 두세요.`,
+        `When <b>${gis.map(elLabel).join(' · ')}</b> runs strong — around <b>${cy.join(' · ')}</b> — things overheat and drain. Weigh keeping over starting.`,
+        `逆に<b>${gis.map(elLabel).join(' · ')}</b>が強まる<b>${cy.join(' · ')}年</b>は過熱・消耗が大きくなります。広げるより守りに重心を。`,
+        `相反，<b>${gis.map(elLabel).join(' · ')}</b>转强的<b>${cy.join(' · ')}年</b>易过热耗损。宜守不宜攻。`)]);
+      o+=pdfSub(LB('tip'),[P4(
+        `용신 오행의 <b>색·방향·계절</b>을 생활에 들이고, 그 기운을 가진 <b>사람·환경</b>을 곁에 두면 흐름이 안정됩니다.`,
+        `Bring the Useful God's <b>colour, direction and season</b> into daily life, and keep <b>people and places</b> carrying that energy close.`,
+        `用神の<b>色・方位・季節</b>を生活に取り入れ、その気を持つ<b>人・環境</b>を近くに置くと流れが安定します。`,
+        `将用神的<b>颜色、方位、季节</b>融入生活，并亲近带有该气的<b>人与环境</b>，运势更稳。`)]);
+      return o;
+    })()}`));
   // 14 신살
   const sinsalNames=[...new Set((m.신살||[]).map(s=>s.replace(/\(.*\)/,'')))];
   const myS=(m.신살||[]).map(s=>{const base=s.replace(/\(.*\)/,'');return KO?s:LANG==='en'?(SPIRIT_EN[base]||s):((SPIRIT_EN[base]||s).split(' ').pop());});
@@ -2900,7 +2953,32 @@ function buildPdfDoc(){
     <table style="width:100%;border-collapse:collapse;font-size:13.5px">${Object.entries(m.십이운성).map(([k,v])=>`<tr><td style="padding:9px 8px;border-bottom:1px solid #eee;width:${KO?52:60}px;color:#7a6f5c;vertical-align:top">${(_COL[k]||k)+(KO?'주':'')}</td><td style="padding:9px 8px;border-bottom:1px solid #eee;color:#2a2118;font-weight:600;width:${KO?56:78}px;vertical-align:top">${stageLabel(v)}</td><td style="padding:9px 8px;border-bottom:1px solid #eee;color:#3a3226;font-size:12.5px;line-height:1.7">${UNSx[v]||''}</td></tr>`).join('')}</table>
     <p style="font-size:12.5px;color:#7a6f5c;margin-top:12px;line-height:1.8">${P4('왕성한 자리(건록 · 제왕)에 놓인 기둥은 그 영역(년=조상/초년, 월=부모/사회, 일=배우자/나, 시=자녀/말년)에서 힘이 넘치고, 쉬어야 할 자리(병 · 사 · 묘 · 절)에 놓인 기둥은 그 영역에서 담백하게 가는 것이 이롭습니다.','A pillar in a vigorous stage (Prime, Peak) is powerful in its life-area (Year = roots/early life, Month = family/society, Day = self/spouse, Hour = children/later years); one in a resting stage (Illness, Rest, Storage, Void) fares better kept simple there.','旺盛な段階(建禄・帝旺)にある柱は、その領域(年=祖先/幼少、月=親/社会、日=自分/配偶者、時=子/晩年)で力があふれ、休む段階(病・死・墓・絶)にある柱は、その領域では淡々と進むのがよいです。','处于旺盛阶段(建禄·帝旺)的柱，在其领域(年=祖先/幼年，月=父母/社会，日=自己/配偶，时=子女/晚年)力量充沛；处于歇息阶段(病·死·墓·绝)的柱，在该领域淡然而行更为有利。')}</p>`));
   // 22 공망
-  if(m.공망)pages.push(pg(pdfHead(P.gongmang,nm)+`<div style="font-size:40px;text-align:center;color:#2a2118;margin:6mm 0">${(m.공망||[]).join(' · ')}</div>${bl(P4(['<b>공망</b> = 비어 헛도는 지지.','이 자리 영역은 공들여도 손에 잘 안 잡힐 수 있음.','대운·세운이 채워주는 때 오면 오히려 크게 열림.'],['<b>Void (空亡)</b> — two "empty-spinning" branches in your chart.','The life-areas tied to them can resist effort, feeling out of reach no matter how hard you try.','Yet when a luck cycle fills that void, those very areas can open up wide.'],['<b>空亡</b> = 空回りする地支。','この領域は、力を注いでも手ごたえを得にくいことがあります。','大運・歳運が満たす時が来ると、むしろ大きく開きます。'],['<b>空亡</b> = 空转的地支。','这一领域，即便费心也未必抓得住。','但当大运·流年来填补时，反而会大大打开。']))}`));
+  if(m.공망){
+    const _gmS=new Set((m.공망||[]).map(x=>String(x).slice(-1)));
+    const _cols4=[['년',P.year,c.명식?.년주],['월',P.month,c.명식?.월주],['일',P.day,c.명식?.일주],['시',P.hour,c.명식?.시주]];
+    const _hit=_cols4.filter(([k,lab,gz])=>gz&&!/미상|모름/.test(String(gz))&&_gmS.has(String(gz).slice(-1)));
+    const _pl=a=>(LANG==='ja'?a[2]:LANG==='zh'?a[3]:LANG==='en'?a[1]:a[0]);
+    pages.push(pg(pdfHead(P.gongmang,nm)
+      +`<div style="font-size:40px;text-align:center;color:#2a2118;margin:5mm 0 1mm">${(m.공망||[]).join(' · ')}</div>`
+      +bl(P4(['<b>공망</b> = 비어 헛도는 지지.','이 자리 영역은 공들여도 손에 잘 안 잡힐 수 있음.','대운·세운이 채워주는 때 오면 오히려 크게 열림.'],['<b>Void (空亡)</b> — two "empty-spinning" branches in your chart.','The life-areas tied to them can resist effort, feeling out of reach no matter how hard you try.','Yet when a luck cycle fills that void, those very areas can open up wide.'],['<b>空亡</b> = 空回りする地支。','この領域は、力を注いでも手ごたえを得にくいことがあります。','大運・歳運が満たす時が来ると、むしろ大きく開きます。'],['<b>空亡</b> = 空转的地支。','这一领域，即便费心也未必抓得住。','但当大运·流年来填补时，反而会大大打开。']))
+      +(_hit.length
+        ? pdfSub(LB('inChart'),_hit.map(([k,lab,gz])=>P4(
+            `<b>${lab} · ${mingCell(gz)}</b>가 공망에 듭니다 — <b>${_pl(GONGMANG_PILLAR[k])}</b> 영역이 헛돌기 쉬워요. 여기선 욕심을 줄이고 기대를 낮추면 오히려 편해집니다.`,
+            `<b>${lab} · ${mingCell(gz)}</b> falls in the void — the area of <b>${_pl(GONGMANG_PILLAR[k])}</b> tends to spin empty. Expect less here and it gets lighter.`,
+            `<b>${lab} · ${mingCell(gz)}</b>が空亡に入ります — <b>${_pl(GONGMANG_PILLAR[k])}</b>の領域が空回りしやすい。欲を減らし期待を下げるとむしろ楽になります。`,
+            `<b>${lab} · ${mingCell(gz)}</b>落空亡 — <b>${_pl(GONGMANG_PILLAR[k])}</b>方面易空转。少求少盼，反而轻松。`)))
+        : pdfSub(LB('inChart'),[P4(
+            `공망 지지가 원국(명식) 안에는 없습니다. 평소엔 크게 드러나지 않고, <b>대운·세운에서 이 지지를 만나는 때</b>에만 그 결이 나타납니다.`,
+            `Neither void branch appears in your natal chart. It stays quiet, surfacing only when a luck cycle brings that branch around.`,
+            `空亡の地支は原局(命式)にはありません。普段は表に出ず、<b>大運・歳運でこの地支に出会う時</b>だけ現れます。`,
+            `空亡地支不在原局之中。平时不显，仅在<b>大运·流年遇到该地支时</b>才浮现。`)]))
+      +pdfSub(LB('tip'),[P4(
+        `공망은 흉이 아니라 <b>비움</b>입니다. 이 자리는 소유·집착으로 가면 헛돌고, <b>배움·정신·베풂</b>으로 돌리면 오히려 채워집니다.`,
+        `The void is not a curse but an <b>emptiness</b>. Chase ownership here and it spins; turn it toward learning, inner life and giving, and it fills.`,
+        `空亡は凶ではなく<b>空(から)</b>です。所有や執着に向かうと空回りし、<b>学び・精神・与えること</b>に向けるとむしろ満ちます。`,
+        `空亡非凶，而是<b>空</b>。执于占有则空转；转向学习、精神与付出，反而充盈。`)])
+    ));
+  }
   // 대운 총론 + 8개
   let nowDwIdx=0;dw.forEach((x,i)=>{if((c.나이||0)>=x.나이)nowDwIdx=i;});
   pages.push(pg(pdfHead(P.daewoon,nm)+`${svgDaewoon(dw,nowDwIdx)}
