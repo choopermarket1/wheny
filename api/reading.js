@@ -292,11 +292,11 @@ export default async function handler(req, res) {
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    // --- 모델 선택: 채팅(짧은 후속답변)만 Haiku로 비용 절감, 리포트·궁합·외국어는 Sonnet 유지 ---
-    // Sonnet 5 $3/$15(인트로 $2/$10) vs Haiku 4.5 $1/$5. 채팅은 규칙엔진이 팩트를 주므로 품질 영향 작음.
-    const M_MAIN = "claude-sonnet-5", M_CHAT = "claude-haiku-4-5";
-    const _AB = { haiku: "claude-haiku-4-5", sonnet: "claude-sonnet-5" }; // A/B 비교용(채팅 한정, 화이트리스트)
-    const MODEL = chat ? (_AB[String((body || {})._m || "")] || M_CHAT) : M_MAIN;
+    // --- 모델: 전 모드 Sonnet 5 ---
+    // Haiku 4.5 A/B 테스트(2026-07) 결과 롤백: 표가 없거나 범위 밖이면 Haiku가 연도를 지어냄
+    // (예: 2026년인데 "올해는 2025년 을사년"). Sonnet은 "데이터가 없다"고 답함.
+    // 절감폭이 2배(인트로 할인 중)뿐이라 지어내기 리스크 대비 이득이 없다고 판단.
+    const MODEL = "claude-sonnet-5";
 
     // --- 스트리밍: 텍스트를 실시간으로 흘려보냄(체감속도 ↑) ---
     if (stream) {
@@ -312,7 +312,7 @@ export default async function handler(req, res) {
     }
 
     const msg = await client.messages.create({
-      model: MODEL, // 채팅=Haiku 4.5, 그 외=Sonnet 5. 최고 품질은 claude-opus-4-8
+      model: MODEL, // 품질/속도/비용 균형. 최고 품질은 claude-opus-4-8
       max_tokens: maxTok,
       thinking: { type: "disabled" }, // 창작(운세 해석)엔 사고블록 불필요
       system,
