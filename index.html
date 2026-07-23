@@ -1115,7 +1115,7 @@ function report(persona,d,w,age,gender){
   const 상대형={木:'차분히 키워주는 성장형',火:'밝게 이끌어주는 열정형',土:'듬직하게 품는 안정형',金:'분명하고 곧은 원칙형',水:'유연하고 지혜로운 소통형'};
   const 용신상대=용신L.length?용신L.map(e=>상대형[e]||e):[];
   const charDetail=`${hasG?`<b>${격국}</b> — <b>${격설} 그릇</b>이에요. `:''}일간은 <b>${d.dm[1]}${dmEl}</b>(${ELEM_TRAIT[dmEl]})${신강약?`, 기운은 <b>${신강약}</b>`:''}이에요. ${용신Txt?`그래서 살리는 <b>용신은 ${용신Txt}</b> — 이 기운이 오는 해·환경·사람이 흐름을 열어줘요.${기신Txt?` 반대로 <b>${기신Txt}</b>가 강해지는 때는 과열·소모가 커지니 그때만 속도를 줄이면 돼요.`:''}`:`${strongEls.length?`<b>${strongEls.join('·')}</b> 기운이 강해 ${strongEls.map(e=>ELEM_FULL[e]).join(', ')} 재능이 도드라지고, `:'오행이 고루 퍼져 '}${missing.length?`<b>${missing.join('·')}</b>이 비어 ${missing.map(m=>MISSING_JAB[m]).join('·')}에서 약해지기 쉬워요.`:'큰 편중이 없어요.'}`} 겉모습(태양 <b>${w.sun[1]}</b>)과 속마음(달 <b>${w.moon[1]}</b>)이 달라 ${mt} 감정을 안에 품는 편이에요. ${cl[0]}`;
-  const love=`감정은 달(<b>${w.moon[1]}</b>)이 말해줘요 — ${mt} 편이에요. ${도화기질?'타고난 <b>매력(도화)</b>이 있어 이성 눈에 잘 띄고, ':''}${gwan?"<b>인연 자리(관성)</b>를 갖춰 좋은 상대를 알아보는 눈이 있어요":"인연 자리(관성)가 뚜렷하진 않아 좋은 인연도 스쳐 지나가기 쉬우니, 재보기보다 표현이 답이에요"}. 밀당보다 <b>먼저 마음을 여는 쪽</b>이 훨씬 잘 풀려요. ${용신상대.length?`잘 맞는 상대는 너를 살리는 <b>${용신L.map(elName).join('·')}</b> 기운 — <b>${용신상대.join('·')}</b>이 곁에 있으면 흐름이 안정돼요. `:''}지금 <b>${cur.k} 대운</b>에선 ${gwan?'관계가 한 단계 진전되기 좋아, 미루던 관계면 지금이 매듭지을 때':'혼자 애태우기보다 움직여야 결과가 나는 시기'}예요. ${cl[1]}`;
+  const love=`감정은 <b>달별자리</b>(<b>${w.moon[1]}</b>)가 말해줘요 — 생일로 정해지는 <b>태양별자리(${w.sun[1]})</b>가 겉으로 보이는 나라면, 달별자리는 <b>태어난 시각</b>으로 정해지는 속마음이에요. ${mt} 편이에요. ${도화기질?'타고난 <b>매력(도화)</b>이 있어 이성 눈에 잘 띄고, ':''}${gwan?"<b>인연 자리(관성)</b>를 갖춰 좋은 상대를 알아보는 눈이 있어요":"인연 자리(관성)가 뚜렷하진 않아 좋은 인연도 스쳐 지나가기 쉬우니, 재보기보다 표현이 답이에요"}. 밀당보다 <b>먼저 마음을 여는 쪽</b>이 훨씬 잘 풀려요. ${용신상대.length?`잘 맞는 상대는 너를 살리는 <b>${용신L.map(elName).join('·')}</b> 기운 — <b>${용신상대.join('·')}</b>이 곁에 있으면 흐름이 안정돼요. `:''}지금 <b>${cur.k} 대운</b>에선 ${gwan?'관계가 한 단계 진전되기 좋아, 미루던 관계면 지금이 매듭지을 때':'혼자 애태우기보다 움직여야 결과가 나는 시기'}예요. ${cl[1]}`;
   const money=`${jae?"재물 그릇(재성)을 갖춰 버는 힘 자체는 있어요":"큰 재성이 뚜렷하진 않아 한 방보다 꾸준히 쌓는 방식이 맞아요"}. ${warnYr?`다만 <b>${warnYr.연도}년(${warnYr.십신})</b>은 <b>${warnYr.조언||'지출·손실 조심'}</b> — 큰 지출·보증·동업은 이 해를 피하세요.`:missing.length?`다만 결정적 순간 돈이 새기 쉬우니 매듭짓는 힘을 사람·시스템으로 보완하세요.`:"오행이 고루 있어 큰 기복 없이 모으는 안정형이에요."} ${goodYr?`반대로 <b>${goodYr.연도}년(${goodYr.십신}${goodYr.특수&&goodYr.특수.length?'·'+goodYr.특수.join('·'):''})</b>엔 ${goodYr.조언||'버는 문이 크게 열려요'} — 투자·큰 결정은 이때로 몰아요.`:`투자·큰 지출은 <b>${cur.k} 대운</b>의 결을 보고 타이밍을 잡으세요.`} ${cl[2]}`;
   const year=`<b>${NOW}년(${yearGZ(NOW).k})</b>은 당신에게 <b>${yt}</b>예요. 지금 <b>${cur.k} 대운</b>과 겹쳐 변화의 진폭이 큰 해라, 새로 크게 벌이기보다 <b>있는 걸 정리하고 방향을 선택</b>하는 데 힘을 쓰는 게 이득이에요. 상반기엔 준비, 하반기엔 실행으로 나눠 가면 실수를 줄일 수 있어요. ${cl[3]}`;
   const _lt=(연애Yr.length?연애Yr:loveTiming(d.dStem,gender||"female")).slice().sort((a,b)=>a-b);
@@ -1654,7 +1654,7 @@ function run(){
     </div>
     ${coreSummary(r)}
     <div class="block" data-concern="rel" style="--tc:var(${t.cv})"><h3>당신이라는 사람</h3><p>${r.P.me}</p>
-      <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양 <b>${w.sun[1]}</b></span><span class="chip">달 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주 참고만</span>`:''}</div></div>
+      <div class="chips"><span class="chip">일간 <b>${d.dm[0]}${d.dm[1]}</b></span><span class="chip">띠 <b>${d.zodiac}</b></span><span class="chip">태양별자리 <b>${w.sun[1]}</b></span><span class="chip">달별자리 <b>${w.moon[1]}</b></span>${missing.length?`<span class="chip warn">없는 오행 <b>${missing.join('·')}</b></span>`:''}${noTime?`<span class="chip warn">⚠ 시간 미상 · 시주와 달별자리는 참고만</span>`:''}</div></div>
     <div class="block" style="--tc:var(${t.cv})"><h3>${IC.penta}오행 밸런스</h3>
       ${ohaengRadar(d.el)}
       <p style="margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--dim)">木火土金水 다섯 기운의 균형${missing.length?` — <b style="color:#e0655a">${missing.join('·')}</b> 기운이 비어있어요`:' — 고르게 갖췄어요'}</p></div>
@@ -3464,6 +3464,10 @@ function downloadPdf(){
  .pg:nth-child(-n+2){min-height:255mm;page-break-after:always;break-after:page;margin-bottom:0}
  .pg:last-child{page-break-after:auto}
  img{max-width:100%}
+ /* ⚠ 앱 CSS가 이 창엔 안 실리므로 아이콘 크기를 여기서 다시 지정. 없으면 SVG가 폭 100%로 부풀어 한 페이지를 통째로 먹음 */
+ .ic{display:inline-flex;width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:inherit;flex:none}
+ .ic svg{width:100%;height:100%;display:block}
+ .ai-out svg,.ai-p svg{max-width:15px;max-height:15px} /* 캡처된 AI 본문 속 인라인 아이콘 안전장치 */
  @media screen{body{max-width:760px;margin:0 auto;padding:24px 16px}.pg{box-shadow:0 1px 8px rgba(0,0,0,.06);border-radius:6px;padding:20px;margin-bottom:20px}.pg:nth-child(-n+2){min-height:0}}
  .print-hint{position:fixed;top:0;left:0;right:0;background:#b08d57;color:#fff;text-align:center;padding:9px;font-family:'Noto Sans KR',sans-serif;font-size:13px;z-index:9}
  @media print{.print-hint,.scr-only{display:none!important}}
